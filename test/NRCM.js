@@ -50,9 +50,21 @@ describe('NRCM.js', function(){
 	});
 
 	it('should start the application', function(){
-		nrcm.setUp('testing');
+		sync.createDirIfNotExists(path.join('apptest'));
+		sync.createDirIfNotExists(path.join('apptest', 'Controller'));
+		sync.createDirIfNotExists(path.join('apptest', 'Controller', 'Component'));
+
+		var controllerFile = path.join('apptest', 'Controller', 'MyController.js');
+		sync.createFileIfNotExists(controllerFile, 'module.exports = function (){ };');
+		var componentFile = path.join('apptest', 'Controller', 'Component', 'MyComponent.js');
+		sync.createFileIfNotExists(componentFile, 'module.exports = function(){}');
+
+		nrcm.setUp('apptest');
 		nrcm.start();
 		// Nothing to test here
+		fs.unlinkSync(path.join('apptest', 'Controller', 'MyController.js'));
+		fs.unlinkSync(path.join('apptest', 'Controller', 'Component', 'MyComponent.js'));
+		clearStructure('apptest');
 	});
 
 	it('should create the default internal structure', function(){

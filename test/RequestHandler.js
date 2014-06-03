@@ -43,13 +43,15 @@ function mockRequestHandler(controllers, components) {
     if (controllers === undefined) {
         controllers = {
             MyController : function(){
-                this.before = function() {
+                this.before = function(callback) {
                     controlVars['beforeCalled'] = true;
+                    callback();
                 }
-                this.after = function() {
+                this.after = function(callback) {
                     controlVars['afterCalled'] = true;
+                    callback();
                 }
-                this.post = function() {
+                this.post = function(callback) {
                     this.responseHeaders['header'] = 'value';
                     var output = {
                         'message' : 'This should be rendered'
@@ -57,9 +59,12 @@ function mockRequestHandler(controllers, components) {
                     controlVars['output'] = output;
                     controlVars['controllerInstance'] = this;
                     if (this.components !== undefined) {
-                        this.components['MyComponent'].method();
+                        this.components['MyComponent'].method(function(){
+                            callback(output);
+                        });
+                    } else {
+                        callback(output);
                     }
-                    return output;
                 };
             }
         };
@@ -67,8 +72,9 @@ function mockRequestHandler(controllers, components) {
     if (components === undefined){
         components = {
             MyComponent : function() {
-                this.method = function() {
+                this.method = function(callback) {
                     controlVars['componentMethodCalled'] = true;
+                    callback();
                 }
             }
         };
@@ -80,8 +86,7 @@ function mockRequestHandler(controllers, components) {
             'controllers' : controllers, 
             'components' : components
         }
-    });
-    rh.ExceptionsController = mockExceptionsController;
+    }, mockExceptionsController);
     rh.debug = rh.info = function(){};
 
     rh.isAllowed = function() {
@@ -91,52 +96,52 @@ function mockRequestHandler(controllers, components) {
 }
 
 function mockExceptionsController() {
-    this.onApplicationNotFound = function() {
+    this.onApplicationNotFound = function(callback) {
         controlVars['exception'] = 'ApplicationNotFound';
         this.statusCode = 404;
-        return {
+        callback({
             'code' : 404,
             'error' : 'ApplicationNotFound'
-        };
+        });
     };
 
-    this.onControllerNotFound = function() {
+    this.onControllerNotFound = function(callback) {
         controlVars['exception'] = 'ControllerNotFound';
         this.statusCode = 404;
-        return {
+        callback({
             'code' : 404,
             'error' : 'ControllerNotFound'
-        };
+        });
     };
 
-    this.onMethodNotFound = function() {
+    this.onMethodNotFound = function(callback) {
         controlVars['exception'] = 'MethodNotFound';
         this.statusCode = 404;
-        return {
+        callback({
             'code' : 404,
             'error' : 'MethodNotFound'
-        };
+        });
     };
 
-    this.onForbidden = function() {
+    this.onForbidden = function(callback) {
         controlVars['exception'] = 'Forbidden';
         this.statusCode = 403;
-        return {
+        callback({
             'code' : 403,
             'error' : 'Forbidden'
-        };
+        });
     };
 
-    this.onGeneral = function(exception) {
+    this.onGeneral = function(callback, exception) {
         controlVars['exception'] = exception.name;
         this.statusCode = 500;
         if (exception.stack !== undefined) {
             console.log(exception.stack);
         }
-        return {
+        callback({
             'name' : 'General',
             'cause' : exception,
-        };
+        });
     };
 }
 
@@ -164,8 +169,8 @@ describe('RequestHandler.js', function(){
                 controlVars = {};
                 var rh = mockRequestHandler({
                     MyController : function(){
-                        this.post = function() {
-                            return this.components['MyComponent'].method();
+                        this.post = function(callback) {
+                            this.components['MyComponent'].method(callback);
                         };
                     }
                 });

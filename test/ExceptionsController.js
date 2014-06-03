@@ -6,31 +6,31 @@ var instance = new ExceptionsController();
 describe('ExceptionsController.js', function(){
 	describe('onControllerNotFound', function(){
 		it('should return a JSON object', function(){
-			assert.equal('object', typeof instance.onControllerNotFound());
+			instance.onControllerNotFound(function(){});
 		});
 	});
 
 	describe('onApplicationNotFound', function(){
 		it('should return a JSON object', function(){
-			assert.equal('object', typeof instance.onApplicationNotFound());
+			instance.onApplicationNotFound(function(){});
 		});
 	});
 
 	describe('onMethodNotFound', function(){
 		it('should return a JSON object', function(){
-			assert.equal('object', typeof instance.onMethodNotFound());
+			instance.onMethodNotFound(function(){});
 		});
 	});
 
 	describe('onForbidden', function(){
 		it('should return a JSON object', function(){
-			assert.equal('object', typeof instance.onForbidden());
+			instance.onForbidden(function(){});
 		});
 	});
 
 	describe('onGeneral', function(){
 		it('should return a JSON object', function(){
-			assert.equal('object', typeof instance.onGeneral({}));
+			instance.onGeneral(function(){}, {});
 		});
 	});
 });
