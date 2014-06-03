@@ -19,8 +19,7 @@
   "main": "./lib/nrcm",
   "license": "Apache2",
   "name": "nrcm",
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "async": "0.2.9",
     "mocha": "1.13.0",
@@ -44,5 +43,11 @@
   "readme": "Please reade the README.md file.",
   "readmeFilename": "README.md",
   "_id": "nrcm@0.1.0",
-  "_from": "nrcm@"
+  "_from": "nrcm@",
+  "config": {
+    "blanket": {
+      "pattern": "lib",
+      "data-cover-never": "node_modules"
+    }
+  }
 }
