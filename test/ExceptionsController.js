@@ -1,5 +1,5 @@
 var assert = require('assert');
-var ExceptionsController = require('./../lib/ExceptionsController');
+var ExceptionsController = require('./../src/ExceptionsController');
 
 var instance = new ExceptionsController();
 

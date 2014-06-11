@@ -1,8 +1,8 @@
-var NRCM = require('./../lib/NRCM');
+var NRCM = require('./../src/NRCM');
 var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
-var sync = require('./../lib/sync');
+var sync = require('./../src/sync');
 var fs = require('fs');
 
 function clearStructure(dir) {

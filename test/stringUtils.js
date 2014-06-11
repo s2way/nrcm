@@ -1,5 +1,5 @@
 var assert = require('assert');
-var stringUtils = require('./../lib/stringUtils');
+var stringUtils = require('./../src/stringUtils');
 
 describe('stringUtils.js', function() {
 

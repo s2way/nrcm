@@ -16,11 +16,14 @@
     "view",
     "controller"
   ],
-  "main": "./lib/nrcm",
+  "main": "./index.js",
   "license": "Apache2",
   "name": "nrcm",
-  "dependencies": {},
+  "dependencies": {
+    "couchbase": "^1.2.4"
+  },
   "devDependencies": {
+    "blanket": "^1.1.6",
     "async": "0.2.9",
     "mocha": "1.13.0",
     "jshint": "~2.3.0",
@@ -46,7 +49,7 @@
   "_from": "nrcm@",
   "config": {
     "blanket": {
-      "pattern": "lib",
+      "pattern": "src",
       "data-cover-never": "node_modules"
     }
   }

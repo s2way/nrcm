@@ -1,4 +1,4 @@
-var exceptions = require("./../lib/exceptions");
+var exceptions = require("./../src/exceptions");
 var assert = require("assert");
 
 describe('exceptions.js', function() {

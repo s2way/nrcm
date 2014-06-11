@@ -1,4 +1,4 @@
-var acl = require('./../lib/acl');
+var acl = require('./../src/acl');
 var assert = require('assert');
 
 describe('acl.js', function(){

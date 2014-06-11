@@ -1,5 +1,5 @@
-var RequestHandler = require('./../lib/RequestHandler.js');
-var exceptions = require('./../lib/exceptions.js');
+var RequestHandler = require('./../src/RequestHandler.js');
+var exceptions = require('./../src/exceptions.js');
 var assert = require('assert');
 
 var controlVars = {}
