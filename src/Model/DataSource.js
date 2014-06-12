@@ -1,6 +1,6 @@
 var exceptions = require('./../exceptions');
 
-function DataSource(configs) {
+function DataSource(name, configs) {
 	if (typeof configs !== 'object' ||
 		typeof configs.host !== 'string' ||
 		typeof configs.port !== 'string' || 
@@ -9,6 +9,7 @@ function DataSource(configs) {
 		throw new exceptions.IllegalArgument('Invalid DataSource configurations');
 	}
 
+	this.name = name;
 	this.host = configs.host;
 	this.port = configs.port;
 	this.type = configs.type;
@@ -17,6 +18,10 @@ function DataSource(configs) {
 	this.couchbase = require('couchbase');
 }
 
+DataSource.prototype.log = function(msg) {
+	console.log('[DataSource] ' + this.name + ' -> ' + msg);
+};
+
 DataSource.prototype.connect = function(onSuccess, onError) {
 	var that = this;
 	if (typeof onSuccess !== 'function' ||
@@ -24,19 +29,23 @@ DataSource.prototype.connect = function(onSuccess, onError) {
 		throw new exceptions.IllegalArgument('DataSource.connect() onSuccess and onError must be functions');
 	}
 	if (this.connection !== null) {
+		this.log('Recycling connection');
 		onSuccess(this.connection);
 		return;
 	}
 
 	if (this.type === 'Couchbase') {
+		this.log('Connecting to ' + this.host + ':' + this.port);
 		var connection = new this.couchbase.Connection({
 			'host' : this.host + ':' + this.port,
 			'bucket' : this.index
 		}, function(error){
 			that.connection = connection;
 			if (error) {
+				that.log('Connection error: ' + error);
 				onError(error);
 			} else {
+				that.log('Connection successful');
 				onSuccess(connection);
 			}
 		});
@@ -45,21 +54,15 @@ DataSource.prototype.connect = function(onSuccess, onError) {
 	}
 };
 
-DataSource.prototype.disconnect = function(onSuccess, onError) {
-	if (typeof onSuccess !== 'function' ||
-		typeof onError !== 'function') {
-		throw new exceptions.IllegalArgument('DataSource.disconnect() onSuccess and onError must be functions');
-	}
+DataSource.prototype.disconnect = function() {
+	var that = this;
 	if (this.connection !== null) {
 		if (this.type === 'Couchbase') {
+			that.log('Disconnecting');
 			this.connection.shutdown();
-			onSuccess();
+			that.log('Disconnected');
 			this.connection = null;
-		} else {
-			onError();
 		}
-	} else {
-		onError();
 	}
 };
 

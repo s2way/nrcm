@@ -101,9 +101,8 @@ RequestHandler.prototype.invokeController = function(controller, method) {
 	// Instantiate all DataSources
 	for (var dataSourceName in this.configs.dataSources) {
 		var dataSourceConfig = this.configs.dataSources[dataSourceName];
-		dataSources[dataSourceName] = new DataSource(dataSourceConfig);
+		dataSources[dataSourceName] = new DataSource(dataSourceName, dataSourceConfig);
 	}
-
 
 	controllerInstance.models = {};
 	// Injects the models
@@ -173,12 +172,18 @@ RequestHandler.prototype.invokeController = function(controller, method) {
 						}
 					}
 
+					// Shutdown all connections
+					for (var dataSourceName in dataSources) {
+						var dataSource = dataSources[dataSourceName];
+						dataSource.disconnect();
+					}
+
 					that.render(
 						savedOutput,
 						controllerInstance.statusCode
 					);
 				} catch (e) {
-					handleRequestException(e);
+					that.handleRequestException(e);
 				}
 			}
 

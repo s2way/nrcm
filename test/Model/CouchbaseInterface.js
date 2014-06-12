@@ -15,7 +15,7 @@ var data = {
 };
 
 function createDataSource(couchbase) {
-	var ds = new DataSource({
+	var ds = new DataSource('default', {
 		'index' : 'bucket',
 		'type' : 'Couchbase',
 		'host' : 'localhost',

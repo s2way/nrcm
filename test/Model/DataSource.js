@@ -13,6 +13,12 @@ describe('DataSource.js', function() {
 		};
 	};
 
+	function createDataSource(name, configs) {
+		var ds = new DataSource(name, configs);
+		ds.log = function(){};
+		return ds;
+	}
+
 	var configs = {
 		'index' : 'cep',
 		'host' : '127.0.0.1',
@@ -24,7 +30,7 @@ describe('DataSource.js', function() {
 		
 		it('should throw an IllegalArgument exception if one of the parameters is not a string', function(){
 			try {
-				new DataSource();
+				createDataSource('default');
 				assert.fail();
 			} catch (e) {
 				assert.equal('IllegalArgument', e.name);
@@ -37,7 +43,7 @@ describe('DataSource.js', function() {
 		
 		it('should throw an IllegalArgument exception if the parameters passed are not functions', function(){
 			try {
-				var ds = new DataSource(configs);
+				var ds = createDataSource('default', configs);
 				ds.connect(null, null);
 			} catch (e){
 				assert.equal('IllegalArgument', e.name);
@@ -45,7 +51,7 @@ describe('DataSource.js', function() {
 		});
 
 		it('should call onSuccess if the connection already exists', function(done) {
-			var ds = new DataSource(configs);
+			var ds = createDataSource('default', configs);
 			ds.connection = {};
 			ds.connect(function(){
 				done();
@@ -55,7 +61,7 @@ describe('DataSource.js', function() {
 		});
 
 		it('should call couchbase connect if the type is Couchbase', function(done){
-			var ds = new DataSource(configs);
+			var ds = createDataSource('default', configs);
 			ds.couchbase = mockCouchbase();
 
 			ds.connect(function(){
@@ -66,7 +72,7 @@ describe('DataSource.js', function() {
 		});
 
 		it('should call onError if Couchbase connect function returns an error', function(done){
-			var ds = new DataSource(configs);
+			var ds = createDataSource('default', configs);
 			ds.type = 'Invalid';
 			ds.connect(function(){
 				assert.fail();
@@ -76,7 +82,7 @@ describe('DataSource.js', function() {
 		});
 
 		it('should call onError if the connection type is invalid', function(done){
-			var ds = new DataSource(configs);
+			var ds = createDataSource('default', configs);
 			ds.couchbase = {
 				'Connection' : function(connOptions, connectionCallback){
 					this.shutdown = function(){};
@@ -96,55 +102,18 @@ describe('DataSource.js', function() {
 
 	describe('disconnect', function() {
 
-		it('should throw an IllegalArgument exception if the parameter passed is not a function', function(){
-			try {
-				var ds = new DataSource(configs);
-				ds.connect(function(){}, function(){});
-				ds.disconnect();
-			} catch (e){
-				assert.equal('IllegalArgument', e.name);
-			}
-		});
-
 		it('should call Couchbase disconnect if the type is Couchbase and there is an active connection', function(done){
 
-			var ds = new DataSource(configs);
+			var ds = createDataSource('default', configs);
 			ds.couchbase = mockCouchbase();
 			ds.connect(function(){
-				ds.disconnect(function(){
-					done();
-				}, function(){
-					assert.fail();
-				});
-			}, function(){
-				assert.fail();
-			});
-
-		});
-
-		it('should call onError if the connection type is invalid', function(done){
-
-			var ds = new DataSource(configs);
-			ds.couchbase = mockCouchbase();
-			ds.connect(function(){
-				ds.type = 'Invalid';
-				ds.disconnect(function(){
-					assert.fail();
-				}, function(){
-					done();
-				});
-			}, function(){});
-
-		});
-
-		it('should call onError if there is no active connection', function(done){
-			var ds = new DataSource(configs);
-			ds.disconnect(function(){
-				assert.fail();
-			}, function(){
+				ds.disconnect();
 				done();
+			}, function(){
+				assert.fail();
 			});
-		})
+
+		});
 
 	});
 });

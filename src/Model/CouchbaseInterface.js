@@ -234,8 +234,9 @@ CouchbaseInterface.prototype._find = function(conditions, options, callback) {
 	var that = this;
 	if (conditions['_id'] !== undefined) {
 		this.dataSource.connect(function(connection) {
-			connection.get(that.uid + conditions['_id'], callback);
+			connection.get(conditions['_id'], callback);
 		}, function(err){
+			that.log('findById error: ' + err);
 			callback(err);
 		}); 
 	}
@@ -286,6 +287,7 @@ CouchbaseInterface.prototype.findById = function(id, callback) {
 	if (id === undefined || typeof callback !== 'function') {
 		throw new exceptions.IllegalArgument('All arguments are mandatory');
 	}
+	this.log('findById(' + id + ')');
 	this._find({'_id' : this.uid + this.separator + id}, {}, callback);
 };
 
