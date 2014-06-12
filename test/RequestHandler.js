@@ -100,7 +100,14 @@ function mockRequestHandler(controllers, components) {
     };
 
     var rh = new RequestHandler({
-        'database' : 'Mock',
+        'dataSources' : {
+            'default' : {
+                'type' : 'Mock',
+                'host' : '0.0.0.0',
+                'port' : '3298',
+                'index' : 'bucket'
+            }
+        },
         'urlFormat' : '/#service/#version/$application/$controller'
     }, {
         'app' : {

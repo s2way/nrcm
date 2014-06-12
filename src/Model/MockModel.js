@@ -1,15 +1,8 @@
-function MockModel(configurations) {
+function MockModel(dataSource, configurations) {
 }
 
 MockModel.prototype.removeById = function(id, callback, options) {
 	callback();
-};
-
-MockModel.prototype.connect = function(onSuccess, onError) { 
-	onSuccess();
-};
-
-MockModel.prototype.disconnect = function() {
 };
 
 MockModel.prototype.findByKey = function(keyValue, keyName, callback) {

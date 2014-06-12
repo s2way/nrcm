@@ -6,38 +6,31 @@ var MockModel = require('./MockModel');
 
 var exceptions = require('./../exceptions');
 
-function Model(name, configurations) {
-	if (name === 'Couchbase') {
-		this.dataSource = new CouchbaseModel(configurations);
-	} else if (name === 'Mock') {
-		this.dataSource = new MockModel(configurations);
+function Model(dataSource, configurations) {
+	this.dataSource = dataSource;
+	if (dataSource.type === 'Couchbase') {
+		this.model = new CouchbaseModel(dataSource, configurations);
+	} else if (dataSource.type === 'Mock') {
+		this.model = new MockModel(dataSource, configurations);
 	} else {
-		throw new exceptions.IllegalArgument('Invalid Model name: ' + name);
+		throw new exceptions.IllegalArgument('Invalid DataSource type: ' + dataSource.type);
 	}
 }
 
-Model.prototype.connect = function(onSuccess, onError) { 
-	return this.dataSource.connect(onSuccess, onError);
-};
-
-Model.prototype.disconnect = function() {
-	return this.dataSource.disconnect();
-};
-
 Model.prototype.findByKey = function(keyValue, keyName, callback) {
-	return this.dataSource.findByKey(keyValue, keyName, callback);
+	return this.model.findByKey(keyValue, keyName, callback);
 };
 
 Model.prototype.findById = function(id, callback) {
-	return this.dataSource.findById(id, callback);
+	return this.model.findById(id, callback);
 };
 
 Model.prototype.save = function(id, data, callback, prefix, options) {
-	return this.dataSource.save(id, data, callback, prefix, options);
+	return this.model.save(id, data, callback, prefix, options);
 };
 
 Model.prototype.removeById = function(id, callback, options) {
-	return this.dataSource.removeById(id, callback, options);
+	return this.model.removeById(id, callback, options);
 };
 
 module.exports = Model;

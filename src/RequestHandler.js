@@ -6,6 +6,7 @@ var exceptions = require('./exceptions');
 var stringUtils = require('./stringUtils');
 var Router = require('./Router');
 var Model = require('./Model/Model');
+var DataSource = require('./Model/DataSource');
 
 function RequestHandler(configs, applications, ExceptionsController) {
 	this.applications = applications;
@@ -96,15 +97,30 @@ RequestHandler.prototype.invokeController = function(controller, method) {
 		controllerInstance.components[componentName] = componentInstance;
 	}
 
+	var dataSources = [];
+	// Instantiate all DataSources
+	for (var dataSourceName in this.configs.dataSources) {
+		var dataSourceConfig = this.configs.dataSources[dataSourceName];
+		dataSources[dataSourceName] = new DataSource(dataSourceConfig);
+	}
+
+
 	controllerInstance.models = {};
 	// Injects the models
 	for (var modelName in application.models) {
 		var ModelConstructor = application.models[modelName];
 		var modelInstance = new ModelConstructor();
+
+		var modelDataSourceName = modelInstance.dataSource;
+		if (modelDataSourceName === undefined) {
+			modelDataSourceName = 'default';
+		}
+
+		var dataSource = dataSources[modelDataSourceName];
+
 		modelInstance.name = modelName;
-		modelInstance.model = new Model(this.configs.database, {
+		modelInstance.model = new Model(dataSource, {
 			'uid' : modelInstance.uid,
-			'bucket' : modelInstance.bucket,
 			'keys' : modelInstance.keys,
 			'locks' : modelInstance.locks,
 			'requires' : modelInstance.requires,

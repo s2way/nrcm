@@ -7,16 +7,17 @@ var utils = require('./utils.js');
 var util = require('util');
 var ModelTrigger = require('./ModelTrigger');
 
-function CouchbaseModel(configurations) {
-	if (configurations === undefined) {
+function CouchbaseModel(dataSource, configurations) {
+
+	if (dataSource === undefined) {
+		throw new exceptions.IllegalArgument('Invalid DataSource');
+	} else if (configurations === undefined) {
 		throw new exceptions.IllegalArgument('The configurations parameter is mandatory');
-	} else if (configurations.bucket === undefined) {
-		throw new exceptions.IllegalArgument('Bucket is not defined!');
 	} else if (configurations.uid === undefined) {
 		throw new exceptions.IllegalArgument('Uid is not defined!');
 	}
-	// Bucket name
-	this.bucket = configurations.bucket;
+	
+	this.dataSource = dataSource;
 	// Record key: uid prefix
 	this.uid = configurations.uid;
 	// Possible fields that are coing to be searched by
@@ -47,9 +48,6 @@ function CouchbaseModel(configurations) {
 		this.separator = '_';
 	}
 
-	this.couchbase = require('couchbase');
-
-	this.connection = null;
 	this.validator = new Validator(this.validate);
 }
 
@@ -104,7 +102,7 @@ CouchbaseModel.prototype.removeById = function(id, callback, options) {
 	}
 
 	var operation = function(callback) {
-		that.connect(function(connection) {
+		that.dataSource.connect(function(connection) {
 			that.log('[removeById] connected');
 			connection.get(that.uid + that.separator + id, function(err, result){
 				if (err) {
@@ -168,10 +166,12 @@ CouchbaseModel.prototype._saveKeys = function(keys, data, id, oldData, callback)
 		if (removeIds.length === 0) {
 			callback();
 		} else {
-			that.connect(function(connection){
+			that.dataSource.connect(function(connection){
 				connection.removeMulti(removeIds, {}, function(err, results){
 					callback(err);
 				});
+			}, function(err){
+				callback(err);
 			});
 		}
 	}
@@ -181,13 +181,15 @@ CouchbaseModel.prototype._saveKeys = function(keys, data, id, oldData, callback)
 			that.log('No keys to create');
 			callback();
 		} else {
-			that.connect(function(connection){
+			that.dataSource.connect(function(connection){
 				connection.setMulti(documents, {}, function(err, results){
 					if (!err) {
 						that.log('Keys created');
 					}
 					callback(err);
 				});	
+			}, function(err){
+				callback(err);
 			});
 		}
 	}
@@ -221,34 +223,6 @@ CouchbaseModel.prototype._checkRequired = function(data, requireFields) {
 }
 
 /*
-* Instanciate a db connection
-*
-* @method db
-*/
-CouchbaseModel.prototype.connect = function(onSuccess, onError) { 
-	if (this.connection === null) {
-		var connection = new this.couchbase.Connection({
-			'bucket' : this.bucket
-		}, function(error){
-			if (error) {
-				onError(error);
-			} else {
-				onSuccess(connection);
-			}
-		});
-		this.connection = connection;
-	} else {
-		onSuccess(this.connection);
-	}
-}
-
-CouchbaseModel.prototype.disconnect = function() {
-	if (this.connection !== null) {
-		this.connection.shutdown();
-	}
-};
-
-/*
 * Retrieve documents from the bucket
 *
 * @method find
@@ -259,7 +233,7 @@ CouchbaseModel.prototype.disconnect = function() {
 CouchbaseModel.prototype._find = function(conditions, options, callback) {
 	var that = this;
 	if (conditions['_id'] !== undefined) {
-		this.connect(function(connection) {
+		this.dataSource.connect(function(connection) {
 			connection.get(that.uid + conditions['_id'], callback);
 		}, function(err){
 			callback(err);
@@ -280,7 +254,7 @@ CouchbaseModel.prototype.findByKey = function(keyValue, keyName, callback) {
 	if (keyValue === undefined || keyName === undefined || typeof callback !== 'function') {
 		throw new exceptions.IllegalArgument('All parameters are mandatory');
 	}
-	that.connect(function(connection) {
+	that.dataSource.connect(function(connection) {
 		that.log('[findByKey] connected');
 		connection.get(that.uid + that.separator + keyName + that.separator + keyValue, function(err, result) {
 			if (err) {
@@ -349,7 +323,7 @@ CouchbaseModel.prototype.save = function(id, data, callback, prefix, options) {
 	}
 
 	var operation = function(callback) {
-		that.connect(function(connection){
+		that.dataSource.connect(function(connection){
 			connection.get(prefix + that.separator + id, function(err, result) {				
 				var isUpdate = result['value'] !== undefined && result['value'];
 				var isSave = !isUpdate;

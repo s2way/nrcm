@@ -6,7 +6,7 @@ function DataSource(configs) {
 		typeof configs.port !== 'string' || 
 		typeof configs.type !== 'string' ||
 		typeof configs.index !== 'string') {
-		throw new exceptions.IllegalArgument();
+		throw new exceptions.IllegalArgument('Invalid DataSource configurations');
 	}
 
 	this.host = configs.host;
@@ -21,7 +21,7 @@ DataSource.prototype.connect = function(onSuccess, onError) {
 	var that = this;
 	if (typeof onSuccess !== 'function' ||
 		typeof onError !== 'function') {
-		throw new exceptions.IllegalArgument();
+		throw new exceptions.IllegalArgument('DataSource.connect() onSuccess and onError must be functions');
 	}
 	if (this.connection !== null) {
 		onSuccess(this.connection);
@@ -48,7 +48,7 @@ DataSource.prototype.connect = function(onSuccess, onError) {
 DataSource.prototype.disconnect = function(onSuccess, onError) {
 	if (typeof onSuccess !== 'function' ||
 		typeof onError !== 'function') {
-		throw new exceptions.IllegalArgument();
+		throw new exceptions.IllegalArgument('DataSource.disconnect() onSuccess and onError must be functions');
 	}
 	if (this.connection !== null) {
 		if (this.type === 'Couchbase') {
