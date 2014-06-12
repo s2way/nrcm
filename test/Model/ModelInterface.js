@@ -1,7 +1,7 @@
 var assert = require('assert');
-var Model = require('./../../src/Model/Model');
+var ModelInterface = require('./../../src/Model/ModelInterface');
 
-describe('Model.js', function(){
+describe('ModelInterface.js', function(){
 	
 	var configurations = {
 		'uid' : 'pessoa'
@@ -11,16 +11,16 @@ describe('Model.js', function(){
 		'type' : 'Mock'
 	};
 
-	describe('Model', function(){
+	describe('ModelInterface', function(){
 		
 		it('shoud instantiate the DataSource object', function(){
-			var model = new Model(dataSource, configurations);
+			var model = new ModelInterface(dataSource, configurations);
 			assert.equal(true, model.model !== null);
 		});
 
 		it('should throw an IllegalArgument exception if the DataSource cannot be found', function(){
 			try {
-				new Model('Invalid', configurations);
+				new ModelInterface('Invalid', configurations);
 				assert.fail();
 			} catch (e) {
 				assert.equal('IllegalArgument', e.name);
@@ -31,7 +31,7 @@ describe('Model.js', function(){
 
 	describe('findById', function(){
 		it('should call the DataSource findById', function(done) {
-			var model = new Model(dataSource, configurations);
+			var model = new ModelInterface(dataSource, configurations);
 			var id = '02895328099';
 			model.model.findById = function(idd, callback) {
 				assert.equal(id, idd)
@@ -44,7 +44,7 @@ describe('Model.js', function(){
 	
 	describe('findByKey', function(){
 		it('should call the DataSource findByKey', function(done) {
-			var model = new Model(dataSource, configurations);
+			var model = new ModelInterface(dataSource, configurations);
 			var emailValue = 'davi@versul.com.br';
 			var emailName = 'email';
 			model.model.findByKey = function(keyValue, keyName, callback) {
@@ -59,7 +59,7 @@ describe('Model.js', function(){
 	
 	describe('save', function(){
 		it('should call the DataSource save', function(done) {
-			var model = new Model(dataSource, configurations);
+			var model = new ModelInterface(dataSource, configurations);
 			var id = '02895328099';
 			var data = {};
 			var options = {};
@@ -78,7 +78,7 @@ describe('Model.js', function(){
 	
 	describe('removeById', function(){
 		it('should call the DataSource removeById', function(done){
-			var model = new Model(dataSource, configurations);
+			var model = new ModelInterface(dataSource, configurations);
 			var id = '02895328099';
 
 			model.model.save = function(_id, callback) {

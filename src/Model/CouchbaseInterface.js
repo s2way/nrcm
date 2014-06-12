@@ -7,7 +7,7 @@ var utils = require('./utils.js');
 var util = require('util');
 var ModelTrigger = require('./ModelTrigger');
 
-function CouchbaseModel(dataSource, configurations) {
+function CouchbaseInterface(dataSource, configurations) {
 
 	if (dataSource === undefined) {
 		throw new exceptions.IllegalArgument('Invalid DataSource');
@@ -59,7 +59,7 @@ function CouchbaseModel(dataSource, configurations) {
  * @param {Object} lock
  * @param {String} status 
  */
-CouchbaseModel.prototype._isLocked = function(data, lock, status) {
+CouchbaseInterface.prototype._isLocked = function(data, lock, status) {
 	for (var n in lock) {
 		if (data[n] === undefined) {
 			continue;
@@ -73,7 +73,7 @@ CouchbaseModel.prototype._isLocked = function(data, lock, status) {
 	return false;
 }
 
-CouchbaseModel.prototype._searchKeys = function(keys, data) {
+CouchbaseInterface.prototype._searchKeys = function(keys, data) {
 	this.log('Searching keys');
 	var removeIds = [];
 	var that = this;
@@ -92,7 +92,7 @@ CouchbaseModel.prototype._searchKeys = function(keys, data) {
 	return removeIds;
 };
 
-CouchbaseModel.prototype.removeById = function(id, callback, options) {
+CouchbaseInterface.prototype.removeById = function(id, callback, options) {
 	var that = this;
 	if (options === undefined) {
 		options = {};
@@ -138,7 +138,7 @@ CouchbaseModel.prototype.removeById = function(id, callback, options) {
 
 }
 
-CouchbaseModel.prototype._saveKeys = function(keys, data, id, oldData, callback) {
+CouchbaseInterface.prototype._saveKeys = function(keys, data, id, oldData, callback) {
 	var documents = {};
 	var removeIds = [];
 	var that = this;
@@ -210,7 +210,7 @@ CouchbaseModel.prototype._saveKeys = function(keys, data, id, oldData, callback)
 *
 * @param {Object} data
 */
-CouchbaseModel.prototype._checkRequired = function(data, requireFields) {
+CouchbaseInterface.prototype._checkRequired = function(data, requireFields) {
 	var that = this;
 	for (var n in requireFields) {
 		if (typeof data[n] === 'object') {
@@ -230,7 +230,7 @@ CouchbaseModel.prototype._checkRequired = function(data, requireFields) {
 * @param {Object} options Rules like limit, skip, order
 * @param {Object} callback
 */
-CouchbaseModel.prototype._find = function(conditions, options, callback) {
+CouchbaseInterface.prototype._find = function(conditions, options, callback) {
 	var that = this;
 	if (conditions['_id'] !== undefined) {
 		this.dataSource.connect(function(connection) {
@@ -249,7 +249,7 @@ CouchbaseModel.prototype._find = function(conditions, options, callback) {
 * @param {String} prefix Field name
 * @param {Object} callback
 */
-CouchbaseModel.prototype.findByKey = function(keyValue, keyName, callback) {
+CouchbaseInterface.prototype.findByKey = function(keyValue, keyName, callback) {
 	var that = this;
 	if (keyValue === undefined || keyName === undefined || typeof callback !== 'function') {
 		throw new exceptions.IllegalArgument('All parameters are mandatory');
@@ -282,15 +282,15 @@ CouchbaseModel.prototype.findByKey = function(keyValue, keyName, callback) {
 * @param {Object} id The object id
 * @param {Object} callback
 */
-CouchbaseModel.prototype.findById = function(id, callback) {
+CouchbaseInterface.prototype.findById = function(id, callback) {
 	if (id === undefined || typeof callback !== 'function') {
 		throw new exceptions.IllegalArgument('All arguments are mandatory');
 	}
 	this._find({'_id' : this.uid + this.separator + id}, {}, callback);
 };
 
-CouchbaseModel.prototype.log = function(msg) {
-	console.log('[CouchbaseModel] ' + (typeof msg === 'object'? JSON.stringify(msg) : msg));
+CouchbaseInterface.prototype.log = function(msg) {
+	console.log('[CouchbaseInterface] ' + (typeof msg === 'object'? JSON.stringify(msg) : msg));
 };
 
 /*
@@ -302,7 +302,7 @@ CouchbaseModel.prototype.log = function(msg) {
  * @param {Object} options Rules like persistent, etc...
  * @param {Object} callback
  */
-CouchbaseModel.prototype.save = function(id, data, callback, prefix, options) {
+CouchbaseInterface.prototype.save = function(id, data, callback, prefix, options) {
 	if (options === undefined) {
 		options = {};
 	}
@@ -411,4 +411,4 @@ CouchbaseModel.prototype.save = function(id, data, callback, prefix, options) {
 	trigger.execute({'id' : id, 'data' : data});
 }
 
-module.exports = CouchbaseModel;
+module.exports = CouchbaseInterface;

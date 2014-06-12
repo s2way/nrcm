@@ -5,7 +5,7 @@ var aclModule = require('./acl');
 var exceptions = require('./exceptions');
 var stringUtils = require('./stringUtils');
 var Router = require('./Router');
-var Model = require('./Model/Model');
+var ModelInterface = require('./Model/ModelInterface');
 var DataSource = require('./Model/DataSource');
 
 function RequestHandler(configs, applications, ExceptionsController) {
@@ -119,7 +119,7 @@ RequestHandler.prototype.invokeController = function(controller, method) {
 		var dataSource = dataSources[modelDataSourceName];
 
 		modelInstance.name = modelName;
-		modelInstance.model = new Model(dataSource, {
+		modelInstance.model = new ModelInterface(dataSource, {
 			'uid' : modelInstance.uid,
 			'keys' : modelInstance.keys,
 			'locks' : modelInstance.locks,
