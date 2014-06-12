@@ -5,9 +5,10 @@ var exceptions = require('./../exceptions');
  *
  * @constructor
  * @method DataSource
+ * @param {string} name ?
  * @param {json} configs The json with the database parameters
  */
-function DataSource(configs) {
+function DataSource(name, configs) {
 	if (typeof configs !== 'object' ||
 		typeof configs.host !== 'string' ||
 		typeof configs.port !== 'string' ||
@@ -16,13 +17,23 @@ function DataSource(configs) {
 		throw new exceptions.IllegalArgument('Invalid DataSource configurations');
 	}
 
+	this.name = name;
 	this.host = configs.host;
 	this.port = configs.port;
 	this.type = configs.type;
 	this.index = configs.index;
 	this.connection = null;
-	this.couchbase = require('couchbase');
+	// This is necessary for Travis
+	try {
+		this.couchbase = require('couchbase');
+	} catch (e) {
+		console.log(e);
+	}
 }
+
+DataSource.prototype.log = function(msg) {
+	console.log('[DataSource] ' + this.name + ' -> ' + msg);
+};
 
 /**
  * Establish a connection with the database
@@ -38,19 +49,23 @@ DataSource.prototype.connect = function(onSuccess, onError) {
 		throw new exceptions.IllegalArgument('DataSource.connect() onSuccess and onError must be functions');
 	}
 	if (this.connection !== null) {
+		this.log('Recycling connection');
 		onSuccess(this.connection);
 		return;
 	}
 
 	if (this.type === 'Couchbase') {
+		this.log('Connecting to ' + this.host + ':' + this.port);
 		var connection = new this.couchbase.Connection({
 			'host' : this.host + ':' + this.port,
 			'bucket' : this.index
 		}, function(error){
 			that.connection = connection;
 			if (error) {
+				that.log('Connection error: ' + error);
 				onError(error);
 			} else {
+				that.log('Connection successful');
 				onSuccess(connection);
 			}
 		});
@@ -63,24 +78,16 @@ DataSource.prototype.connect = function(onSuccess, onError) {
  * Disconnect from the database
  *
  * @method disconnect
- * @param {function} onSuccess Callback for the success
- * @param {function} onError Callback for the error
  */
-DataSource.prototype.disconnect = function(onSuccess, onError) {
-	if (typeof onSuccess !== 'function' ||
-		typeof onError !== 'function') {
-		throw new exceptions.IllegalArgument('DataSource.disconnect() onSuccess and onError must be functions');
-	}
+DataSource.prototype.disconnect = function() {
+	var that = this;
 	if (this.connection !== null) {
 		if (this.type === 'Couchbase') {
+			that.log('Disconnecting');
 			this.connection.shutdown();
-			onSuccess();
+			that.log('Disconnected');
 			this.connection = null;
-		} else {
-			onError();
 		}
-	} else {
-		onError();
 	}
 };
 

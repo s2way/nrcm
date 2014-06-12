@@ -5,7 +5,7 @@ var aclModule = require('./acl');
 var exceptions = require('./exceptions');
 var stringUtils = require('./stringUtils');
 var Router = require('./Router');
-var Model = require('./Model/Model');
+var ModelInterface = require('./Model/ModelInterface');
 var DataSource = require('./Model/DataSource');
 
 /**
@@ -124,9 +124,8 @@ RequestHandler.prototype.invokeController = function(controller, method) {
 	// Instantiate all DataSources
 	for (var dataSourceName in this.configs.dataSources) {
 		var dataSourceConfig = this.configs.dataSources[dataSourceName];
-		dataSources[dataSourceName] = new DataSource(dataSourceConfig);
+		dataSources[dataSourceName] = new DataSource(dataSourceName, dataSourceConfig);
 	}
-
 
 	controllerInstance.models = {};
 	// Injects the models
@@ -142,7 +141,7 @@ RequestHandler.prototype.invokeController = function(controller, method) {
 		var dataSource = dataSources[modelDataSourceName];
 
 		modelInstance.name = modelName;
-		modelInstance.model = new Model(dataSource, {
+		modelInstance.model = new ModelInterface(dataSource, {
 			'uid' : modelInstance.uid,
 			'keys' : modelInstance.keys,
 			'locks' : modelInstance.locks,
@@ -197,12 +196,18 @@ RequestHandler.prototype.invokeController = function(controller, method) {
 						}
 					}
 
+					// Shutdown all connections
+					for (var dataSourceName in dataSources) {
+						var dataSource = dataSources[dataSourceName];
+						dataSource.disconnect();
+					}
+
 					that.render(
 						savedOutput,
 						controllerInstance.statusCode
 					);
 				} catch (e) {
-					handleRequestException(e);
+					that.handleRequestException(e);
 				}
 			}
 

@@ -35,12 +35,16 @@
   },
   "version": "0.1.0",
   "scripts": {
-    "test": "./node_modules/mocha/bin/mocha"
+    "test": "mocha test test/Model"
   },
   "contributors": [
     {
       "name": "Juliano Lazzarotto",
       "email": "jl.br.nh@gmail.com"
+    },
+    {
+      "name": "Davi Gabriel da Silva",
+      "email" : "davi.gbr@gmail.com"
     }
   ],
   "readme": "Please reade the README.md file.",
