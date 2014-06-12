@@ -1,9 +1,16 @@
 var exceptions = require('./../exceptions');
 
+/**
+ * DataSource object, the datasource is persistent and last the whole request
+ *
+ * @constructor
+ * @method DataSource
+ * @param {json} configs The json with the database parameters
+ */
 function DataSource(configs) {
 	if (typeof configs !== 'object' ||
 		typeof configs.host !== 'string' ||
-		typeof configs.port !== 'string' || 
+		typeof configs.port !== 'string' ||
 		typeof configs.type !== 'string' ||
 		typeof configs.index !== 'string') {
 		throw new exceptions.IllegalArgument('Invalid DataSource configurations');
@@ -17,6 +24,13 @@ function DataSource(configs) {
 	this.couchbase = require('couchbase');
 }
 
+/**
+ * Establish a connection with the database
+ *
+ * @method connect
+ * @param {function} onSuccess Callback for the success
+ * @param {function} onError Callback for the error
+ */
 DataSource.prototype.connect = function(onSuccess, onError) {
 	var that = this;
 	if (typeof onSuccess !== 'function' ||
@@ -45,6 +59,13 @@ DataSource.prototype.connect = function(onSuccess, onError) {
 	}
 };
 
+/**
+ * Disconnect from the database
+ *
+ * @method disconnect
+ * @param {function} onSuccess Callback for the success
+ * @param {function} onError Callback for the error
+ */
 DataSource.prototype.disconnect = function(onSuccess, onError) {
 	if (typeof onSuccess !== 'function' ||
 		typeof onError !== 'function') {

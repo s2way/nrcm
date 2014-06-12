@@ -1,6 +1,6 @@
 module.exports = {
 
-	// Exceptions that close the application
+	// Exceptions that must close the application
 	Fatal : function(message, cause) {
 		this.cause = cause;
 		this.name = 'Fatal';
@@ -45,13 +45,13 @@ module.exports = {
 		this.message = message;
 	},
 
-	IllegalArgument : function(message) { 
+	IllegalArgument : function(message) {
 		this.message = message;
 		this.name = 'IllegalArgument';
 	},
 
 	// Model exceptions
-	
+
 	ValidationFailed : function(message) {
 		this.message = message;
 		this.name = 'ValidationFailed';

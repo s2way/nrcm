@@ -8,6 +8,15 @@ var Router = require('./Router');
 var Model = require('./Model/Model');
 var DataSource = require('./Model/DataSource');
 
+/**
+ * The request handler object
+ *
+ * @constructor
+ * @method RequestHandler
+ * @param {json} configs
+ * @param {json} applications
+ * @param {object} ExceptionsController
+ */
 function RequestHandler(configs, applications, ExceptionsController) {
 	this.applications = applications;
 	this.configs = configs;
@@ -15,6 +24,13 @@ function RequestHandler(configs, applications, ExceptionsController) {
 	this.ExceptionsController = ExceptionsController;
 };
 
+/**
+ * It processes every request received
+ *
+ * @method process
+ * @param {object} request The nodejs request object
+ * @param {object} response The nodejs response object
+ */
 RequestHandler.prototype.process = function(request, response) {
 	this.debug('process()');
 
@@ -23,20 +39,20 @@ RequestHandler.prototype.process = function(request, response) {
 	this.extension = '.json';
 	this.rule = null;
 	this.payload = '';
-	
+
 	var requestUrl = this.request.url;
 	this.info('---------------------------------');
 	this.info('Request: ' + requestUrl);
 	this.info('---------------------------------');
-	
+
 	try {
 		var router = new Router(this.configs.urlFormat);
-      	
+
       	// Verifica se a URL é válida
       	if (!router.isValid(requestUrl)) {
 			throw new exceptions.InvalidUrl();
 		}
-		
+
 		// Utiliza o Router para decompor a URL
 		var decomposedURL = router.decompose(requestUrl);
 		var method = this.request.method.toLowerCase();
@@ -73,6 +89,13 @@ RequestHandler.prototype.process = function(request, response) {
 	}
 };
 
+/**
+ * It executes a function within the controller
+ *
+ * @method invokeController
+ * @param {string} controller The controller`s name
+ * @param {string} method The controller`s method that should be invoked
+ */
 RequestHandler.prototype.invokeController = function(controller, method) {
 	var that = this;
 	that.debug('invokeController()');
@@ -139,11 +162,12 @@ RequestHandler.prototype.invokeController = function(controller, method) {
 		that.debug('method not found');
 		throw new exceptions.MethodNotFound();
 	}
-	this.request.on('data', function(data) { 
+	// Receiving data
+	this.request.on('data', function(data) {
 		that.debug('on data');
-		that.payload += data; 
+		that.payload += data;
 	});
-
+	// All data received
 	this.request.on('end', function() {
 		that.debug('request.end()');
 		controllerInstance.payload = querystring.parse(that.payload);
@@ -205,7 +229,7 @@ RequestHandler.prototype.invokeController = function(controller, method) {
 					that.handleRequestException(e);
 				}
 			};
-			
+
 			// If before() is defined, call it
 			if (controllerInstance.before !== undefined) {
 				that.debug('controllerInstance.before()');
@@ -227,6 +251,13 @@ RequestHandler.prototype.debug = function(message) {
 	console.log('[RequestHandler] ' + message);
 };
 
+/**
+ * It handles the exceptions
+ *
+ * @method handleRequestException
+ * @param {object} e The error
+ * @return {mixed} Returns false if it is an undefined exception or it will render the exception
+ */
 RequestHandler.prototype.handleRequestException = function(e) {
 	this.debug('handleRequestException()');
 	// Known exceptions
@@ -255,7 +286,7 @@ RequestHandler.prototype.handleRequestException = function(e) {
 			callback();
 		}
 		this.info('Exception ' + e.name + ' handled');
-	} 
+	}
 	// Unknown exceptions: no response
 	else {
 		this.info('Unknown Exception: ' + e);
@@ -268,7 +299,14 @@ RequestHandler.prototype.handleRequestException = function(e) {
 };
 
 
-
+/**
+ * The callback function that sends the response back to the client
+ *
+ * @method render
+ * @param {json} output The body/payload data
+ * @param {number} statusCode The status code for http response
+ * @param {string} contentType The text for the Content-Type http header
+ */
 RequestHandler.prototype.render = function(output, statusCode, contentType) {
 	this.debug('render()');
 	var extensionsMapToContentType = {
@@ -284,7 +322,7 @@ RequestHandler.prototype.render = function(output, statusCode, contentType) {
 		contentType = extensionsMapToContentType[this.extension];
 	}
 	this.response.writeHead(statusCode, { 'Content-Type' : contentType });
-	
+
 	var stringOutput;
 
 	if (typeof output === 'object') {

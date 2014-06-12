@@ -1,39 +1,61 @@
 var url = require('url');
 var path = require('path');
 
-// Classe responsável por verificar se uma determinada URL
-// bate com o formato especicado. Também quebra a URL em um objeto
-// JSON para facilitar a leitura
-// 
-// Formato de exemplo: /#prefix1/#prefix2/$application/$controller
-
+/**
+ * This class verifies if an url was passed in the format configured,
+ * it also creates an json object to make the reading easier
+ *
+ * Format example: /#prefix1/#prefix2/$application/$controller
+ */
 var prefixRegex = /\#[a-z0-9]*/;
 var applicationRegex = /\$application/;
 var controllerRegex = /\$controller/;
 
+/**
+ * The router object
+ *
+ * @constructor
+ * @method Router
+ * @param {string} urlFormat The string that represents how you will send the urls to the server,
+ * check the example above
+ */
 function Router(urlFormat) {
 	this.urlFormat = urlFormat;
 	this.urlFormatParts = urlFormat.split('/');
 }
 
+/**
+ * It checks if the url received by the server was formated according to the configuration
+ *
+ * @method isValid
+ * @param {string} requestUrl The requested url received by the server
+ * @return {boolean} Returns true if succeed or false if failed
+ */
 Router.prototype.isValid = function(requestUrl) {
 	var parsedUrl = url.parse(requestUrl, true)['pathname'];
-	// Não pode conter extensão
+	// This version does not allow extension
 	if (path.extname(parsedUrl) !== '') {
 		return false;
 	}
-	// Deve começar com /
+	// Must start with /
 	if (parsedUrl.charAt(0) !== '/') {
 		return false;
 	}
 	var parts = parsedUrl.split('/');
-	// Número de parâmetros deve ser o mesmo
+	// The number of parameters must be the same of the format
 	if (parts.length !== this.urlFormatParts.length) {
 		return false;
 	}
 	return true;
 }
 
+/**
+ * It decomposes the url
+ *
+ * @method decompose
+ * @param {string} requestUrl The requested url received by the server
+ * @return {object} Returns a splited json object of the url
+ */
 Router.prototype.decompose = function(requestUrl) {
 	var parsedUrl = url.parse(requestUrl, true);
 	var path = parsedUrl['pathname'];
@@ -67,4 +89,3 @@ Router.prototype.decompose = function(requestUrl) {
 };
 
 module.exports = Router;
-

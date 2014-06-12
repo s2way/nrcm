@@ -1,12 +1,16 @@
-/*
- * Dependencies
- */
 var exceptions = require('./../exceptions.js');
 var Validator = require('./Validator.js');
 var utils = require('./utils.js');
 var util = require('util');
 var ModelTrigger = require('./ModelTrigger');
 
+/**
+ * CouchBaseModel object
+ *
+ * @method CouchBaseModel
+ * @param {json} dataSource The connection to use
+ * @param {json} configurations Rules
+ */
 function CouchbaseModel(dataSource, configurations) {
 
 	if (dataSource === undefined) {
@@ -16,7 +20,7 @@ function CouchbaseModel(dataSource, configurations) {
 	} else if (configurations.uid === undefined) {
 		throw new exceptions.IllegalArgument('Uid is not defined!');
 	}
-	
+
 	this.dataSource = dataSource;
 	// Record key: uid prefix
 	this.uid = configurations.uid;
@@ -28,7 +32,7 @@ function CouchbaseModel(dataSource, configurations) {
 	this.requires = configurations.requires;
 	// Separator
 	this.separator = configurations.separator;
-	
+
 	// Validation rules
 	this.validate = configurations.validate;
 
@@ -51,14 +55,6 @@ function CouchbaseModel(dataSource, configurations) {
 	this.validator = new Validator(this.validate);
 }
 
-/*
- * Check the options of locked fields
- *
- * @method _isLocked
- * @param {Object} data
- * @param {Object} lock
- * @param {String} status 
- */
 CouchbaseModel.prototype._isLocked = function(data, lock, status) {
 	for (var n in lock) {
 		if (data[n] === undefined) {
@@ -92,6 +88,14 @@ CouchbaseModel.prototype._searchKeys = function(keys, data) {
 	return removeIds;
 };
 
+/**
+ * Delete a document
+ *
+ * @method removeById
+ * @param {string} id Id that will be used with uid/prefix to delete the document
+ * @param {function} callback
+ * @param {json} data Options to report to the database behavior
+ */
 CouchbaseModel.prototype.removeById = function(id, callback, options) {
 	var that = this;
 	if (options === undefined) {
@@ -187,7 +191,7 @@ CouchbaseModel.prototype._saveKeys = function(keys, data, id, oldData, callback)
 						that.log('Keys created');
 					}
 					callback(err);
-				});	
+				});
 			}, function(err){
 				callback(err);
 			});
@@ -205,11 +209,6 @@ CouchbaseModel.prototype._saveKeys = function(keys, data, id, oldData, callback)
 	});
 }
 
-/*
-* Check the required fields
-*
-* @param {Object} data
-*/
 CouchbaseModel.prototype._checkRequired = function(data, requireFields) {
 	var that = this;
 	for (var n in requireFields) {
@@ -222,14 +221,6 @@ CouchbaseModel.prototype._checkRequired = function(data, requireFields) {
 	return true;
 }
 
-/*
-* Retrieve documents from the bucket
-*
-* @method find
-* @param {Object} condition Conditions to match 
-* @param {Object} options Rules like limit, skip, order
-* @param {Object} callback
-*/
 CouchbaseModel.prototype._find = function(conditions, options, callback) {
 	var that = this;
 	if (conditions['_id'] !== undefined) {
@@ -237,18 +228,18 @@ CouchbaseModel.prototype._find = function(conditions, options, callback) {
 			connection.get(that.uid + conditions['_id'], callback);
 		}, function(err){
 			callback(err);
-		}); 
+		});
 	}
 };
 
-/*
-* Retrieve a single document by another key doc
-*
-* @method findByKey
-* @param {String} id The object id
-* @param {String} prefix Field name
-* @param {Object} callback
-*/
+/**
+ * Get a document using one of the related keys that points to this document
+ *
+ * @method findByKey
+ * @param {string} keyValue Value that will be used with prefix to find the document
+ * @param {string} keyName Prefix of the key
+ * @param {function} callback
+ */
 CouchbaseModel.prototype.findByKey = function(keyValue, keyName, callback) {
 	var that = this;
 	if (keyValue === undefined || keyName === undefined || typeof callback !== 'function') {
@@ -274,14 +265,13 @@ CouchbaseModel.prototype.findByKey = function(keyValue, keyName, callback) {
 	});
 };
 
-
-/*
-* Retrieve a single document by id
-*
-* @method findById
-* @param {Object} id The object id
-* @param {Object} callback
-*/
+/**
+ * Get a document using the id
+ *
+ * @method findById
+ * @param {string} id Id that will be used with uid to find the document
+ * @param {function} callback
+ */
 CouchbaseModel.prototype.findById = function(id, callback) {
 	if (id === undefined || typeof callback !== 'function') {
 		throw new exceptions.IllegalArgument('All arguments are mandatory');
@@ -293,14 +283,15 @@ CouchbaseModel.prototype.log = function(msg) {
 	console.log('[CouchbaseModel] ' + (typeof msg === 'object'? JSON.stringify(msg) : msg));
 };
 
-/*
- * Push or update data in the bucket
+/**
+ * Index a document in the database
  *
  * @method save
- * @param {Object} conditions Conditions to match 
- * @param {Object} data The Docs to persist
- * @param {Object} options Rules like persistent, etc...
- * @param {Object} callback
+ * @param {string} id Id that will be used with uid/prefix to index the document
+ * @param {json} data Document data to index
+ * @param {function} callback
+ * @param {string} prefix If using a related document
+ * @param {json} data Options to report to the database behavior
  */
 CouchbaseModel.prototype.save = function(id, data, callback, prefix, options) {
 	if (options === undefined) {
@@ -324,7 +315,7 @@ CouchbaseModel.prototype.save = function(id, data, callback, prefix, options) {
 
 	var operation = function(callback) {
 		that.dataSource.connect(function(connection){
-			connection.get(prefix + that.separator + id, function(err, result) {				
+			connection.get(prefix + that.separator + id, function(err, result) {
 				var isUpdate = result['value'] !== undefined && result['value'];
 				var isSave = !isUpdate;
 
@@ -341,7 +332,7 @@ CouchbaseModel.prototype.save = function(id, data, callback, prefix, options) {
 						} else {
 							onSuccess();
 						}
-					});				
+					});
 				}
 
 				function checkLockedFields(onSuccess) {
@@ -400,7 +391,7 @@ CouchbaseModel.prototype.save = function(id, data, callback, prefix, options) {
 					});
 				} else {
 					setOrReplace();
-				}					
+				}
 			});
 		}, function(err){
 			callback(err);

@@ -1,3 +1,11 @@
+/**
+ * The validator object
+ *
+ * @constructor
+ * @method Validator
+ * @param {object} validate The object that contains the rules
+ * @param {number} timeout The timeout for the validation exception
+ */
 function Validator(validate, timeout) {
 	this.timeout = timeout || 10000;
 	this.validate = validate;
@@ -34,11 +42,6 @@ Validator.prototype._hasValidatedAllFields = function(validatedFields, validate)
 	return true;
 }
 
-/*
-* Validate the fields using options object
-* 
-* @param {Object} data
-*/
 Validator.prototype._isValid = function(data, validatedFields, validate, originalData) {
 	for (var n in data) {
 		if (typeof data[n] !== 'object' || Array.isArray(data[n])) {
@@ -58,6 +61,13 @@ Validator.prototype._isValid = function(data, validatedFields, validate, origina
 	}
 }
 
+/**
+ * Validate all properties of a json
+ *
+ * @method isValid
+ * @param {json} data The json object to be validated
+ * @param {function} callback
+ */
 Validator.prototype.isValid = function(data, callback) {
 	var validate = this.validate;
 	var validatedFields = {};

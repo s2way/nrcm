@@ -4,7 +4,7 @@ var path = require('path');
 var http = require('http');
 var exceptions = require('./exceptions');
 var sync = require('./sync');
-var RequestHandler = require('./RequestHandler'); 
+var RequestHandler = require('./RequestHandler');
 
 // Constructor
 function NRCM() {
@@ -17,8 +17,17 @@ function NRCM() {
 
 NRCM.prototype.log = function(message) {
     console.log('[NRCM] ' + message);
-}; 
+};
 
+/**
+ * Initiate an application inside the framework, it creates the directory`s structure, if it does not exist,
+ * and it loads all application`s files on memory
+ * It is possible to have more then one application running on the same nodejs server, it works as an alias or
+ * as a namespace
+ *
+ * @method setUp
+ * @param {String} appName The name of application, it will be also used as directory`s name
+ */
 NRCM.prototype.setUp = function(appName) {
     var app = {};
 
@@ -32,9 +41,9 @@ NRCM.prototype.setUp = function(appName) {
 
     // Directory creation
     sync.createDirIfNotExists(app.basePath);
-    sync.createDirIfNotExists(app.controllersPath); 
-    sync.createDirIfNotExists(app.componentsPath); 
-    sync.createDirIfNotExists(app.modelsPath); 
+    sync.createDirIfNotExists(app.controllersPath);
+    sync.createDirIfNotExists(app.componentsPath);
+    sync.createDirIfNotExists(app.modelsPath);
     sync.createDirIfNotExists(app.configPath);
 
     // Acl file creation
@@ -94,20 +103,31 @@ NRCM.prototype.setUp = function(appName) {
 
 }
 
+/**
+ * It parses the configuration file, a json object, that controls the framework behavior, such url parameters,
+ * data sources, etc...
+ *
+ * @method configure
+ * @param {JSONObject} configJSONFile The file name that contains your configuration object
+ */
 NRCM.prototype.configure = function(configJSONFile) {
     try {
         this.configs = sync.fileToJSON(configJSONFile);
     } catch (e) {
         throw new exceptions.Fatal('Configuration file is not a valid JSON', e);
     }
-    // Valida o arquivo de configurações
+    // Validate the json object within configuration`s file
     if ((typeof this.configs.urlFormat) !== 'string') {
         throw new exceptions.Fatal('urlFormat is not a string');
     }
 }
 
 /**
- * Starts the application
+ * Starts the nodejs server for all your applications
+ *
+ * @method start
+ * @param {String} address The listening address of nodejs http.createServer function
+ * @param {Number} port The listening port of nodejs http.createServer function
  */
 NRCM.prototype.start = function(address, port) {
     this.log('Starting...');

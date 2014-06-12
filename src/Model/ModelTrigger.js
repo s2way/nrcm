@@ -1,5 +1,15 @@
 var exceptions = require('./../exceptions');
 
+/**
+ * The ModelTrigger object
+ *
+ * @constructor
+ * @method ModelTrigger
+ * @param {function} before The before trigger to execute
+ * @param {function} operation The operation trigger to execute
+ * @param {function} after The after trigger to execute
+ * @param {function} callback
+ */
 function ModelTrigger(before, operation, after, callback) {
 	if (typeof before !== 'function') {
 		before = function(params, callback){
@@ -22,6 +32,12 @@ function ModelTrigger(before, operation, after, callback) {
 	this.callback = callback;
 }
 
+/**
+ * Execute the triggers, if the operation fails it will not execute the after trigger
+ *
+ * @method execute
+ * @param {json} params The parameters
+ */
 ModelTrigger.prototype.execute = function(params) {
 	var that = this;
 
@@ -39,6 +55,5 @@ ModelTrigger.prototype.execute = function(params) {
 		}
 	});
 }
-
 
 module.exports = ModelTrigger;
