@@ -11,6 +11,7 @@ function clearStructure(dir) {
 	fs.unlinkSync(path.join(dir, 'Config', 'acl.json'));
 	fs.unlinkSync(path.join(dir, 'Config', 'core.json'));
 	fs.rmdirSync(path.join(dir, 'Config'));
+	fs.rmdirSync(path.join(dir, 'Model'));
 	fs.rmdirSync(path.join(dir));
 	fs.unlinkSync('ExceptionsController.js');
 }
@@ -73,9 +74,11 @@ describe('NRCM.js', function(){
 		assert.equal(true, fs.existsSync(path.join('testing', 'Controller', 'Component')));
 		assert.equal(true, fs.existsSync(path.join('testing', 'Config', 'acl.json')));
 		assert.equal(true, fs.existsSync(path.join('testing', 'Config', 'core.json')));
+		assert.equal(true, fs.existsSync(path.join('testing', 'Model')));
 		assert.equal(true, fs.existsSync(path.join('ExceptionsController.js')));
 		clearStructure('testing');
 	});
+
 	it('should throw a Fatal exception if the controller does not export a function', function(){
 		sync.createDirIfNotExists(path.join('testing'));
 		sync.createDirIfNotExists(path.join('testing', 'Controller'));
@@ -91,6 +94,23 @@ describe('NRCM.js', function(){
 		fs.unlinkSync(controllerFile);
 		clearStructure('testing');
 	});
+
+	it('should throw a Fatal exception if the model does not export a function', function(){
+		sync.createDirIfNotExists(path.join('testing'));
+		sync.createDirIfNotExists(path.join('testing', 'Model'));
+		var modelFile = path.join('testing', 'Model', 'MyModel.js');
+		sync.createFileIfNotExists(modelFile, '{}');
+		try {
+			nrcm.setUp('testing');
+			assert.fail();
+		} catch (e) {
+			assert.equal('Fatal', e.name);
+			assert.equal('Model does not export a function: MyModel', e.message);
+		}
+		fs.unlinkSync(modelFile);
+		clearStructure('testing');
+	});
+
 	it('should throw a Fatal exception if the component does not export a function', function(){
 		sync.createDirIfNotExists(path.join('testing2'));
 		sync.createDirIfNotExists(path.join('testing2', 'Controller'));

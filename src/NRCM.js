@@ -25,6 +25,7 @@ NRCM.prototype.setUp = function(appName) {
     app.basePath = path.join(appName);
     app.controllersPath = path.join(appName, 'Controller');
     app.componentsPath = path.join(appName, 'Controller', 'Component');
+    app.modelsPath = path.join(appName, 'Model');
     app.configPath = path.join(appName, 'Config');
     app.coreFileName = path.join(appName, 'Config', 'core.json');
     app.aclFileName = path.join(appName, 'Config', 'acl.json');
@@ -33,6 +34,7 @@ NRCM.prototype.setUp = function(appName) {
     sync.createDirIfNotExists(app.basePath);
     sync.createDirIfNotExists(app.controllersPath); 
     sync.createDirIfNotExists(app.componentsPath); 
+    sync.createDirIfNotExists(app.modelsPath); 
     sync.createDirIfNotExists(app.configPath);
 
     // Acl file creation
@@ -46,6 +48,8 @@ NRCM.prototype.setUp = function(appName) {
     app.controllers = sync.loadNodeFilesIntoArray(sync.listFilesFromDir(app.controllersPath));
     // Components load
     app.components = sync.loadNodeFilesIntoArray(sync.listFilesFromDir(app.componentsPath));
+    // Models Load
+    app.models = sync.loadNodeFilesIntoArray(sync.listFilesFromDir(app.modelsPath));
     // Loads acl file
     app.acl = sync.fileToJSON(app.aclFileName);
     // Loads core file
@@ -79,6 +83,15 @@ NRCM.prototype.setUp = function(appName) {
             throw new exceptions.Fatal('Component does not export a function: ' + name);
         }
     }
+
+    // Validate the models format
+    for (var name in app.models) {
+        var Model = app.models[name];
+        if (!(Model instanceof Function)) {
+            throw new exceptions.Fatal('Model does not export a function: ' + name);
+        }
+    }
+
 }
 
 NRCM.prototype.configure = function(configJSONFile) {

@@ -79,12 +79,34 @@ function mockRequestHandler(controllers, components) {
             }
         };
     }
+    var models = {
+        'MyModel' : function() {
+            this.uid = 'My';
+            this.validate = {};
+            this.requires = {};
+            this.locks = {};
+            this.keys = {};
+            this.bucket = 'bucket';
+            this.method = function(callback) {
+                controlVars['modelMethodCalled'] = true;
+                callback();
+            }
+        },
+        'HisModel' : function(){
+            this.method = function(){
+
+            };
+        }
+    };
+
     var rh = new RequestHandler({
+        'database' : 'Mock',
         'urlFormat' : '/#service/#version/$application/$controller'
     }, {
         'app' : {
             'controllers' : controllers, 
-            'components' : components
+            'components' : components,
+            'models' : models
         }
     }, mockExceptionsController);
     rh.debug = rh.info = function(){};
@@ -176,6 +198,28 @@ describe('RequestHandler.js', function(){
                 });
                 rh.process(mockRequest(url, method), mockResponse());
                 assert.equal(true, controlVars['componentMethodCalled']);
+            });
+
+            it('should allow access to models inside the controller', function(){
+                controlVars = {};
+                var rh = mockRequestHandler({
+                    MyController : function(){
+                        this.post = function(callback) {
+                            var model = this.models['MyModel'];
+                            assert.equal('MyModel', model.name);
+                            assert.equal('My', model.uid);
+                            assert.equal('{}', JSON.stringify(model.validate));
+                            assert.equal('{}', JSON.stringify(model.requires));
+                            assert.equal('{}', JSON.stringify(model.locks));
+                            assert.equal('{}', JSON.stringify(model.keys));
+                            assert.equal('bucket', model.bucket);
+                            assert.equal('function', typeof model.models['HisModel'].method);
+                            model.method(callback);
+                        };
+                    }
+                });
+                rh.process(mockRequest(url, method), mockResponse());
+                assert.equal(true, controlVars['modelMethodCalled']);
             });
 
             it('should invoke the controller and render if the url is valid', function(){

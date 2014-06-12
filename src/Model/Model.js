@@ -1,15 +1,18 @@
 /*
  * Dependencies
  */
-var CouchbaseDataSource = require('./CouchbaseDataSource');
+var CouchbaseModel = require('./CouchbaseModel');
+var MockModel = require('./MockModel');
 
 var exceptions = require('./../exceptions');
 
 function Model(name, configurations) {
 	if (name === 'Couchbase') {
-		this.dataSource = new CouchbaseDataSource(configurations);
+		this.dataSource = new CouchbaseModel(configurations);
+	} else if (name === 'Mock') {
+		this.dataSource = new MockModel(configurations);
 	} else {
-		throw new exceptions.IllegalArgument('Invalid DataSource name: ' + name);
+		throw new exceptions.IllegalArgument('Invalid Model name: ' + name);
 	}
 }
 

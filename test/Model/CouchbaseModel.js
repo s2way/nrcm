@@ -1,6 +1,6 @@
 var assert = require('assert');
 var util = require('util');
-var CouchbaseDataSource = require('./../../src/Model/CouchbaseDataSource');
+var CouchbaseModel = require('./../../src/Model/CouchbaseModel');
 
 var controlVars = {};
 var data = {
@@ -15,7 +15,7 @@ var data = {
 
 function createDS() {
 	controlVars = {};
-	var ds = new CouchbaseDataSource({'bucket':'bucket', 'uid': 'pessoa'});
+	var ds = new CouchbaseModel({'bucket':'bucket', 'uid': 'pessoa'});
 	ds.log = function(){};
 	ds.couchbase = mockCouchbase({
 		'getResult' : {
@@ -92,12 +92,12 @@ function mockCouchbase(options) {
 	};
 }
 
-describe('CouchbaseDataSource.js', function() {
-	describe('CouchbaseDataSource', function() {
+describe('CouchbaseModel.js', function() {
+	describe('CouchbaseModel', function() {
 		it('should throw an exception if the bucket is not provided', function(){
 			controlVars = {};
 			try {
-				var ds = new CouchbaseDataSource({'uid':'uid'});
+				var ds = new CouchbaseModel({'uid':'uid'});
 				assert.fail();
 			} catch (e) {
 				assert.equal('IllegalArgument', e.name);
@@ -106,7 +106,7 @@ describe('CouchbaseDataSource.js', function() {
 		it('should throw an exception if the uid is not provided', function(){
 			controlVars = {};
 			try {
-				var ds = new CouchbaseDataSource({'bucket':'bucket'});
+				var ds = new CouchbaseModel({'bucket':'bucket'});
 				assert.fail();
 			} catch (e) {
 				assert.equal('IllegalArgument', e.name);
@@ -114,7 +114,7 @@ describe('CouchbaseDataSource.js', function() {
 		});
 		it('should throw an exception if the configurations parameter is not passed', function(){
 			try {
-				new CouchbaseDataSource();
+				new CouchbaseModel();
 				assert.fail();
 			} catch (e) {
 				assert.equal('IllegalArgument', e.name);
@@ -124,7 +124,7 @@ describe('CouchbaseDataSource.js', function() {
 
 	describe('disconnect', function(){
 		it('should call disconnect', function(done){
-			var ds = new CouchbaseDataSource({
+			var ds = new CouchbaseModel({
 				'bucket' : 'bucket', 
 				'uid' : 'uid'
 			});
@@ -142,7 +142,7 @@ describe('CouchbaseDataSource.js', function() {
 
 	describe('connect', function(){
 		it('should call the onSuccess callback if the connection to the database is successful', function(done){
-			var ds = new CouchbaseDataSource({
+			var ds = new CouchbaseModel({
 				'bucket' : 'bucket', 
 				'uid' : 'uid'
 			});
@@ -154,7 +154,7 @@ describe('CouchbaseDataSource.js', function() {
 			})
 		});
 		it('should call the onError callback if the connection to the database is not successful', function(done){
-			var ds = new CouchbaseDataSource({
+			var ds = new CouchbaseModel({
 				'bucket' : 'bucket', 
 				'uid' : 'uid'
 			});
@@ -173,7 +173,7 @@ describe('CouchbaseDataSource.js', function() {
 			});
 		});
 		it('should use the same connection if connect is called twice or more', function(done){
-			var ds = new CouchbaseDataSource({'bucket':'bucket', 'uid':'uid'});
+			var ds = new CouchbaseModel({'bucket':'bucket', 'uid':'uid'});
 			ds.couchbase = mockCouchbase();
 			ds.log = function(){};
 			var connection1 = ds.connect(function(){
@@ -187,7 +187,7 @@ describe('CouchbaseDataSource.js', function() {
 
 	describe('findByKey', function() {
 		it('should throw an exception if the id is undefined', function(){
-			var ds = new CouchbaseDataSource({'bucket':'bucket', 'uid': 'pessoa'});
+			var ds = new CouchbaseModel({'bucket':'bucket', 'uid': 'pessoa'});
 			ds.log = function(){};
 			try {
 				ds.findByKey();
@@ -197,7 +197,7 @@ describe('CouchbaseDataSource.js', function() {
 			}
 		});
 		it('should find the record by key', function(done){
-			var ds = new CouchbaseDataSource({'bucket':'bucket', 'uid': 'pessoa'});
+			var ds = new CouchbaseModel({'bucket':'bucket', 'uid': 'pessoa'});
 			ds.log = function(){};
 			ds.couchbase = mockCouchbase({
 				'getResult' : {
@@ -218,7 +218,7 @@ describe('CouchbaseDataSource.js', function() {
 		});	
 	});
 	describe('findById', function() {
-		var ds = new CouchbaseDataSource({'bucket':'bucket', 'uid': 'pessoa'});
+		var ds = new CouchbaseModel({'bucket':'bucket', 'uid': 'pessoa'});
 		var document = {
 			'nome' : 'Davi',
 			'cpf' : '02895328099'
@@ -246,7 +246,7 @@ describe('CouchbaseDataSource.js', function() {
 		});
 	});
 	describe('removeById', function(){
-		var ds = new CouchbaseDataSource({'bucket':'bucket', 'uid': 'pessoa'});
+		var ds = new CouchbaseModel({'bucket':'bucket', 'uid': 'pessoa'});
 		ds.log = function(){};
 		var document = {
 			'nome' : 'Davi'

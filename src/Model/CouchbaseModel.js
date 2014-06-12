@@ -7,7 +7,7 @@ var utils = require('./utils.js');
 var util = require('util');
 var ModelTrigger = require('./ModelTrigger');
 
-function CouchbaseDataSource(configurations) {
+function CouchbaseModel(configurations) {
 	if (configurations === undefined) {
 		throw new exceptions.IllegalArgument('The configurations parameter is mandatory');
 	} else if (configurations.bucket === undefined) {
@@ -61,7 +61,7 @@ function CouchbaseDataSource(configurations) {
  * @param {Object} lock
  * @param {String} status 
  */
-CouchbaseDataSource.prototype._isLocked = function(data, lock, status) {
+CouchbaseModel.prototype._isLocked = function(data, lock, status) {
 	for (var n in lock) {
 		if (data[n] === undefined) {
 			continue;
@@ -75,7 +75,7 @@ CouchbaseDataSource.prototype._isLocked = function(data, lock, status) {
 	return false;
 }
 
-CouchbaseDataSource.prototype._searchKeys = function(keys, data) {
+CouchbaseModel.prototype._searchKeys = function(keys, data) {
 	this.log('Searching keys');
 	var removeIds = [];
 	var that = this;
@@ -94,7 +94,7 @@ CouchbaseDataSource.prototype._searchKeys = function(keys, data) {
 	return removeIds;
 };
 
-CouchbaseDataSource.prototype.removeById = function(id, callback, options) {
+CouchbaseModel.prototype.removeById = function(id, callback, options) {
 	var that = this;
 	if (options === undefined) {
 		options = {};
@@ -140,7 +140,7 @@ CouchbaseDataSource.prototype.removeById = function(id, callback, options) {
 
 }
 
-CouchbaseDataSource.prototype._saveKeys = function(keys, data, id, oldData, callback) {
+CouchbaseModel.prototype._saveKeys = function(keys, data, id, oldData, callback) {
 	var documents = {};
 	var removeIds = [];
 	var that = this;
@@ -208,7 +208,7 @@ CouchbaseDataSource.prototype._saveKeys = function(keys, data, id, oldData, call
 *
 * @param {Object} data
 */
-CouchbaseDataSource.prototype._checkRequired = function(data, requireFields) {
+CouchbaseModel.prototype._checkRequired = function(data, requireFields) {
 	var that = this;
 	for (var n in requireFields) {
 		if (typeof data[n] === 'object') {
@@ -225,7 +225,7 @@ CouchbaseDataSource.prototype._checkRequired = function(data, requireFields) {
 *
 * @method db
 */
-CouchbaseDataSource.prototype.connect = function(onSuccess, onError) { 
+CouchbaseModel.prototype.connect = function(onSuccess, onError) { 
 	if (this.connection === null) {
 		var connection = new this.couchbase.Connection({
 			'bucket' : this.bucket
@@ -242,7 +242,7 @@ CouchbaseDataSource.prototype.connect = function(onSuccess, onError) {
 	}
 }
 
-CouchbaseDataSource.prototype.disconnect = function() {
+CouchbaseModel.prototype.disconnect = function() {
 	if (this.connection !== null) {
 		this.connection.shutdown();
 	}
@@ -256,7 +256,7 @@ CouchbaseDataSource.prototype.disconnect = function() {
 * @param {Object} options Rules like limit, skip, order
 * @param {Object} callback
 */
-CouchbaseDataSource.prototype._find = function(conditions, options, callback) {
+CouchbaseModel.prototype._find = function(conditions, options, callback) {
 	var that = this;
 	if (conditions['_id'] !== undefined) {
 		this.connect(function(connection) {
@@ -275,7 +275,7 @@ CouchbaseDataSource.prototype._find = function(conditions, options, callback) {
 * @param {String} prefix Field name
 * @param {Object} callback
 */
-CouchbaseDataSource.prototype.findByKey = function(keyValue, keyName, callback) {
+CouchbaseModel.prototype.findByKey = function(keyValue, keyName, callback) {
 	var that = this;
 	if (keyValue === undefined || keyName === undefined || typeof callback !== 'function') {
 		throw new exceptions.IllegalArgument('All parameters are mandatory');
@@ -308,15 +308,15 @@ CouchbaseDataSource.prototype.findByKey = function(keyValue, keyName, callback) 
 * @param {Object} id The object id
 * @param {Object} callback
 */
-CouchbaseDataSource.prototype.findById = function(id, callback) {
+CouchbaseModel.prototype.findById = function(id, callback) {
 	if (id === undefined || typeof callback !== 'function') {
 		throw new exceptions.IllegalArgument('All arguments are mandatory');
 	}
 	this._find({'_id' : this.uid + this.separator + id}, {}, callback);
 };
 
-CouchbaseDataSource.prototype.log = function(msg) {
-	console.log('[CouchbaseDataSource] ' + (typeof msg === 'object'? JSON.stringify(msg) : msg));
+CouchbaseModel.prototype.log = function(msg) {
+	console.log('[CouchbaseModel] ' + (typeof msg === 'object'? JSON.stringify(msg) : msg));
 };
 
 /*
@@ -328,7 +328,7 @@ CouchbaseDataSource.prototype.log = function(msg) {
  * @param {Object} options Rules like persistent, etc...
  * @param {Object} callback
  */
-CouchbaseDataSource.prototype.save = function(id, data, callback, prefix, options) {
+CouchbaseModel.prototype.save = function(id, data, callback, prefix, options) {
 	if (options === undefined) {
 		options = {};
 	}
@@ -437,4 +437,4 @@ CouchbaseDataSource.prototype.save = function(id, data, callback, prefix, option
 	trigger.execute({'id' : id, 'data' : data});
 }
 
-module.exports = CouchbaseDataSource;
+module.exports = CouchbaseModel;

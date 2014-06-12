@@ -5,6 +5,7 @@ var aclModule = require('./acl');
 var exceptions = require('./exceptions');
 var stringUtils = require('./stringUtils');
 var Router = require('./Router');
+var Model = require('./Model/Model');
 
 function RequestHandler(configs, applications, ExceptionsController) {
 	this.applications = applications;
@@ -93,6 +94,29 @@ RequestHandler.prototype.invokeController = function(controller, method) {
 		var componentInstance = new ComponentConstructor();
 		componentInstance.name = componentName;
 		controllerInstance.components[componentName] = componentInstance;
+	}
+
+	controllerInstance.models = {};
+	// Injects the models
+	for (var modelName in application.models) {
+		var ModelConstructor = application.models[modelName];
+		var modelInstance = new ModelConstructor();
+		modelInstance.name = modelName;
+		modelInstance.model = new Model(this.configs.database, {
+			'uid' : modelInstance.uid,
+			'bucket' : modelInstance.bucket,
+			'keys' : modelInstance.keys,
+			'locks' : modelInstance.locks,
+			'requires' : modelInstance.requires,
+			'validate' : modelInstance.validate
+		});
+		controllerInstance.models[modelName] = modelInstance;
+	}
+
+	// Injects the models inside the models
+	for (var modelName in controllerInstance.models) {
+		var modelInstance = controllerInstance.models[modelName];
+		modelInstance.models = controllerInstance.models;
 	}
 
 	if (controllerInstance[method] === undefined) {
