@@ -15,7 +15,12 @@ function DataSource(name, configs) {
 	this.type = configs.type;
 	this.index = configs.index;
 	this.connection = null;
-	this.couchbase = require('couchbase');
+	// This is necessary for Travis
+	try {
+		this.couchbase = require('couchbase');
+	} catch (e) {
+		console.log(e);
+	}
 }
 
 DataSource.prototype.log = function(msg) {
