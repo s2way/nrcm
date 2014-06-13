@@ -35,7 +35,7 @@
   },
   "version": "0.1.0",
   "scripts": {
-    "test": "mocha test test/Model"
+    "test": "mocha test test/Model -R spec"
   },
   "contributors": [
     {
