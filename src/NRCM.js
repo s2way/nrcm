@@ -26,7 +26,7 @@ NRCM.prototype.log = function(message) {
  * as a namespace
  *
  * @method setUp
- * @param {String} appName The name of application, it will be also used as directory`s name
+ * @param {string} appName The name of application, it will be also used as directory`s name
  */
 NRCM.prototype.setUp = function(appName) {
     var app = {};
@@ -108,7 +108,7 @@ NRCM.prototype.setUp = function(appName) {
  * data sources, etc...
  *
  * @method configure
- * @param {JSONObject} configJSONFile The file name that contains your configuration object
+ * @param {json} configJSONFile The file name that contains your configuration object
  */
 NRCM.prototype.configure = function(configJSONFile) {
     try {
@@ -126,8 +126,8 @@ NRCM.prototype.configure = function(configJSONFile) {
  * Starts the nodejs server for all your applications
  *
  * @method start
- * @param {String} address The listening address of nodejs http.createServer function
- * @param {Number} port The listening port of nodejs http.createServer function
+ * @param {string} address The listening address of nodejs http.createServer function
+ * @param {number} port The listening port of nodejs http.createServer function
  */
 NRCM.prototype.start = function(address, port) {
     this.log('Starting...');
