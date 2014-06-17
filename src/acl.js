@@ -57,4 +57,4 @@ exports.isAllowed = function(acl, group, controller, method) {
 		}
 	}
 	return false;
-}
+};

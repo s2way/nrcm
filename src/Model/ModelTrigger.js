@@ -1,5 +1,4 @@
 var exceptions = require('./../exceptions');
-
 /**
  * The ModelTrigger object
  *
@@ -31,7 +30,6 @@ function ModelTrigger(before, operation, after, callback) {
 	this.after = after;
 	this.callback = callback;
 }
-
 /**
  * Execute the triggers, if the operation fails it will not execute the after trigger
  *
@@ -40,12 +38,11 @@ function ModelTrigger(before, operation, after, callback) {
  */
 ModelTrigger.prototype.execute = function(params) {
 	var that = this;
-
-	this.before(params, function(continueOperation){
+	this.before(params, function(continueOperation) {
 		if (continueOperation === undefined || !continueOperation) {
 			that.callback(new exceptions.OperationInterrupted());
 		} else {
-			that.operation(function(err){
+			that.operation(function(err) {
 				if (err) {
 					that.callback(err);
 				} else {
@@ -54,6 +51,6 @@ ModelTrigger.prototype.execute = function(params) {
 			});
 		}
 	});
-}
+};
 
 module.exports = ModelTrigger;

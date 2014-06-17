@@ -1,5 +1,4 @@
 var exceptions = require('./../exceptions');
-
 /**
  * DataSource object, the datasource is persistent and last the whole request
  *
@@ -16,7 +15,6 @@ function DataSource(name, configs) {
 		typeof configs.index !== 'string') {
 		throw new exceptions.IllegalArgument('Invalid DataSource configurations');
 	}
-
 	this.name = name;
 	this.host = configs.host;
 	this.port = configs.port;
@@ -30,11 +28,10 @@ function DataSource(name, configs) {
 		console.log(e);
 	}
 }
-
+// Log
 DataSource.prototype.log = function(msg) {
 	console.log('[DataSource] ' + this.name + ' -> ' + msg);
 };
-
 /**
  * Establish a connection with the database
  *
@@ -53,13 +50,12 @@ DataSource.prototype.connect = function(onSuccess, onError) {
 		onSuccess(this.connection);
 		return;
 	}
-
 	if (this.type === 'Couchbase') {
 		this.log('Connecting to ' + this.host + ':' + this.port);
 		var connection = new this.couchbase.Connection({
 			'host' : this.host + ':' + this.port,
 			'bucket' : this.index
-		}, function(error){
+		}, function(error) {
 			that.connection = connection;
 			if (error) {
 				that.log('Connection error: ' + error);
@@ -73,7 +69,6 @@ DataSource.prototype.connect = function(onSuccess, onError) {
 		onError();
 	}
 };
-
 /**
  * Disconnect from the database
  *

@@ -10,7 +10,7 @@ function Validator(validate, timeout) {
 	this.timeout = timeout || 10000;
 	this.validate = validate;
 }
-
+// Validate fields
 Validator.prototype._succeeded = function(validatedFields) {
 	for (var key in validatedFields) {
 		if (typeof validatedFields[key] !== 'object') {
@@ -22,8 +22,8 @@ Validator.prototype._succeeded = function(validatedFields) {
 		}
 	}
 	return true;
-}
-
+};
+// Find all fields to validate
 Validator.prototype._hasValidatedAllFields = function(validatedFields, validate) {
 	for (var key in validate) {
 		if (typeof validate[key] !== 'object' || validate[key] instanceof Array) {
@@ -40,13 +40,13 @@ Validator.prototype._hasValidatedAllFields = function(validatedFields, validate)
 		}
 	}
 	return true;
-}
-
+};
+// isValid
 Validator.prototype._isValid = function(data, validatedFields, validate, originalData) {
 	for (var n in data) {
 		if (typeof data[n] !== 'object' || Array.isArray(data[n])) {
 			if (typeof validate[n] === 'function') {
-				validate[n](data[n], originalData, function(valid){
+				validate[n](data[n], originalData, function(valid) {
 					validatedFields[n] = valid;
 				});
 			}
@@ -59,8 +59,7 @@ Validator.prototype._isValid = function(data, validatedFields, validate, origina
 			}
 		}
 	}
-}
-
+};
 /**
  * Validate all properties of a json
  *
@@ -72,15 +71,15 @@ Validator.prototype.isValid = function(data, callback) {
 	var validate = this.validate;
 	var validatedFields = {};
 	var that = this;
-	this._isValid(data, validatedFields, validate, data);
-
 	var expired = false;
-
-	var timer = setTimeout(function(){
+	// Fire all validations callbacks
+	this._isValid(data, validatedFields, validate, data);
+	// Start a timer to control validations
+	var timer = setTimeout(function() {
 		expired = true;
 	}, this.timeout);
-
-	var timeoutFunc = function(){
+	// Timeout
+	var timeoutFunc = function() {
 		if (expired) {
 			callback(true, false, validatedFields);
 		} else if (that._hasValidatedAllFields(validatedFields, validate)) {
@@ -91,7 +90,6 @@ Validator.prototype.isValid = function(data, callback) {
 		}
 	};
 	timeoutFunc();
-}
-
+};
 
 module.exports = Validator;

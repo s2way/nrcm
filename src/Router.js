@@ -1,6 +1,3 @@
-var url = require('url');
-var path = require('path');
-
 /**
  * This class verifies if an url was passed in the format configured,
  * it also creates an json object to make the reading easier
@@ -10,7 +7,8 @@ var path = require('path');
 var prefixRegex = /\#[a-z0-9]*/;
 var applicationRegex = /\$application/;
 var controllerRegex = /\$controller/;
-
+var url = require('url');
+var path = require('path');
 /**
  * The router object
  *
@@ -23,7 +21,6 @@ function Router(urlFormat) {
 	this.urlFormat = urlFormat;
 	this.urlFormatParts = urlFormat.split('/');
 }
-
 /**
  * It checks if the url received by the server was formated according to the configuration
  *
@@ -32,8 +29,8 @@ function Router(urlFormat) {
  * @return {boolean} Returns true if succeed or false if failed
  */
 Router.prototype.isValid = function(requestUrl) {
-	var parsedUrl = url.parse(requestUrl, true)['pathname'];
-	// This version does not allow extension
+	var parsedUrl = url.parse(requestUrl, true).pathname;
+	// This version does not allow extension at this moment
 	if (path.extname(parsedUrl) !== '') {
 		return false;
 	}
@@ -47,7 +44,7 @@ Router.prototype.isValid = function(requestUrl) {
 		return false;
 	}
 	return true;
-}
+};
 
 /**
  * It decomposes the url
@@ -58,15 +55,14 @@ Router.prototype.isValid = function(requestUrl) {
  */
 Router.prototype.decompose = function(requestUrl) {
 	var parsedUrl = url.parse(requestUrl, true);
-	var path = parsedUrl['pathname'];
+	var path = parsedUrl.pathname;
 	var parts = path.split('/');
-
 	var i = 0;
 	var prefixes = {};
 	var controller = '';
 	var application = 'app';
 	var that = this;
-	parts.forEach(function(part){
+	parts.forEach(function(part) {
 		if (i > 0) {
 			var urlFormatPart = that.urlFormatParts[i];
 			var formatPartFirstChar = urlFormatPart.charAt(0);
@@ -74,7 +70,7 @@ Router.prototype.decompose = function(requestUrl) {
 				prefixes[urlFormatPart.substring(1)] = part;
 			} else if (urlFormatPart === '$controller') {
 				controller = part;
-			}  else if (urlFormatPart === '$application') {
+			} else if (urlFormatPart === '$application') {
 				application = part;
 			}
 		}
@@ -84,7 +80,7 @@ Router.prototype.decompose = function(requestUrl) {
 		'controller' : controller,
 		'application' : application,
 		'prefixes' : prefixes,
-		'query' : parsedUrl['query']
+		'query' : parsedUrl.query
 	};
 };
 

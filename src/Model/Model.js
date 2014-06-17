@@ -1,7 +1,6 @@
 var CouchbaseModel = require('./CouchbaseModel');
 var MockModel = require('./MockModel');
 var exceptions = require('./../exceptions');
-
 /**
  * The Model object
  *
@@ -20,7 +19,6 @@ function Model(dataSource, configurations) {
 		throw new exceptions.IllegalArgument('Invalid DataSource type: ' + dataSource.type);
 	}
 }
-
 /**
  * Get a document using one of the related keys that points to this document
  *
@@ -32,7 +30,6 @@ function Model(dataSource, configurations) {
 Model.prototype.findByKey = function(keyValue, keyName, callback) {
 	return this.model.findByKey(keyValue, keyName, callback);
 };
-
 /**
  * Get a document using the id
  *
@@ -43,7 +40,6 @@ Model.prototype.findByKey = function(keyValue, keyName, callback) {
 Model.prototype.findById = function(id, callback) {
 	return this.model.findById(id, callback);
 };
-
 /**
  * Index a document in the database
  *
@@ -57,7 +53,6 @@ Model.prototype.findById = function(id, callback) {
 Model.prototype.save = function(id, data, callback, prefix, options) {
 	return this.model.save(id, data, callback, prefix, options);
 };
-
 /**
  * Delete a document
  *

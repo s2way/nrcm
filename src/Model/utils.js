@@ -1,5 +1,4 @@
 var utils = {
-
 	/**
 	* Merge 2 json into 1
 	*

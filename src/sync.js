@@ -2,9 +2,7 @@ var exceptions = require('./exceptions');
 var fs = require('fs');
 var path = require('path');
 var util = require('util');
-
 var sync = {
-
     /**
      * Copy a file from a place to another if the destination does not exist
      *
@@ -23,7 +21,6 @@ var sync = {
         }
         return sync.copy(src, dst);
     },
-
     /**
      * Copy a file from a place to another
      *
@@ -35,7 +32,6 @@ var sync = {
         sync.createFileIfNotExists(dst, fs.readFileSync(src, "utf8"));
         return true;
     },
-
     /**
      * Load files within directory into an array
      *
@@ -47,7 +43,6 @@ var sync = {
         if (!util.isArray(files)) {
             throw new exceptions.Fatal();
         }
-
         for (var i in files) {
             var name;
             var file = files[i];
@@ -62,7 +57,6 @@ var sync = {
         }
         return jsonFiles;
     },
-
     /**
      * Check if the directory exists, if doesn`t try to create
      *
@@ -80,7 +74,6 @@ var sync = {
             fs.mkdirSync(dir, 0766);
         }
     },
-
     /**
      * Turn a json file into a json object
      *
@@ -90,7 +83,6 @@ var sync = {
     fileToJSON : function(file) {
         return JSON.parse(fs.readFileSync(file, "utf8"));
     },
-
     /**
      * Check if the file exists, if doesn`t try to create
      *
@@ -109,7 +101,6 @@ var sync = {
             fs.writeFileSync(filePath, fileData);
         }
     },
-
     /**
      * Return a list of files inside a given folder
      *
@@ -120,7 +111,6 @@ var sync = {
     listFilesFromDir : function(dir) {
         var files = fs.readdirSync(dir);
         var result = [];
-
         if (files.length > 0) {
             files.forEach(function(file) {
                 var fullFilePath = path.join(dir, file);

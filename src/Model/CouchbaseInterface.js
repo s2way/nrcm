@@ -3,7 +3,6 @@ var Validator = require('./Validator.js');
 var utils = require('./utils.js');
 var util = require('util');
 var ModelTrigger = require('./ModelTrigger');
-
 /**
  * CouchBaseInterface object
  *
@@ -19,7 +18,6 @@ function CouchbaseInterface(dataSource, configurations) {
 	} else if (configurations.uid === undefined) {
 		throw new exceptions.IllegalArgument('Uid is not defined!');
 	}
-
 	this.dataSource = dataSource;
 	// Record key: uid prefix
 	this.uid = configurations.uid;
@@ -31,10 +29,8 @@ function CouchbaseInterface(dataSource, configurations) {
 	this.requires = configurations.requires;
 	// Separator
 	this.separator = configurations.separator;
-
 	// Validation rules
 	this.validate = configurations.validate;
-
 	if (this.validate === undefined || typeof this.validate !== 'object') {
 		this.validate = {};
 	}
@@ -50,17 +46,15 @@ function CouchbaseInterface(dataSource, configurations) {
 	if (this.separator === undefined || typeof this.separator !== 'string') {
 		this.separator = '_';
 	}
-
 	this.validator = new Validator(this.validate);
 }
-
 /*
  * Check the options of locked fields
  *
  * @method _isLocked
  * @param {Object} data
  * @param {Object} lock
- * @param {String} status 
+ * @param {String} status
  */
 CouchbaseInterface.prototype._isLocked = function(data, lock, status) {
 	for (var n in lock) {
@@ -74,13 +68,18 @@ CouchbaseInterface.prototype._isLocked = function(data, lock, status) {
 		}
 	}
 	return false;
-}
-
+};
+/*
+* Search
+*
+* @method _isLocked
+* @param {Object} data
+* @param {Object} keys
+*/
 CouchbaseInterface.prototype._searchKeys = function(keys, data) {
-	this.log('Searching keys');
 	var removeIds = [];
 	var that = this;
-
+	this.log('Searching keys');
 	function searchKeys(keys, data) {
 		for (var n in keys) {
 			if (typeof keys[n] === 'object') {
@@ -90,11 +89,9 @@ CouchbaseInterface.prototype._searchKeys = function(keys, data) {
 			}
 		}
 	}
-
 	searchKeys(that.keys, data);
 	return removeIds;
 };
-
 /**
  * Delete a document
  *
@@ -111,25 +108,23 @@ CouchbaseInterface.prototype.removeById = function(id, callback, options) {
 	if (typeof callback !== 'function') {
 		throw new exceptions.IllegalArgument('callback is not a fucntion');
 	}
-
 	var operation = function(callback) {
 		that.dataSource.connect(function(connection) {
 			that.log('[removeById] connected');
-			connection.get(that.uid + that.separator + id, function(err, result){
+			connection.get(that.uid + that.separator + id, function(err, result) {
 				if (err) {
 					callback(err);
 					return;
 				}
 				that.log('[removeById] found');
-				var data = result['value'];
-				connection.remove(that.uid + that.separator + id, options, function(){
+				var data = result.value;
+				connection.remove(that.uid + that.separator + id, options, function() {
 					that.log('[removeById] main record removed');
 					var ids = that._searchKeys(that.keys, data);
-
 					if (ids.length === 0) {
 						callback();
 					} else {
-						connection.removeMulti(ids, {}, function(err, results){
+						connection.removeMulti(ids, {}, function(err, results) {
 							if (!err) {
 								that.log('[removeById] keys removed');
 							}
@@ -138,23 +133,19 @@ CouchbaseInterface.prototype.removeById = function(id, callback, options) {
 					}
 				});
 			});
-
-		}, function(err){
+		}, function(err) {
 			finisOperation(callback, err);
 		});
 	};
-
 	var trigger = new ModelTrigger(this.beforeRemove, operation, this.afterRemove, callback);
 	trigger.execute({'id' : id});
-
-}
-
+};
+// Save keys
 CouchbaseInterface.prototype._saveKeys = function(keys, data, id, oldData, callback) {
 	var documents = {};
 	var removeIds = [];
 	var that = this;
 	var documentsCount = 0;
-
 	function searchKeys(keys, data, id, oldData) {
 		for (var n in keys) {
 			if (typeof keys[n] === 'object') {
@@ -164,7 +155,7 @@ CouchbaseInterface.prototype._saveKeys = function(keys, data, id, oldData, callb
 					if (oldData !== undefined && oldData[n] !== undefined && oldData[n] !== null) {
 						removeIds.push(that.uid + that.separator + n + that.separator + oldData[n]);
 					}
-					documents[that.uid + that.separator + n + that.separator + data[n]] = { 'value': { 'key': id } };
+					documents[that.uid + that.separator + n + that.separator + data[n]] = {'value' : {'key' : id }};
 					documentsCount++;
 				}
 			}
@@ -172,41 +163,38 @@ CouchbaseInterface.prototype._saveKeys = function(keys, data, id, oldData, callb
 	}
 	this.log('Searching keys');
 	searchKeys(keys, data, id, oldData);
-
 	function deleteOldKeys(callback) {
 		if (removeIds.length === 0) {
 			callback();
 		} else {
-			that.dataSource.connect(function(connection){
-				connection.removeMulti(removeIds, {}, function(err, results){
+			that.dataSource.connect(function(connection) {
+				connection.removeMulti(removeIds, {}, function(err, results) {
 					callback(err);
 				});
-			}, function(err){
+			}, function(err) {
 				callback(err);
 			});
 		}
 	}
-
 	function createKeys(callback) {
 		if (documentsCount === 0) {
 			that.log('No keys to create');
 			callback();
 		} else {
-			that.dataSource.connect(function(connection){
-				connection.setMulti(documents, {}, function(err, results){
+			that.dataSource.connect(function(connection) {
+				connection.setMulti(documents, {}, function(err, results) {
 					if (!err) {
 						that.log('Keys created');
 					}
 					callback(err);
 				});
-			}, function(err){
+			}, function(err) {
 				callback(err);
 			});
 		}
 	}
-
 	this.log('Deleting old keys');
-	deleteOldKeys(function(err){
+	deleteOldKeys(function(err) {
 		if (err) {
 			callback(err);
 		} else {
@@ -214,8 +202,8 @@ CouchbaseInterface.prototype._saveKeys = function(keys, data, id, oldData, callb
 			createKeys(callback);
 		}
 	});
-}
-
+};
+// Check if it is required
 CouchbaseInterface.prototype._checkRequired = function(data, requireFields) {
 	var that = this;
 	for (var n in requireFields) {
@@ -226,28 +214,26 @@ CouchbaseInterface.prototype._checkRequired = function(data, requireFields) {
 		}
 	}
 	return true;
-}
-
+};
 /*
 * Retrieve documents from the bucket
 *
 * @method find
-* @param {Object} condition Conditions to match 
+* @param {Object} condition Conditions to match
 * @param {Object} options Rules like limit, skip, order
 * @param {Object} callback
 */
 CouchbaseInterface.prototype._find = function(conditions, options, callback) {
 	var that = this;
-	if (conditions['_id'] !== undefined) {
+	if (conditions._id !== undefined) {
 		this.dataSource.connect(function(connection) {
-			connection.get(conditions['_id'], callback);
-		}, function(err){
+			connection.get(conditions._id, callback);
+		}, function(err) {
 			that.log('findById error: ' + err);
 			callback(err);
 		});
 	}
 };
-
 /**
  * Get a document using one of the related keys that points to this document
  *
@@ -268,11 +254,11 @@ CouchbaseInterface.prototype.findByKey = function(keyValue, keyName, callback) {
 				that.log('[findByKey] ' + err);
 				callback(err);
 			} else {
-				if (result['value']['key'] === undefined) {
+				if (result.value === undefined || result.value.key === undefined) {
 					callback(new exceptions.InvalidKeyFormat());
 				} else {
-					that.log('[findByKey] key = ' + result['value']['key']);
-					connection.get(result['value']['key'], callback);
+					that.log('[findByKey] key = ' + result.value.key);
+					connection.get(result.value.key, callback);
 				}
 			}
 		});
@@ -295,11 +281,10 @@ CouchbaseInterface.prototype.findById = function(id, callback) {
 	this.log('findById(' + id + ')');
 	this._find({'_id' : this.uid + this.separator + id}, {}, callback);
 };
-
+// Log
 CouchbaseInterface.prototype.log = function(msg) {
 	console.log('[CouchbaseInterface] ' + (typeof msg === 'object'? JSON.stringify(msg) : msg));
 };
-
 /**
  * Index a document in the database
  *
@@ -314,10 +299,9 @@ CouchbaseInterface.prototype.save = function(id, data, callback, prefix, options
 	if (options === undefined) {
 		options = {};
 	}
-	if (options['saveOptions'] === undefined) {
-		options['saveOptions'] = {};
+	if (options.saveOptions === undefined) {
+		options.saveOptions = {};
 	}
-
 	var that = this;
 	if (prefix === undefined || prefix === null) {
 		prefix = that.uid;
@@ -325,23 +309,19 @@ CouchbaseInterface.prototype.save = function(id, data, callback, prefix, options
 	if (typeof callback !== 'function') {
 		throw new exceptions.IllegalArgument('callback must be a function');
 	}
-
 	if (id === undefined || id === null) {
 		throw new exceptions.IllegalArgument('id is not defined or it is null');
 	}
-
 	var operation = function(callback) {
-		that.dataSource.connect(function(connection){
+		that.dataSource.connect(function(connection) {
 			connection.get(prefix + that.separator + id, function(err, result) {
-				var isUpdate = result['value'] !== undefined && result['value'];
+				var isUpdate = result.value !== undefined && result.value;
 				var isSave = !isUpdate;
-
-				var oldData = isUpdate? result['value'] : {};
+				var oldData = isUpdate ? result.value : {};
 				var mergedData = utils.merge(data, oldData);
-
 				function performValidation(onSuccess) {
 					that.log('Performing validation');
-					that.validator.isValid(data, function(expired, succeeded, validatedFields){
+					that.validator.isValid(data, function(expired, succeeded, validatedFields) {
 						if (expired) {
 							callback(new exceptions.ValidationExpired());
 						} else if (!succeeded) {
@@ -351,7 +331,6 @@ CouchbaseInterface.prototype.save = function(id, data, callback, prefix, options
 						}
 					});
 				}
-
 				function checkLockedFields(onSuccess) {
 					that.log('Checking locked fields');
 					if (that._isLocked(data, that.locks, isUpdate? 'M' : 'C')) {
@@ -360,7 +339,6 @@ CouchbaseInterface.prototype.save = function(id, data, callback, prefix, options
 					}
 					onSuccess();
 				}
-
 				function checkRequired(onSuccess) {
 					that.log('Checking required fields');
 					if (isSave) {
@@ -369,21 +347,19 @@ CouchbaseInterface.prototype.save = function(id, data, callback, prefix, options
 							return;
 						} else {
 							callback(new exceptions.FieldRequired());
-							return;o
+							return;
 						}
 					}
 					onSuccess();
 				}
-
 				function setOrReplace() {
 					that.log('Setting/replacing');
 					if (isUpdate) {
-						connection.replace(prefix + that.separator + id, mergedData, options['saveOptions'], callback);
+						connection.replace(prefix + that.separator + id, mergedData, options.saveOptions, callback);
 					} else {
-						connection.set(prefix + that.separator + id, mergedData, options['saveOptions'], callback);
+						connection.set(prefix + that.separator + id, mergedData, options.saveOptions, callback);
 					}
 				}
-
 				// Saving in the same model: should perform validation, check locked fields and save keys
 				if (prefix === that.uid) {
 					checkRequired(function(){
@@ -391,7 +367,7 @@ CouchbaseInterface.prototype.save = function(id, data, callback, prefix, options
 							checkLockedFields(function(){
 								try {
 									that.log('Saving keys');
-									that._saveKeys(that.keys, data, prefix + that.separator + id, oldData, function(err){
+									that._saveKeys(that.keys, data, prefix + that.separator + id, oldData, function(err) {
 										that.log('Keys saved');
 										if (err) {
 											callback(err);
@@ -410,13 +386,13 @@ CouchbaseInterface.prototype.save = function(id, data, callback, prefix, options
 					setOrReplace();
 				}
 			});
-		}, function(err){
+		}, function(err) {
 			callback(err);
 		});
 	};
 
 	var trigger = new ModelTrigger(this.beforeSave, operation, this.afterSave, callback);
 	trigger.execute({'id' : id, 'data' : data});
-}
+};
 
 module.exports = CouchbaseInterface;

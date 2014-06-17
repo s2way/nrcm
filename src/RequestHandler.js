@@ -22,7 +22,7 @@ function RequestHandler(configs, applications, ExceptionsController) {
 	this.configs = configs;
 	this.isAllowed = aclModule.isAllowed;
 	this.ExceptionsController = ExceptionsController;
-};
+}
 
 /**
  * It processes every request received
@@ -48,8 +48,8 @@ RequestHandler.prototype.process = function(request, response) {
 	try {
 		var router = new Router(this.configs.urlFormat);
 
-      	// Verifica se a URL é válida
-      	if (!router.isValid(requestUrl)) {
+		// Verifica se a URL é válida
+		if (!router.isValid(requestUrl)) {
 			throw new exceptions.InvalidUrl();
 		}
 
@@ -101,7 +101,9 @@ RequestHandler.prototype.invokeController = function(controller, method) {
 	that.debug('invokeController()');
 	var controllerCamelCase = stringUtils.lowerCaseUnderscoredToCamelCase(controller);
 	var application = that.applications[that.appName];
-
+	var componentName, dataSourceName, modelName, dataSourceConfig, modelInstance, ComponentConstructor, componentInstance, ModelConstructor, dataSource, modelDataSourceName;
+	var dataSources = [];
+	var savedOutput = '';
 	if (application.controllers[controllerCamelCase] === undefined) {
 		that.debug('controller not found');
 		throw new exceptions.ControllerNotFound();
@@ -111,35 +113,28 @@ RequestHandler.prototype.invokeController = function(controller, method) {
 	controllerInstance.components = {};
 	controllerInstance.name = controllerCamelCase;
 	controllerInstance.application = that.appName;
-
 	// Injects the components
-	for (var componentName in application.components) {
-		var ComponentConstructor = application.components[componentName];
-		var componentInstance = new ComponentConstructor();
+	for (componentName in application.components) {
+		ComponentConstructor = application.components[componentName];
+		componentInstance = new ComponentConstructor();
 		componentInstance.name = componentName;
 		controllerInstance.components[componentName] = componentInstance;
 	}
-
-	var dataSources = [];
 	// Instantiate all DataSources
-	for (var dataSourceName in this.configs.dataSources) {
-		var dataSourceConfig = this.configs.dataSources[dataSourceName];
+	for (dataSourceName in this.configs.dataSources) {
+		dataSourceConfig = this.configs.dataSources[dataSourceName];
 		dataSources[dataSourceName] = new DataSource(dataSourceName, dataSourceConfig);
 	}
-
 	controllerInstance.models = {};
 	// Injects the models
-	for (var modelName in application.models) {
-		var ModelConstructor = application.models[modelName];
-		var modelInstance = new ModelConstructor();
-
-		var modelDataSourceName = modelInstance.dataSource;
+	for (modelName in application.models) {
+		ModelConstructor = application.models[modelName];
+		modelInstance = new ModelConstructor();
+		modelDataSourceName = modelInstance.dataSource;
 		if (modelDataSourceName === undefined) {
 			modelDataSourceName = 'default';
 		}
-
-		var dataSource = dataSources[modelDataSourceName];
-
+		dataSource = dataSources[modelDataSourceName];
 		modelInstance.name = modelName;
 		modelInstance.model = new ModelInterface(dataSource, {
 			'uid' : modelInstance.uid,
@@ -150,13 +145,11 @@ RequestHandler.prototype.invokeController = function(controller, method) {
 		});
 		controllerInstance.models[modelName] = modelInstance;
 	}
-
 	// Injects the models inside the models
-	for (var modelName in controllerInstance.models) {
-		var modelInstance = controllerInstance.models[modelName];
+	for (modelName in controllerInstance.models) {
+		modelInstance = controllerInstance.models[modelName];
 		modelInstance.models = controllerInstance.models;
 	}
-
 	if (controllerInstance[method] === undefined) {
 		that.debug('method not found');
 		throw new exceptions.MethodNotFound();
@@ -178,12 +171,8 @@ RequestHandler.prototype.invokeController = function(controller, method) {
 		};
 		controllerInstance.requestHeaders = that.request.headers;
 		controllerInstance.responseHeaders = {};
-
 		try {
-
-			var savedOutput = '';
-
-			function afterCallback() {
+			var afterCallBack = function() {
 				try {
 					if (controllerInstance.statusCode === undefined) {
 						controllerInstance.statusCode = 200;
@@ -195,13 +184,11 @@ RequestHandler.prototype.invokeController = function(controller, method) {
 							that.response.setHeader(name, value);
 						}
 					}
-
 					// Shutdown all connections
 					for (var dataSourceName in dataSources) {
 						var dataSource = dataSources[dataSourceName];
 						dataSource.disconnect();
 					}
-
 					that.render(
 						savedOutput,
 						controllerInstance.statusCode
@@ -209,9 +196,8 @@ RequestHandler.prototype.invokeController = function(controller, method) {
 				} catch (e) {
 					that.handleRequestException(e);
 				}
-			}
-
-			function controllerMethodCallback(output) {
+			};
+			var controllerMethodCallback = function(output) {
 				savedOutput = output;
 				try {
 					// If after() is defined, call it
@@ -224,9 +210,8 @@ RequestHandler.prototype.invokeController = function(controller, method) {
 				} catch (e) {
 					that.handleRequestException(e);
 				}
-			}
-
-			function beforeCallback() {
+			};
+			var beforeCallback = function() {
 				try {
 					// Call the controller method (put, get, delete, post, etc)
 					output = controllerInstance[method](controllerMethodCallback);
@@ -234,7 +219,6 @@ RequestHandler.prototype.invokeController = function(controller, method) {
 					that.handleRequestException(e);
 				}
 			};
-
 			// If before() is defined, call it
 			if (controllerInstance.before !== undefined) {
 				that.debug('controllerInstance.before()');
@@ -247,15 +231,12 @@ RequestHandler.prototype.invokeController = function(controller, method) {
 		}
 	});
 };
-
 RequestHandler.prototype.info = function(message) {
 	console.log('[RequestHandler] ' + message);
 };
-
 RequestHandler.prototype.debug = function(message) {
 	console.log('[RequestHandler] ' + message);
 };
-
 /**
  * It handles the exceptions
  *
@@ -268,20 +249,16 @@ RequestHandler.prototype.handleRequestException = function(e) {
 	// Known exceptions
 	if (e.name !== undefined) {
 		var output = {};
-
 		var method = 'on' + e.name;
 		var instance = new this.ExceptionsController();
-		instance.statusCode = 200;
-
 		var that = this;
-
-		function callback() {
+		instance.statusCode = 200;
+		callback = function() {
 			if (instance.statusCode === undefined) {
 				instance.statusCode = 200;
 			}
 			return that.render(output, instance.statusCode);
-		}
-
+		};
 		if (typeof instance[method] === 'function') {
 			output = instance[method](callback);
 		} else if (instance.onGeneral !== undefined) {
@@ -295,15 +272,12 @@ RequestHandler.prototype.handleRequestException = function(e) {
 	// Unknown exceptions: no response
 	else {
 		this.info('Unknown Exception: ' + e);
-
 		if (e.stack !== undefined) {
 			this.info(e.stack);
 		}
 	}
 	return false;
 };
-
-
 /**
  * The callback function that sends the response back to the client
  *
@@ -321,22 +295,18 @@ RequestHandler.prototype.render = function(output, statusCode, contentType) {
 		'.js' : 'application/json',
 		'.xml' : 'text/xml'
 	};
-
+	var stringOutput;
 	// If the content type has not been specified, use the extension
 	if (contentType === undefined) {
 		contentType = extensionsMapToContentType[this.extension];
 	}
 	this.response.writeHead(statusCode, { 'Content-Type' : contentType });
-
-	var stringOutput;
-
 	if (typeof output === 'object') {
 		stringOutput = JSON.stringify(output);
 	} else {
 		stringOutput = output;
 	}
 	this.response.write(stringOutput);
-
 	this.info('output=' + JSON.stringify(output));
 	this.response.end();
 	return stringOutput;

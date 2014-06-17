@@ -1,5 +1,4 @@
 var stringUtils = {
-
 	/**
 	* Set to upper the first letter
 	*
@@ -13,7 +12,6 @@ var stringUtils = {
 		}
 		return str;
 	},
-
 	/**
 	* Transform a string this_example into thisExample
 	*
@@ -21,7 +19,7 @@ var stringUtils = {
 	* @param {string} lowerCaseUnderscored The string that will be converted
 	* @return {string} Returns the formated string
 	*/
-	lowerCaseUnderscoredToCamelCase : function (lowerCaseUnderscored) {
+	lowerCaseUnderscoredToCamelCase : function(lowerCaseUnderscored) {
 		var parts = lowerCaseUnderscored.split('_');
 		var camelCase = '';
 		for (var i in parts) {
@@ -32,7 +30,6 @@ var stringUtils = {
 		}
 		return camelCase;
 	},
-
 	/**
 	* Transform a string thisExample into this_example
 	*
@@ -40,7 +37,7 @@ var stringUtils = {
 	* @param {string} camelCase The string that will be converted
 	* @return {string} Returns the formated string
 	*/
-	camelCaseToLowerCaseUnderscored : function (camelCase) {
+	camelCaseToLowerCaseUnderscored : function(camelCase) {
 		var lowerCaseUnderscored = '';
 		var length = camelCase.length;
 		var upperCaseRegex = /[A-Z]/;
@@ -54,7 +51,6 @@ var stringUtils = {
 		}
 		return lowerCaseUnderscored;
 	}
-
 };
 
 module.exports = stringUtils;

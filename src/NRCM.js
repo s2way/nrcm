@@ -5,7 +5,6 @@ var http = require('http');
 var exceptions = require('./exceptions');
 var sync = require('./sync');
 var RequestHandler = require('./RequestHandler');
-
 // Constructor
 function NRCM() {
     this.applications = {};
@@ -13,12 +12,11 @@ function NRCM() {
     this.configs = {
         'url' : '/$controller'
     };
-};
-
+}
+// Log
 NRCM.prototype.log = function(message) {
     console.log('[NRCM] ' + message);
 };
-
 /**
  * Initiate an application inside the framework, it creates the directory`s structure, if it does not exist,
  * and it loads all application`s files on memory
@@ -30,7 +28,7 @@ NRCM.prototype.log = function(message) {
  */
 NRCM.prototype.setUp = function(appName) {
     var app = {};
-
+    var name;
     app.basePath = path.join(appName);
     app.controllersPath = path.join(appName, 'Controller');
     app.componentsPath = path.join(appName, 'Controller', 'Component');
@@ -38,21 +36,18 @@ NRCM.prototype.setUp = function(appName) {
     app.configPath = path.join(appName, 'Config');
     app.coreFileName = path.join(appName, 'Config', 'core.json');
     app.aclFileName = path.join(appName, 'Config', 'acl.json');
-
     // Directory creation
     sync.createDirIfNotExists(app.basePath);
     sync.createDirIfNotExists(app.controllersPath);
     sync.createDirIfNotExists(app.componentsPath);
     sync.createDirIfNotExists(app.modelsPath);
     sync.createDirIfNotExists(app.configPath);
-
     // Acl file creation
     sync.copyIfNotExists(path.join('src', 'acl.json'), app.aclFileName);
     // Core file creation
     sync.copyIfNotExists(path.join('src', 'core.json'), app.coreFileName);
     // ExceptionsController creation
     sync.copyIfNotExists(path.join('src', 'ExceptionsController.js'), path.join('ExceptionsController.js'));
-
     // Controller load
     app.controllers = sync.loadNodeFilesIntoArray(sync.listFilesFromDir(app.controllersPath));
     // Components load
@@ -63,46 +58,40 @@ NRCM.prototype.setUp = function(appName) {
     app.acl = sync.fileToJSON(app.aclFileName);
     // Loads core file
     app.core = sync.fileToJSON(app.coreFileName);
-
     this.ExceptionsController = require('./ExceptionsController.js');
-
     this.applications[appName] = app;
-
     // Validate the controllers format
-    for (var name in app.controllers) {
+    for (name in app.controllers) {
         var Controller = app.controllers[name];
         if (!(Controller instanceof Function)) {
             throw new exceptions.Fatal('Controller does not export a function: ' + name);
         }
         var instance = new Controller();
-        var methods = ['before', 'after', 'put', 'delete', 'get', 'post'];
-        methods.forEach(function(methodName) {
-            if (instance[methodName] !== undefined) {
-                if (!(instance[methodName] instanceof Function)) {
-                    throw new exceptions.Fatal(name + '.' + methodName + '() must be a function!');
+        var methods = ['before', 'after', 'put', 'delete', 'get', 'post', 'options', 'head', 'path'];
+        var methodsLength = methods.length;
+        for (var i = 0; i < methodsLength; i += 1) {
+            if (instance.methods[i] !== undefined) {
+                if (!(instance.methods[i] instanceof Function)) {
+                    throw new exceptions.Fatal(name + '.' + methods[i] + '() must be a function!');
                 }
             }
-        });
+        }
     }
-
     // Validate the components format
-    for (var name in app.components) {
+    for (name in app.components) {
         var Component = app.components[name];
         if (!(Component instanceof Function)) {
             throw new exceptions.Fatal('Component does not export a function: ' + name);
         }
     }
-
     // Validate the models format
-    for (var name in app.models) {
+    for (name in app.models) {
         var Model = app.models[name];
         if (!(Model instanceof Function)) {
             throw new exceptions.Fatal('Model does not export a function: ' + name);
         }
     }
-
-}
-
+};
 /**
  * It parses the configuration file, a json object, that controls the framework behavior, such url parameters,
  * data sources, etc...
@@ -120,8 +109,7 @@ NRCM.prototype.configure = function(configJSONFile) {
     if ((typeof this.configs.urlFormat) !== 'string') {
         throw new exceptions.Fatal('urlFormat is not a string');
     }
-}
-
+};
 /**
  * Starts the nodejs server for all your applications
  *
@@ -130,9 +118,8 @@ NRCM.prototype.configure = function(configJSONFile) {
  * @param {number} port The listening port of nodejs http.createServer function
  */
 NRCM.prototype.start = function(address, port) {
-    this.log('Starting...');
-
     var requestHandler = new RequestHandler(this.configs, this.applications, this.ExceptionsController);
+    this.log('Starting...');
     http.createServer(function(request, response){
         requestHandler.process(request, response);
     }).listen(port, address);
