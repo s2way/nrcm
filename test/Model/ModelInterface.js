@@ -32,28 +32,28 @@ describe('ModelInterface.js', function () {
     });
 
     describe('findByKey', function () {
-        it('should call the DataSource findByKey', function(done) {
+        it('should call the DataSource findByKey', function (done) {
             var model = new ModelInterface(dataSource, configurations);
             var emailValue = 'davi@versul.com.br';
             var emailName = 'email';
-            model.model.findByKey = function(keyValue, keyName, callback) {
+            model.model.findByKey = function (keyValue, keyName, callback) {
                 assert.equal(emailValue, keyValue);
                 assert.equal(emailName, keyName);
                 assert.equal('function', typeof callback);
                 done();
             };
-            model.findByKey(emailValue, emailName, function () { });
+            model.findByKey(emailValue, emailName, function () { return; });
         });
     });
-    
-    describe('save', function () { 
-        it('should call the DataSource save', function(done) {
+
+    describe('save', function () {
+        it('should call the DataSource save', function (done) {
             var model = new ModelInterface(dataSource, configurations);
             var id = '02895328099';
             var data = {};
             var options = {};
 
-            model.model.save = function(_id, _data, callback, prefix, _options) {
+            model.model.save = function (_id, _data, callback, prefix, _options) {
                 assert.equal(id, _id);
                 assert.equal(data, _data);
                 assert.equal(null, prefix);
@@ -61,21 +61,21 @@ describe('ModelInterface.js', function () {
                 assert.equal('function', typeof callback);
                 done();
             };
-            model.save(id, data, function () { }, null, options);
+            model.save(id, data, function () { return; }, null, options);
         });
     });
-    
-    describe('removeById', function () { 
-        it('should call the DataSource removeById', function(done){
+
+    describe('removeById', function () {
+        it('should call the DataSource removeById', function (done) {
             var model = new ModelInterface(dataSource, configurations);
             var id = '02895328099';
 
-            model.model.save = function(_id, callback) {
+            model.model.save = function (_id, callback) {
                 assert.equal(id, _id);
                 assert.equal('function', typeof callback);
                 done();
             };
-            model.save(id, function () { });
+            model.save(id, function () { return; });
         });
     });
 });
