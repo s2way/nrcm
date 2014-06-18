@@ -36,8 +36,10 @@
   },
   "version": "0.1.0",
   "scripts": {
+    "preinstall" : "npm install jslint",
     "pretest" : "node node_modules/jslint/bin/jslint.js --node --vars --devel --nomen --stupid --indent 4 src/*.js src/Model*.js",
-    "test": "mocha test test/Model -R spec"
+    "test": "mocha test test/Model -R spec",
+    "posttest" : "mocha test test/Model -R progress"
   },
   "contributors": [
     {
