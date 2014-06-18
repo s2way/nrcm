@@ -1,8 +1,11 @@
+/*jslint devel: true, node: true, indent: 4 */
+'use strict';
 var exceptions = require('./exceptions');
 var fs = require('fs');
 var path = require('path');
 var util = require('util');
 var sync = {
+
     /**
      * Copy a file from a place to another if the destination does not exist
      *
@@ -10,14 +13,14 @@ var sync = {
      * @param {string} src The source file
      * @param {string} src The directory destination
      */
-    copyIfNotExists : function(src, dst) {
+    copyIfNotExists : function (src, dst) {
+        var stats;
         if (fs.existsSync(dst)) {
-            var stats = fs.lstatSync(dst);
+            stats = fs.lstatSync(dst);
             if (stats.isDirectory()) {
                 throw new exceptions.Fatal();
-            } else {
-                return false;
             }
+            return false;
         }
         return sync.copy(src, dst);
     },
@@ -28,7 +31,7 @@ var sync = {
      * @param {string} src The source file
      * @param {string} src The directory destination
      */
-    copy : function(src, dst) {
+    copy : function (src, dst) {
         sync.createFileIfNotExists(dst, fs.readFileSync(src, "utf8"));
         return true;
     },
@@ -38,15 +41,16 @@ var sync = {
      * @method loadNodeFilesIntoArray
      * @param {array} files An array of files
      */
-    loadNodeFilesIntoArray : function(files) {
+    loadNodeFilesIntoArray : function (files) {
         var jsonFiles = {};
         if (!util.isArray(files)) {
             throw new exceptions.Fatal();
         }
-        for (var i in files) {
-            var name;
-            var file = files[i];
-            var extension = path.extname(file);
+        var name, i, file, extension;
+        for (i = 0; i < files.length; i += 1) {
+            name = files[i];
+            file = files[i];
+            extension = path.extname(file);
 
             if (extension !== '') { // if there is an extension remove it
                 name = path.basename(file, extension);
@@ -63,15 +67,16 @@ var sync = {
      * @method createDirIfNotExists
      * @param {string} dir The dir that needs to be created
      */
-    createDirIfNotExists : function(dir) {
+    createDirIfNotExists : function (dir) {
         var stats;
+        var permission = parseInt('0766', 8);
         if (fs.existsSync(dir)) {
             stats = fs.lstatSync(dir);
             if (!stats.isDirectory()) {
                 throw new exceptions.Fatal(dir + " exists and is not a directory");
             }
         } else {
-            fs.mkdirSync(dir, 0766);
+            fs.mkdirSync(dir, permission);
         }
     },
     /**
@@ -80,7 +85,7 @@ var sync = {
      * @method fileToJSON
      * @param {string} file The file path
      */
-    fileToJSON : function(file) {
+    fileToJSON : function (file) {
         return JSON.parse(fs.readFileSync(file, "utf8"));
     },
     /**
@@ -90,7 +95,7 @@ var sync = {
      * @param {string} filePath The file path that needs to be created
      * @param {string} filePath The content of the file
      */
-    createFileIfNotExists : function(filePath, fileData) {
+    createFileIfNotExists : function (filePath, fileData) {
         var stats;
         if (fs.existsSync(filePath)) {
             stats = fs.lstatSync(filePath);
@@ -108,11 +113,11 @@ var sync = {
      * @param {string} path Path to be searched
      * @return {array} Returns a list of files
      */
-    listFilesFromDir : function(dir) {
+    listFilesFromDir : function (dir) {
         var files = fs.readdirSync(dir);
         var result = [];
         if (files.length > 0) {
-            files.forEach(function(file) {
+            files.forEach(function (file) {
                 var fullFilePath = path.join(dir, file);
                 var stats = fs.lstatSync(fullFilePath);
                 if (stats.isFile()) {
@@ -120,7 +125,7 @@ var sync = {
                 }
                 if (stats.isSymbolicLink()) { // resolve symlinks
                     stats = fs.lstatSync(fs.realpathSync(fullFilePath));
-                    if(stats.isFile()) {
+                    if (stats.isFile()) {
                         result.push(fullFilePath);
                     }
                 }

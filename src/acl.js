@@ -1,3 +1,5 @@
+/*jslint devel: true, node: true, indent: 4 */
+'use strict';
 var exceptions = require('./exceptions');
 
 /**
