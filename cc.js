@@ -3,7 +3,7 @@ var minimalCoverage = 90;
 
 var cc = JSON.parse(fs.readFileSync('cc.json', "utf8"));
 if (cc) {
-    console.log('-> Code Coverage: ' + cc.coverage + ' <-');
+    console.log('-> Code Coverage: ' + cc.coverage + '% <-');
     if (cc.coverage > minimalCoverage) {
         process.exit(0);
     } else {
