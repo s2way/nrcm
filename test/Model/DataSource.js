@@ -1,5 +1,3 @@
-/*jslint devel: true, node: true, indent: 4 */
-/*globals describe, it */
 var assert = require('assert');
 var DataSource = require('./../../src/Model/DataSource');
 

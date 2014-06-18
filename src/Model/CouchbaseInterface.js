@@ -168,7 +168,7 @@ CouchbaseInterface.prototype._saveKeys = function (keys, data, id, oldData, call
                             removeIds.push(that.uid + that.separator + n + that.separator + oldData[n]);
                         }
                         documents[that.uid + that.separator + n + that.separator + data[n]] = {'value' : {'key' : id }};
-                        documentsCount++;
+                        documentsCount += 1;
                     }
                 }
             }

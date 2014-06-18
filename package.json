@@ -27,7 +27,8 @@
     "async": "0.2.9",
     "mocha": "1.13.0",
     "jshint": "~2.3.0",
-    "jsdoc": "~3.3.0-alpha1"
+    "jsdoc": "~3.3.0-alpha1",
+    "jslint": "^0.5.2"
   },
   "repository": {
     "type": "git",
@@ -35,6 +36,7 @@
   },
   "version": "0.1.0",
   "scripts": {
+    "pretest" : "node node_modules/jslint/bin/jslint.js --node --vars --devel --nomen --stupid --indent 4 src/*.js src/Model*.js",
     "test": "mocha test test/Model -R spec"
   },
   "contributors": [
@@ -44,7 +46,7 @@
     },
     {
       "name": "Davi Gabriel da Silva",
-      "email" : "davi.gbr@gmail.com"
+      "email": "davi.gbr@gmail.com"
     }
   ],
   "readme": "Please reade the README.md file.",

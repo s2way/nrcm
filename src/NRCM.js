@@ -64,6 +64,7 @@ NRCM.prototype.setUp = function (appName) {
     // Validate the controllers format
     var Controller, instance, methodsLength, methodName, j;
     var methods = ['before', 'after', 'put', 'delete', 'get', 'post', 'options', 'head', 'path'];
+
     for (name in app.controllers) {
         if (app.controllers.hasOwnProperty(name)) {
             Controller = app.controllers[name];

@@ -43,7 +43,7 @@ ExceptionsController.prototype.onGeneral = function (callback, exception) {
     }
     callback({
         'name' : 'General',
-        'cause' : exception,
+        'cause' : exception
     });
 };
 

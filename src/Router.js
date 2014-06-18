@@ -76,7 +76,7 @@ Router.prototype.decompose = function (requestUrl) {
                 application = part;
             }
         }
-        i++;
+        i += 1;
     });
     return {
         'controller' : controller,
