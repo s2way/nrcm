@@ -24,10 +24,7 @@
   },
   "devDependencies": {
     "blanket": "^1.1.6",
-    "async": "0.2.9",
     "mocha": "1.13.0",
-    "jshint": "~2.3.0",
-    "jsdoc": "~3.3.0-alpha1",
     "jslint": "^0.5.2"
   },
   "repository": {
@@ -37,7 +34,7 @@
   "version": "0.1.0",
   "scripts": {
     "preinstall" : "npm install jslint",
-    "pretest" : "node node_modules/jslint/bin/jslint.js --node --vars --devel --nomen --stupid --indent 4 src/*.js src/Model/*.js",
+    "pretest" : "node node_modules/jslint/bin/jslint.js --node --vars --devel --nomen --stupid --indent 4 --maxlen 2048 src/*.js src/Model/*.js",
     "test": "mocha test test/Model -R spec",
     "posttest" : "mocha test test/Model -r blanket -R json-cov > cc.json && node cc.js"
   },
