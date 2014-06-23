@@ -1,4 +1,4 @@
-/*jslint devel: true, node: true, indent: 4 */
+/*jslint devel: true, node: true, indent: 4, vars: true, maxlen: 256, nomen: true */
 'use strict';
 var exceptions = require('./../exceptions.js');
 var Validator = require('./Validator.js');

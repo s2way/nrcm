@@ -1,4 +1,4 @@
-/*jslint devel: true, node: true, indent: 4 */
+/*jslint devel: true, node: true, indent: 4, stupid: true, vars: true, maxlen: 256 */
 'use strict';
 var exceptions = require('./exceptions');
 var fs = require('fs');

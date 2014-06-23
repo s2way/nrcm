@@ -1,4 +1,4 @@
-/*jslint devel: true, node: true, indent: 4 */
+/*jslint devel: true, node: true, indent: 4, vars: true, stupid: true, nomen: true */
 'use strict';
 /**
  * The validator object

@@ -1,4 +1,4 @@
-/*jslint devel: true, node: true, indent: 4 */
+/*jslint devel: true, node: true, indent: 4, vars: true, maxlen: 256 */
 'use strict';
 /**
  * This class verifies if an url was passed in the format configured,

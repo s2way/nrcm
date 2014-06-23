@@ -34,9 +34,9 @@
   "version": "0.1.0",
   "scripts": {
     "preinstall" : "npm install jslint mocha blanket",
-    "pretest" : "node node_modules/jslint/bin/jslint.js --node --vars --devel --nomen --stupid --indent 4 --maxlen 2048 src/*.js src/Model/*.js",
+    "pretest" : "nodejs node_modules/jslint/bin/jslint.js --nodejs --vars --devel --nomen --stupid --indent 4 --maxlen 2048 src/*.js src/Model/*.js",
     "test": "mocha test test/Model -R spec",
-    "posttest" : "mocha test test/Model -r blanket -R json-cov > cc.json && node cc.js && rm -f cc.json"
+    "posttest" : "mocha test test/Model -r blanket -R json-cov > cc.json && nodejs cc.js && rm -f cc.json"
   },
   "contributors": [
     {

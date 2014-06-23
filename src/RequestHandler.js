@@ -1,4 +1,4 @@
-/*jslint devel: true, node: true, indent: 4 */
+/*jslint devel: true, node: true, indent: 4, vars: true, maxlen: 256 */
 'use strict';
 // Dependencies
 var querystring = require('querystring');
