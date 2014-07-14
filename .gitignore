@@ -5,3 +5,4 @@ config.json
 index.js
 ExceptionsController.js
 cc.json
+node_modules
