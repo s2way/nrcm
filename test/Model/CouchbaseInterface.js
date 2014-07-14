@@ -78,13 +78,13 @@ function mockCouchbase(options) {
                 controlVars.removeKey = key;
                 controlVars.removeOptions = options;
                 controlVars.removeCallback = callback;
-                // Assync callback 
+                // Assync callback
                 setTimeout(function () {
                     callback();
                 }, 10);
             };
             if (connectionCallback !== undefined) {
-                // Assync callback 
+                // Assync callback
                 setTimeout(function () {
                     connectionCallback();
                     controlVars.connectionCallbackCalled = true;
@@ -285,13 +285,13 @@ describe('CouchbaseInterface.js', function () {
                 done();
             }
         });
-        it('should throw an IllegalArgument exception if the id is not defined', function (done) {
+        it('should autoincrement if the id is not defined', function (done) {
             var modelInterface = createModelInterface();
             try {
-                modelInterface.save(null, {});
-                assert.fail();
-            } catch (e) {
+                modelInterface.save(null, {'dado' : 'dado'});
                 assert.equal('IllegalArgument', e.name);
+            } catch (e) {
+                assert.fail();
                 done();
             }
         });

@@ -27,6 +27,7 @@ function DataSource(name, configs) {
     try {
         this.couchbase = require('couchbase');
     } catch (e) {
+        console.log(e);
         return;
     }
 }

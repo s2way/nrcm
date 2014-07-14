@@ -11,7 +11,7 @@ var exceptions = require('./../exceptions');
  * @param {function} after The after trigger to execute
  * @param {function} callback
  */
-function ModelTrigger(before, operation, after, callback) {
+function ModelTrigger(before, operation, after) {
     if (typeof before !== 'function') {
         before = function (params, callback) {
             this.params = params;
@@ -25,9 +25,7 @@ function ModelTrigger(before, operation, after, callback) {
         };
     }
     if (typeof operation !== 'function') {
-        operation = function (err) {
-            callback(err);
-        };
+        throw new exceptions.IllegalArgument();
     }
     this.before = before;
     this.operation = operation;

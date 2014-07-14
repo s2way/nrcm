@@ -33,6 +33,8 @@ function CouchbaseInterface(dataSource, configurations) {
     this.requires = configurations.requires;
     // Separator
     this.separator = configurations.separator;
+    // Bucket
+    this.bucket = dataSource.index;
     // Validation rules
     this.validate = configurations.validate;
     if (this.validate === undefined || typeof this.validate !== 'object') {
@@ -50,8 +52,55 @@ function CouchbaseInterface(dataSource, configurations) {
     if (this.separator === undefined || typeof this.separator !== 'string') {
         this.separator = '_';
     }
+    if (this.bucket === undefined || typeof this.bucket !== 'string') {
+        this.bucket = 'default';
+    }
     this.validator = new Validator(this.validate);
 }
+
+/*
+ * Increment the counter for the key
+ * It`s called aumotaticaly when id is missing on save method
+ *
+ * @method _incr
+ * @param {String} keyName
+ * @param {Function} callback
+ */
+CouchbaseInterface.prototype._counter = function (keyName, callback) {
+    var that = this;
+    // var keyName = keyName;
+    if (keyName === undefined || typeof callback !== 'function') {
+        throw new exceptions.IllegalArgument('All parameters are mandatory');
+    }
+    that.dataSource.connect(function (connection) {
+        that.log('[_counter] connected');
+        connection.incr('counter:' + keyName, {}, function (err, result) {
+            that.log('[_counter] key ' + 'counter:' + keyName);
+            if (err) {
+                that.log('[_counter] counter ' + err);
+                connection.insert('counter:' + keyName, 1, {}, function(err, result) {
+                    if (err) {
+                        that.log('[_counter] insert' + err);
+                        callback(err);
+                    } else {
+                        that.log('[_counter] after insert value = ' + 1);
+                        callback(null, 1);
+                    }
+                });
+            } else {
+                if (result.value === undefined) {
+                    callback(new exceptions.InvalidKeyFormat());
+                } else {
+                    that.log('[_counter] value = ' + result.value);
+                    callback(null, result.value);
+                }
+            }
+        });
+    }, function (err) {
+        callback(err);
+    });
+};
+
 /*
  * Check the options of locked fields
  *
@@ -77,12 +126,12 @@ CouchbaseInterface.prototype._isLocked = function (data, lock, status) {
     return false;
 };
 /*
-* Search
-*
-* @method _isLocked
-* @param {Object} data
-* @param {Object} keys
-*/
+ * Search
+ *
+ * @method _isLocked
+ * @param {Object} data
+ * @param {Object} keys
+ */
 CouchbaseInterface.prototype._searchKeys = function (keys, data) {
     var removeIds = [];
     var that = this;
@@ -250,6 +299,43 @@ CouchbaseInterface.prototype._find = function (conditions, options, callback) {
         });
     }
 };
+
+/**
+ * Get few documents using a view
+ *
+ * @method findAll
+ * @param {string} viewName
+ * @param {object} viewOptions
+ * @param {object} queryOptions
+ * @param {function} callback
+ */
+CouchbaseInterface.prototype.findAll = function (viewName, viewOptions, queryOptions, callback) {
+    var that = this;    
+    if (typeof viewName !== 'string') {
+        callback(new exceptions.IllegalArgument());
+    }
+    that.dataSource.connect(function (connection) {
+        that.log('[findAll] connected ' + that.bucket + ' | ' + viewName);
+        if (queryOptions.limit === undefined || queryOptions.limit === 0) {
+            queryOptions.limit = 10;
+        }
+        connection.view(viewName, viewName, viewOptions).query(queryOptions, function (err, result) {
+            if (err) {
+                that.log('[findAll] err' + err);
+                callback(err);
+            } else {
+                that.log('[findAll] ok');
+                callback(err, result);
+            }
+        });
+        // viewQuery.ddoc = viewName;
+        //var util = require('util');
+        // console.log('@@@@@@@@@@' + util.inspect(viewQuery));        
+    }, function (err) {
+        callback(err);
+    });
+};
+
 /**
  * Get a document using one of the related keys that points to this document
  *
@@ -320,13 +406,10 @@ CouchbaseInterface.prototype.save = function (id, data, callback, prefix, option
     }
     var that = this;
     if (prefix === undefined || prefix === null) {
-        prefix = that.uid;
+        prefix = this.uid;
     }
     if (typeof callback !== 'function') {
         throw new exceptions.IllegalArgument('callback must be a function');
-    }
-    if (id === undefined || id === null) {
-        throw new exceptions.IllegalArgument('id is not defined or it is null');
     }
     var operation = function (callback) {
         that.dataSource.connect(function (connection) {
@@ -343,7 +426,7 @@ CouchbaseInterface.prototype.save = function (id, data, callback, prefix, option
                             callback(new exceptions.ValidationExpired(), validatedFields);
                         } else if (!succeeded) {
                             callback(new exceptions.ValidationFailed(), validatedFields);
-                        } else {
+                        } else {                            
                             onSuccess();
                         }
                     });
@@ -410,9 +493,33 @@ CouchbaseInterface.prototype.save = function (id, data, callback, prefix, option
             callback(err);
         });
     };
+    
+    if (id === undefined || id === null) {
+        this._counter(prefix, function(err, value) {
+            if (err) {
+                callback(new exceptions.Fatal());
+            } else {
+                id = value;
+                operation(callback);
+            }
+        });
+    } else {
+        operation(callback);
+    }
 
-    var trigger = new ModelTrigger(this.beforeSave, operation, this.afterSave, callback);
-    trigger.execute({'id' : id, 'data' : data});
+    // var trigger = new ModelTrigger(this.beforeSave, operation, this.afterSave);
+    // if (id === undefined || id === null) {
+    //     this._counter(prefix, function(err, value) {
+    //         if (err) {
+    //             callback(err);
+    //         } else {
+    //             id = value;
+    //             trigger.execute({'id' : id, 'data' : data});
+    //         }
+    //     });
+    // } else {
+    //     trigger.execute({'id' : id, 'data' : data});
+    // }
 };
 
 module.exports = CouchbaseInterface;

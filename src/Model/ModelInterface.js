@@ -40,6 +40,18 @@ ModelInterface.prototype.findById = function (id, callback) {
     return this.model.findById(id, callback);
 };
 /**
+ * Get documents using a view
+ *
+ * @method findAll
+ * @param {string} viewName
+ * @param {object} viewOptions
+ * @param {object} queryOptions
+ * @param {function} callback
+ */
+ModelInterface.prototype.findAll = function (viewName, viewOptions, queryOptions, callback) {
+    return this.model.findAll(viewName, viewOptions, queryOptions, callback);
+};
+/**
 * Index a document in the database
 *
 * @method save

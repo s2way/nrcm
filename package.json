@@ -16,7 +16,7 @@
     "view",
     "controller"
   ],
-  "main": "./index.js",
+  "main": "./src/NRCM.js",
   "license": "Apache2",
   "name": "nrcm",
   "dependencies": {
