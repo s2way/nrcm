@@ -103,7 +103,7 @@ RequestHandler.prototype.invokeController = function (controller, method) {
     that.debug('invokeController()');
     var controllerCamelCase = stringUtils.lowerCaseUnderscoredToCamelCase(controller);
     var application = that.applications[that.appName];
-    var componentName, dataSourceName, modelName, dataSourceConfig, modelInstance, ComponentConstructor, componentInstance, ModelConstructor, dataSource, modelDataSourceName;
+    var dataSourceName, dataSourceConfig, modelInstance, ComponentConstructor, componentInstance, ModelConstructor, dataSource, modelDataSourceName;
     var dataSources = [];
     var savedOutput = '';
     if (application.controllers[controllerCamelCase] === undefined) {
@@ -112,29 +112,34 @@ RequestHandler.prototype.invokeController = function (controller, method) {
     }
     var ControllerConstructor = application.controllers[controllerCamelCase];
     var controllerInstance = new ControllerConstructor();
-    controllerInstance.components = {};
     controllerInstance.name = controllerCamelCase;
     controllerInstance.application = that.appName;
-    // Injects the components
-    for (componentName in application.components) {
-        if (application.components.hasOwnProperty(componentName)) {
+
+    var retrieveComponent = function (componentName) {
+        if (application.components[componentName] !== undefined) {
             ComponentConstructor = application.components[componentName];
             componentInstance = new ComponentConstructor();
             componentInstance.name = componentName;
-            controllerInstance.components[componentName] = componentInstance;
+            componentInstance.component = retrieveComponent;
+            return componentInstance;
         }
-    }
+        return null;
+    };
+
+    // Injects the method for retrieving components in the controller and inside each component
+    controllerInstance.component = retrieveComponent;
+
     // Instantiate all DataSources
     for (dataSourceName in this.configs.dataSources) {
         if (this.configs.dataSources.hasOwnProperty(dataSourceName)) {
             dataSourceConfig = this.configs.dataSources[dataSourceName];
             dataSources[dataSourceName] = new DataSource(dataSourceName, dataSourceConfig);
+
         }
     }
-    controllerInstance.models = {};
-    // Injects the models
-    for (modelName in application.models) {
-        if (application.models.hasOwnProperty(modelName)) {
+
+    var retrieveModel = function (modelName) {
+        if (application.models[modelName] !== undefined) {
             ModelConstructor = application.models[modelName];
             modelInstance = new ModelConstructor();
             modelDataSourceName = modelInstance.dataSource;
@@ -150,20 +155,20 @@ RequestHandler.prototype.invokeController = function (controller, method) {
                 'requires' : modelInstance.requires,
                 'validate' : modelInstance.validate
             });
-            controllerInstance.models[modelName] = modelInstance;
+            modelInstance.model = retrieveModel;
+            return modelInstance;
         }
-    }
-    // Injects the models inside the models
-    for (modelName in controllerInstance.models) {
-        if (controllerInstance.models.hasOwnProperty(modelName)) {
-            modelInstance = controllerInstance.models[modelName];
-            modelInstance.models = controllerInstance.models;
-        }
-    }
+        return null;
+    };
+
+    // Injects the method for retrieving models
+    controllerInstance.model = retrieveModel;
+
     if (controllerInstance[method] === undefined) {
         that.debug('method not found');
         throw new exceptions.MethodNotFound();
     }
+
     // Receiving data
     this.request.on('data', function (data) {
         that.debug('on data');
@@ -246,9 +251,11 @@ RequestHandler.prototype.invokeController = function (controller, method) {
         }
     });
 };
+
 RequestHandler.prototype.info = function (message) {
     console.log('[RequestHandler] ' + message);
 };
+
 RequestHandler.prototype.debug = function (message) {
     console.log('[RequestHandler] ' + message);
 };

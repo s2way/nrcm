@@ -96,6 +96,7 @@ function mockRequestHandler(controllers, components) {
     if (controllers === undefined) {
         controllers = {
             MyController : function () {
+                this.models = ['MyModel'];
                 var that = this;
                 this.before = function (callback) {
                     controlVars.beforeCalled = true;
@@ -112,8 +113,8 @@ function mockRequestHandler(controllers, components) {
                     };
                     controlVars.output = output;
                     controlVars.controllerInstance = that;
-                    if (that.components !== undefined) {
-                        that.components.MyComponent.method(function () {
+                    if (that.component('MyComponent')) {
+                        that.component('MyComponent').method(function () {
                             callback(output);
                         });
                     } else {
@@ -198,12 +199,16 @@ describe('RequestHandler.js', function () {
                 assert.equal('ApplicationNotFound', controlVars.exception);
             });
 
-            it('should allow access to components inside the controller', function () {
+            it('should allow the controller to retrieve components', function () {
                 controlVars = {};
                 var rh = mockRequestHandler({
                     MyController : function () {
                         this.post = function (callback) {
-                            this.components.MyComponent.method(callback);
+                            var myComponent = this.component('MyComponent');
+                            myComponent.method(callback);
+                            // The component must be able to retrieve other components and itself!
+                            assert(myComponent.component('MyComponent') !== undefined);
+
                         };
                     }
                 });
@@ -211,12 +216,12 @@ describe('RequestHandler.js', function () {
                 assert.equal(true, controlVars.componentMethodCalled);
             });
 
-            it('should allow access to models inside the controller', function () {
+            it('should allow the controller to retrieve models', function () {
                 controlVars = {};
                 var rh = mockRequestHandler({
                     MyController : function () {
                         this.post = function (callback) {
-                            var model = this.models.MyModel;
+                            var model = this.model('MyModel');
                             assert.equal('MyModel', model.name);
                             assert.equal('My', model.uid);
                             assert.equal('{}', JSON.stringify(model.validate));
@@ -224,7 +229,7 @@ describe('RequestHandler.js', function () {
                             assert.equal('{}', JSON.stringify(model.locks));
                             assert.equal('{}', JSON.stringify(model.keys));
                             assert.equal('bucket', model.bucket);
-                            assert.equal('function', typeof model.models.HisModel.method);
+                            assert.equal('function', typeof this.model('HisModel').method);
                             model.method(callback);
                         };
                     }
@@ -246,7 +251,7 @@ describe('RequestHandler.js', function () {
                 assert.equal(true, controlVars.controllerInstance.query !== undefined);
                 assert.equal(true, controlVars.controllerInstance.payload !== undefined);
                 assert.equal(true, controlVars.controllerInstance.name !== undefined);
-                assert.equal(true, controlVars.controllerInstance.components !== undefined);
+                assert.equal(true, typeof controlVars.controllerInstance.component === 'function');
                 assert.equal(JSON.stringify(expectedResponseAndRequestHeaders), JSON.stringify(controlVars.controllerInstance.requestHeaders));
                 assert.equal(JSON.stringify(expectedResponseAndRequestHeaders), JSON.stringify(controlVars.controllerInstance.responseHeaders));
                 assert.equal('service', controlVars.controllerInstance.prefixes.service);
