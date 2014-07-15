@@ -73,12 +73,35 @@ function mockCouchbase(options) {
                     callback();
                 }, 10);
             };
-            this.incr = function(keyName, options, callback) {
+            this.insert = function (key, data, options, callback) {
                 setTimeout(function () {
-                    controlVars.incrCalled = true;
-                    callback(null, {
-                        'value' : 2
-                    });
+                    if (controlVars.insertFail === true) {
+                        controlVars.insertCalled = true;
+                        callback(true);
+                    } else {
+                        controlVars.insertCalled = true;
+                        callback(null, {                            
+                            'value' : 2
+                        });
+                    }
+                }, 10);
+            };
+            this.view = function (viewName, viewOptions, queryOptions) {
+                return { 'query' : function (queryOptions, callback) {
+                    callback(null, true);
+                }};
+            };
+            this.incr = function (keyName, options, callback) {
+                setTimeout(function () {
+                    if (controlVars.incrFail === true) {
+                        controlVars.incrCalled = true;
+                        callback(true);
+                    } else {
+                        controlVars.incrCalled = true;
+                        callback(null, {
+                            'value' : 2
+                        });                        
+                    }
                 }, 10);
             };
             this.remove = function (key, options, callback) {
@@ -198,6 +221,55 @@ describe('CouchbaseInterface.js', function () {
             });
         });
     });
+    describe('findAll', function () {
+        var document = {
+            'nome' : 'Davi',
+            'cpf' : '02895328099'
+        };
+        var couchbase = mockCouchbase({
+            'getResult' : {
+                'value' : document
+            }
+        });
+        var modelInterface = new CouchbaseInterface(createDataSource(couchbase), {'uid' : 'pessoa'});
+        modelInterface.log = mockLogFunction();
+        it('should return all records if the id is missing', function (done) {
+            controlVars = {};
+            modelInterface.findAll('viewName', {}, {}, function (err, result) {
+                assert.equal(undefined, err);
+                done();
+            });
+        });
+    });
+    describe('find', function () {
+        var document = {
+            'nome' : 'Davi',
+            'cpf' : '02895328099'
+        };
+        var couchbase = mockCouchbase({
+            'getResult' : {
+                'value' : document
+            }
+        });
+        var modelInterface = new CouchbaseInterface(createDataSource(couchbase), {'uid' : 'pessoa'});
+        modelInterface.log = mockLogFunction();
+        it('should return all records calling findAll if the id is missing', function (done) {
+            controlVars = {};
+            modelInterface.find({}, function (err, result) {
+                assert.equal(undefined, err);
+                done();
+            });
+        });
+        it('should return the record calling find if the id is present', function (done) {
+            controlVars = {};
+            modelInterface.find({id : '02895328099'}, function (err, result) {
+                assert.equal(JSON.stringify(document), JSON.stringify(result.value));
+                assert.equal(undefined, err);
+                done();
+            });
+
+        });
+    });
     describe('findById', function () {
         var document = {
             'nome' : 'Davi',
@@ -300,10 +372,23 @@ describe('CouchbaseInterface.js', function () {
                 done();
             }
         });
-        it('should autoincrement if the id is not defined', function (done) {
+        it('should autoincrement if the id is not defined and insert the counter if doesnt exit', function (done) {
             var modelInterface = createModelInterface();
-            modelInterface.save(null, {'dado' : 'dado'}, function(){
+            controlVars.incrFail = true;
+            modelInterface.save(null, {'dado' : 'dado'}, function () {
                 assert.equal(true, controlVars.incrCalled);
+                assert.equal(true, controlVars.insertCalled);
+                done();
+            });
+        });
+        it('should autoincrement if the id is not defined and if the counter exists doesnt insert it', function (done) {
+            var modelInterface = createModelInterface();
+            controlVars.incrFail = false;
+            controlVars.incrCalled = false;
+            controlVars.insertCalled = false;
+            modelInterface.save(null, {'dado' : 'dado'}, function () {
+                assert.equal(true, controlVars.incrCalled);
+                assert.equal(false, controlVars.insertCalled);
                 done();
             });
         });

@@ -65,10 +65,6 @@ function CouchbaseInterface(dataSource, configurations) {
  */
 CouchbaseInterface.prototype._counter = function (keyName, callback) {
     var that = this;
-    // var keyName = keyName;
-    if (keyName === undefined || typeof callback !== 'function') {
-        throw new exceptions.IllegalArgument('All parameters are mandatory');
-    }
     that.dataSource.connect(function (connection) {
         that.log('[_counter] connected');
         connection.incr('counter:' + keyName, {}, function (err, result) {
@@ -306,14 +302,10 @@ CouchbaseInterface.prototype._find = function (conditions, options, callback) {
  */
 CouchbaseInterface.prototype.findAll = function (viewName, viewOptions, queryOptions, callback) {
     var that = this;
-    if (typeof viewName !== 'string') {
-        callback(new exceptions.IllegalArgument());
-    }
     that.dataSource.connect(function (connection) {
         that.log('[findAll] connected ' + that.bucket + ' | ' + viewName);
-        if (queryOptions.limit === undefined || queryOptions.limit === 0) {
-            queryOptions.limit = 10;
-        }
+        queryOptions.limit = queryOptions.limit === undefined ? 10 : queryOptions.limit;
+
         connection.view(viewName, viewName, viewOptions).query(queryOptions, function (err, result) {
             if (err) {
                 that.log('[findAll] err' + err);
@@ -342,7 +334,7 @@ CouchbaseInterface.prototype.find = function (query, callback) {
         });
     } else {
         var queryOptions = {};
-        queryOptions.limit = query.limit !== undefined ? query.limit : 0;
+        queryOptions.limit = query.limit !== undefined ? query.limit : 10;
         queryOptions.skip = query.skip !== undefined ? query.skip : 0;
         this.findAll('item', {}, queryOptions, function (err, result) {
             callback(err, result);
