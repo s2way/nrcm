@@ -328,13 +328,33 @@ CouchbaseInterface.prototype.findAll = function (viewName, viewOptions, queryOpt
                 callback(err, result);
             }
         });
-        // viewQuery.ddoc = viewName;
-        //var util = require('util');
-        // console.log('@@@@@@@@@@' + util.inspect(viewQuery));        
     }, function (err) {
         callback(err);
     });
 };
+
+/**
+ * Smart find - by Id or by View 
+ * TODO check if query has a key field
+ * @method find
+ * @param {string} query
+ * @param {function} callback
+ */
+CouchbaseInterface.prototype.find = function(query, callback) {
+    if (query.id !== undefined) {
+        this.findById(query.id, function (err, result) {
+            callback(err, result);
+        });
+    } else {
+        var queryOptions = {};
+        queryOptions.limit = query.limit !== undefined ? query.limit : 0;
+        queryOptions.skip = query.skip !== undefined ? query.skip : 0;
+        this.findAll('item', {}, queryOptions, function (err, result) {
+            callback(err, result);
+        });
+    }
+};
+
 
 /**
  * Get a document using one of the related keys that points to this document
@@ -454,6 +474,21 @@ CouchbaseInterface.prototype.save = function (id, data, callback, prefix, option
                     }
                 }
 
+                function controlId(onSuccess) {
+                    if (id === undefined || id === null) {
+                        that._counter(prefix, function(err, value) {
+                            if (err) {
+                                callback(new exceptions.Fatal());
+                            } else {
+                                id = value;
+                                onSuccess();
+                            }
+                        });
+                    } else {
+                        onSuccess();
+                    }
+                }
+
                 function setOrReplace() {
                     that.log('Setting/replacing');
                     if (isUpdate) {
@@ -468,20 +503,22 @@ CouchbaseInterface.prototype.save = function (id, data, callback, prefix, option
                     checkRequired(function () {
                         performValidation(function () {
                             checkLockedFields(function () {
-                                try {
-                                    that.log('Saving keys');
-                                    that._saveKeys(that.keys, data, prefix + that.separator + id, oldData, function (err) {
-                                        that.log('Keys saved');
-                                        if (err) {
-                                            callback(err);
-                                        } else {
-                                            setOrReplace();
-                                        }
-                                    });
-                                } catch (e) {
-                                    callback(e);
-                                    return;
-                                }
+                                controlId(function() {
+                                    try {
+                                        that.log('Saving keys');
+                                        that._saveKeys(that.keys, data, prefix + that.separator + id, oldData, function (err) {
+                                            that.log('Keys saved');
+                                            if (err) {
+                                                callback(err);
+                                            } else {
+                                                setOrReplace();
+                                            }
+                                        });
+                                    } catch (e) {
+                                        callback(e);
+                                        return;
+                                    }
+                                });
                             });
                         });
                     });
@@ -494,19 +531,6 @@ CouchbaseInterface.prototype.save = function (id, data, callback, prefix, option
         });
     };
     
-    if (id === undefined || id === null) {
-        this._counter(prefix, function(err, value) {
-            if (err) {
-                callback(new exceptions.Fatal());
-            } else {
-                id = value;
-                operation(callback);
-            }
-        });
-    } else {
-        operation(callback);
-    }
-
     // var trigger = new ModelTrigger(this.beforeSave, operation, this.afterSave);
     // if (id === undefined || id === null) {
     //     this._counter(prefix, function(err, value) {

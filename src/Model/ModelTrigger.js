@@ -30,7 +30,6 @@ function ModelTrigger(before, operation, after) {
     this.before = before;
     this.operation = operation;
     this.after = after;
-    this.callback = callback;
 }
 
 /**
