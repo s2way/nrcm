@@ -1,4 +1,4 @@
-var NRCM = require('./src/NRCM');
+var NRCM = require('nrcm');
 var nrcm = new NRCM();
 nrcm.configure('config.json');
 nrcm.setUp('app');

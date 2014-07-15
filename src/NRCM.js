@@ -20,13 +20,13 @@ NRCM.prototype.log = function (message) {
     console.log('[NRCM] ' + message);
 };
 /**
- * Initiate an application inside the framework, it creates the directory`s structure, if it does not exist,
- * and it loads all application`s files on memory
+ * Initiate an application inside the framework, it creates the directory structure if they do not exist
+ * It loads all application files on memory
  * It is possible to have more then one application running on the same nodejs server, it works as an alias or
  * as a namespace
  *
  * @method setUp
- * @param {string} appName The name of application, it will be also used as directory`s name
+ * @param {string} appName The name of application, it will be also used as directory's name
  */
 NRCM.prototype.setUp = function (appName) {
     var app = {}, name;
@@ -44,11 +44,11 @@ NRCM.prototype.setUp = function (appName) {
     sync.createDirIfNotExists(app.modelsPath);
     sync.createDirIfNotExists(app.configPath);
     // Acl file creation
-    sync.copyIfNotExists(path.join('src', 'acl.json'), app.aclFileName);
+    sync.copyIfNotExists(path.join(__dirname, 'acl.json'), app.aclFileName);
     // Core file creation
-    sync.copyIfNotExists(path.join('src', 'core.json'), app.coreFileName);
+    sync.copyIfNotExists(path.join(__dirname, 'core.json'), app.coreFileName);
     // ExceptionsController creation
-    sync.copyIfNotExists(path.join('src', 'ExceptionsController.js'), path.join('ExceptionsController.js'));
+    sync.copyIfNotExists(path.join(__dirname, 'ExceptionsController.js'), path.join('ExceptionsController.js'));
     // Controller load
     app.controllers = sync.loadNodeFilesIntoArray(sync.listFilesFromDir(app.controllersPath));
     // Components load
@@ -117,7 +117,7 @@ NRCM.prototype.configure = function (configJSONFile) {
     } catch (e) {
         throw new exceptions.Fatal('Configuration file is not a valid JSON', e);
     }
-    // Validate the json object within configuration`s file
+    // Validate the json object within configuration's file
     if ((typeof this.configs.urlFormat) !== 'string') {
         throw new exceptions.Fatal('urlFormat is not a string');
     }
