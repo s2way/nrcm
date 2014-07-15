@@ -13,8 +13,7 @@ function DataSource(name, configs) {
     if (typeof configs !== 'object' ||
             typeof configs.host !== 'string' ||
             typeof configs.port !== 'string' ||
-            typeof configs.type !== 'string' ||
-            typeof configs.index !== 'string') {
+            typeof configs.type !== 'string') {
         throw new exceptions.IllegalArgument('Invalid DataSource configurations');
     }
     this.name = name;
@@ -22,6 +21,11 @@ function DataSource(name, configs) {
     this.port = configs.port;
     this.type = configs.type;
     this.index = configs.index;
+
+    if (typeof this.index !== 'string') {
+        this.index = 'default';
+    }
+
     this.connection = null;
     // This is necessary for Travis
     try {

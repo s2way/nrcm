@@ -7,60 +7,56 @@ var ModelTrigger = require('./../../src/Model/ModelTrigger');
 describe('ModelTrigger', function () {
 
     describe('execute', function () {
-        var parameters = {
-            'param1' : 1,
-            'param2' : 2
-        };
-
         it('should not call after if operation passes an error', function (done) {
             var operationCalled = false;
             var afterCalled = false;
 
             var operation = function (callback) {
                 operationCalled = true;
-                var error = {};
-                callback(error);
+                callback('an error', {});
             };
-            var after = function (params, callback) {
+            var after = function (callback, result, err) {
                 afterCalled = true;
-                assert.equal(parameters, params);
-                callback();
+                callback(result, err);
             };
-            var trigger = new ModelTrigger(null, operation, after, function () {
+            var trigger = new ModelTrigger(null, operation, after, function (err, result) {
                 assert.equal(true, operationCalled);
                 assert.equal(false, afterCalled);
+                assert.equal('an error', err);
                 done();
             });
-            trigger.execute(parameters);
+            trigger.execute();
         });
 
-        it('should call before, operation and after passing the parameters', function (done) {
+        it('should call before, operation and after if no error is passed', function (done) {
             var beforeCalled = false;
             var operationCalled = false;
             var afterCalled = false;
 
-            var before = function (params, callback) {
+            var before = function (callback) {
                 beforeCalled = true;
-                assert.equal(parameters, params);
                 callback(true);
             };
             var operation = function (callback) {
                 operationCalled = true;
-                callback();
+                callback(false, {});
             };
-            var after = function (params, callback) {
+            var after = function (callback, err, result) {
                 afterCalled = true;
-                assert.equal(parameters, params);
-                callback();
+                assert.equal(false, err);
+                assert.equal(JSON.stringify({}), JSON.stringify(result));
+                callback(err, result);
             };
-            var trigger = new ModelTrigger(before, operation, after, function () {
+            var trigger = new ModelTrigger(before, operation, after, function (err, result) {
                 assert.equal(true, beforeCalled);
                 assert.equal(true, operationCalled);
                 assert.equal(true, afterCalled);
+                assert.equal(false, err);
+                assert.equal(JSON.stringify({}), JSON.stringify(result));
                 done();
             });
 
-            trigger.execute(parameters);
+            trigger.execute();
         });
 
         it('should function normally if before, operation and after are not functions', function (done) {
@@ -68,7 +64,7 @@ describe('ModelTrigger', function () {
                 done();
             });
 
-            trigger.execute(parameters);
+            trigger.execute();
         });
 
         it('should not call operation and after if false is passed to the before callback', function (done) {
@@ -76,28 +72,29 @@ describe('ModelTrigger', function () {
             var operationCalled = false;
             var afterCalled = false;
 
-            var before = function (params, callback) {
+            var before = function (callback) {
                 beforeCalled = true;
-                assert.equal(parameters, params);
                 callback(false);
             };
+            
             var operation = function (callback) {
                 operationCalled = true;
-                callback();
+                callback(false, {});
             };
-            var after = function (params, callback) {
+            
+            var after = function (callback, err, result) {
                 afterCalled = true;
-                assert.equal(parameters, params);
-                callback();
+                callback(err, result);
             };
-            var trigger = new ModelTrigger(before, operation, after, function () {
+
+            var trigger = new ModelTrigger(before, operation, after, function (err, result) {
                 assert.equal(true, beforeCalled);
                 assert.equal(false, operationCalled);
                 assert.equal(false, afterCalled);
                 done();
             });
 
-            trigger.execute(parameters);
+            trigger.execute();
         });
     });
 });

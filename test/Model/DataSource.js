@@ -27,7 +27,7 @@ describe('DataSource.js', function () {
     }
 
     var configs = {
-        'index' : 'cep',
+        //'index' : 'cep', if index is not passed, should assume default
         'host' : '127.0.0.1',
         'port' : '8091',
         'type' : 'Couchbase'

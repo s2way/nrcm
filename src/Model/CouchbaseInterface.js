@@ -52,15 +52,12 @@ function CouchbaseInterface(dataSource, configurations) {
     if (this.separator === undefined || typeof this.separator !== 'string') {
         this.separator = '_';
     }
-    if (this.bucket === undefined || typeof this.bucket !== 'string') {
-        this.bucket = 'default';
-    }
     this.validator = new Validator(this.validate);
 }
 
 /*
  * Increment the counter for the key
- * It`s called aumotaticaly when id is missing on save method
+ * It`s called automatically when id is missing on save method
  *
  * @method _incr
  * @param {String} keyName
@@ -78,7 +75,7 @@ CouchbaseInterface.prototype._counter = function (keyName, callback) {
             that.log('[_counter] key ' + 'counter:' + keyName);
             if (err) {
                 that.log('[_counter] counter ' + err);
-                connection.insert('counter:' + keyName, 1, {}, function(err, result) {
+                connection.insert('counter:' + keyName, 1, {}, function (err) {
                     if (err) {
                         that.log('[_counter] insert' + err);
                         callback(err);
@@ -88,12 +85,8 @@ CouchbaseInterface.prototype._counter = function (keyName, callback) {
                     }
                 });
             } else {
-                if (result.value === undefined) {
-                    callback(new exceptions.InvalidKeyFormat());
-                } else {
-                    that.log('[_counter] value = ' + result.value);
-                    callback(null, result.value);
-                }
+                that.log('[_counter] value = ' + result.value);
+                callback(null, result.value);
             }
         });
     }, function (err) {
@@ -196,9 +189,11 @@ CouchbaseInterface.prototype.removeById = function (id, callback, options) {
             callback(err);
         });
     };
+
     var trigger = new ModelTrigger(this.beforeRemove, operation, this.afterRemove, callback);
-    trigger.execute({'id' : id});
+    trigger.execute();
 };
+
 // Save keys
 CouchbaseInterface.prototype._saveKeys = function (keys, data, id, oldData, callback) {
     var documents = {};
@@ -310,7 +305,7 @@ CouchbaseInterface.prototype._find = function (conditions, options, callback) {
  * @param {function} callback
  */
 CouchbaseInterface.prototype.findAll = function (viewName, viewOptions, queryOptions, callback) {
-    var that = this;    
+    var that = this;
     if (typeof viewName !== 'string') {
         callback(new exceptions.IllegalArgument());
     }
@@ -335,12 +330,12 @@ CouchbaseInterface.prototype.findAll = function (viewName, viewOptions, queryOpt
 
 /**
  * Smart find - by Id or by View 
- * TODO check if query has a key field
+ * PENDING: Check if query has a key field
  * @method find
  * @param {string} query
  * @param {function} callback
  */
-CouchbaseInterface.prototype.find = function(query, callback) {
+CouchbaseInterface.prototype.find = function (query, callback) {
     if (query.id !== undefined) {
         this.findById(query.id, function (err, result) {
             callback(err, result);
@@ -446,7 +441,7 @@ CouchbaseInterface.prototype.save = function (id, data, callback, prefix, option
                             callback(new exceptions.ValidationExpired(), validatedFields);
                         } else if (!succeeded) {
                             callback(new exceptions.ValidationFailed(), validatedFields);
-                        } else {                            
+                        } else {
                             onSuccess();
                         }
                     });
@@ -474,18 +469,18 @@ CouchbaseInterface.prototype.save = function (id, data, callback, prefix, option
                     }
                 }
 
-                function controlId(onSuccess) {
+                function controlId(callback) {
                     if (id === undefined || id === null) {
-                        that._counter(prefix, function(err, value) {
+                        that._counter(prefix, function (err, value) {
                             if (err) {
-                                callback(new exceptions.Fatal());
+                                callback(err);
                             } else {
                                 id = value;
-                                onSuccess();
+                                callback();
                             }
                         });
                     } else {
-                        onSuccess();
+                        callback();
                     }
                 }
 
@@ -503,7 +498,11 @@ CouchbaseInterface.prototype.save = function (id, data, callback, prefix, option
                     checkRequired(function () {
                         performValidation(function () {
                             checkLockedFields(function () {
-                                controlId(function() {
+                                controlId(function (err) {
+                                    if (err) {
+                                        callback(err);
+                                        return;
+                                    }
                                     try {
                                         that.log('Saving keys');
                                         that._saveKeys(that.keys, data, prefix + that.separator + id, oldData, function (err) {
@@ -530,20 +529,9 @@ CouchbaseInterface.prototype.save = function (id, data, callback, prefix, option
             callback(err);
         });
     };
-    
-    // var trigger = new ModelTrigger(this.beforeSave, operation, this.afterSave);
-    // if (id === undefined || id === null) {
-    //     this._counter(prefix, function(err, value) {
-    //         if (err) {
-    //             callback(err);
-    //         } else {
-    //             id = value;
-    //             trigger.execute({'id' : id, 'data' : data});
-    //         }
-    //     });
-    // } else {
-    //     trigger.execute({'id' : id, 'data' : data});
-    // }
+
+    var trigger = new ModelTrigger(this.beforeSave, operation, this.afterSave, callback);
+    trigger.execute();
 };
 
 module.exports = CouchbaseInterface;

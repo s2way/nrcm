@@ -73,6 +73,14 @@ function mockCouchbase(options) {
                     callback();
                 }, 10);
             };
+            this.incr = function(keyName, options, callback) {
+                setTimeout(function () {
+                    controlVars.incrCalled = true;
+                    callback(null, {
+                        'value' : 2
+                    });
+                }, 10);
+            };
             this.remove = function (key, options, callback) {
                 controlVars.removeCalled = true;
                 controlVars.removeKey = key;
@@ -137,9 +145,18 @@ describe('CouchbaseInterface.js', function () {
                 assert.equal('IllegalArgument', e.name);
             }
         });
-        it('should throw an exception if the configurations parameter is not passed', function () {
+        it('should throw an exception if the dataSource parameter is not passed', function () {
             try {
                 var ci = new CouchbaseInterface();
+                assert.equal(true, ci !== null);
+                assert.fail();
+            } catch (e) {
+                assert.equal('IllegalArgument', e.name);
+            }
+        });
+        it('should throw an exception if the configurations parameter is not passed', function () {
+            try {
+                var ci = new CouchbaseInterface(createDataSource());
                 assert.equal(true, ci !== null);
                 assert.fail();
             } catch (e) {
@@ -242,9 +259,8 @@ describe('CouchbaseInterface.js', function () {
         });
         it('should call beforeRemove and proceed with the operation if true is passed to the callback', function (done) {
             var modelInterface = createModelInterface();
-            modelInterface.beforeRemove = function (params, callback) {
+            modelInterface.beforeRemove = function (callback) {
                 setTimeout(function () {
-                    assert.equal('02895328099', params.id);
                     controlVars.beforeRemoveCalled = true;
                     callback(true);
                 }, 10);
@@ -259,11 +275,10 @@ describe('CouchbaseInterface.js', function () {
         });
         it('should call afterRemove and pass the id', function (done) {
             var modelInterface = createModelInterface();
-            modelInterface.afterRemove = function (params, callback) {
-                assert.equal('02895328099', params.id);
+            modelInterface.afterRemove = function (callback, err, result) {
                 controlVars.afterRemoveCalled = true;
                 setTimeout(function () {
-                    callback();
+                    callback(err, result);
                 }, 10);
             };
             modelInterface.removeById('02895328099', function () {
@@ -287,13 +302,10 @@ describe('CouchbaseInterface.js', function () {
         });
         it('should autoincrement if the id is not defined', function (done) {
             var modelInterface = createModelInterface();
-            try {
-                modelInterface.save(null, {'dado' : 'dado'});
-                assert.equal('IllegalArgument', e.name);
-            } catch (e) {
-                assert.fail();
+            modelInterface.save(null, {'dado' : 'dado'}, function(){
+                assert.equal(true, controlVars.incrCalled);
                 done();
-            }
+            });
         });
         it('should connect to the database, read the record and call the callback if the record is found', function (done) {
             var modelInterface = createModelInterface();
@@ -306,18 +318,16 @@ describe('CouchbaseInterface.js', function () {
             var modelInterface = createModelInterface();
             var beforeCalled = false;
             var afterCalled = false;
-            modelInterface.beforeSave = function (params, callback) {
-                this.params = params; // JSLint unused
+            modelInterface.beforeSave = function (callback) {
                 beforeCalled = true;
                 setTimeout(function () {
                     callback(true);
                 }, 10);
             };
-            modelInterface.afterSave = function (params, callback) {
-                this.params = params; // JSLint unused
+            modelInterface.afterSave = function (callback, err, result) {
                 afterCalled = true;
                 setTimeout(function () {
-                    callback();
+                    callback(err, result);
                 }, 10);
             };
             modelInterface.save('02895328099', data, function (err) {
