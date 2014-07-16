@@ -134,7 +134,6 @@ RequestHandler.prototype.invokeController = function (controller, method) {
         if (this.configs.dataSources.hasOwnProperty(dataSourceName)) {
             dataSourceConfig = this.configs.dataSources[dataSourceName];
             dataSources[dataSourceName] = new DataSource(dataSourceName, dataSourceConfig);
-
         }
     }
 
@@ -156,6 +155,7 @@ RequestHandler.prototype.invokeController = function (controller, method) {
                 'validate' : modelInstance.validate
             });
             modelInstance.model = retrieveModel;
+            modelInstance.component = retrieveComponent;
             return modelInstance;
         }
         return null;

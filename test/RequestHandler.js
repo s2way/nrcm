@@ -216,6 +216,21 @@ describe('RequestHandler.js', function () {
                 assert.equal(true, controlVars.componentMethodCalled);
             });
 
+            it('should allow the model to retrieve components', function () {
+                controlVars = {};
+                var rh = mockRequestHandler({
+                    MyController : function () {
+                        this.post = function (callback) {
+                            var myModel = this.model('MyModel');
+                            var myComponent = myModel.component('MyComponent');
+                            myComponent.method(callback);
+                        };
+                    }
+                });
+                rh.process(mockRequest(url, method), mockResponse());
+                assert.equal(true, controlVars.componentMethodCalled);
+            });
+
             it('should allow the controller to retrieve models', function () {
                 controlVars = {};
                 var rh = mockRequestHandler({
