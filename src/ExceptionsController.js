@@ -36,6 +36,14 @@ ExceptionsController.prototype.onForbidden = function (callback) {
     });
 };
 
+ExceptionsController.prototype.onTimeout = function (callback) {
+    this.statusCode = 504;
+    callback({
+        'code' : 504,
+        'error' : 'Timeout'
+    });
+};
+
 ExceptionsController.prototype.onGeneral = function (callback, exception) {
     this.statusCode = 500;
     if (exception.stack !== undefined) {

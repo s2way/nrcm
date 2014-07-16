@@ -163,7 +163,8 @@ function mockRequestHandler(controllers, components) {
                 'index' : 'bucket'
             }
         },
-        'urlFormat' : '/#service/#version/$application/$controller'
+        'urlFormat' : '/#service/#version/$application/$controller',
+        'requestTimeout' : 500
     }, {
         'app' : {
             'controllers' : controllers,
@@ -185,6 +186,10 @@ describe('RequestHandler.js', function () {
         var method = 'POST';
 
         describe('process', function () {
+            beforeEach(function() {
+                controlVars = {};
+            });
+
             it('should handle the InvalidUrl exception and render something', function () {
                 var rh = mockRequestHandler();
                 rh.isAllowed = function () { return '**'; };
@@ -199,8 +204,7 @@ describe('RequestHandler.js', function () {
                 assert.equal('ApplicationNotFound', controlVars.exception);
             });
 
-            it('should allow the controller to retrieve components', function () {
-                controlVars = {};
+            it('should allow the controller to retrieve components', function (done) {
                 var rh = mockRequestHandler({
                     MyController : function () {
                         this.post = function (callback) {
@@ -212,27 +216,32 @@ describe('RequestHandler.js', function () {
                         };
                     }
                 });
+                // Finaliza o teste após renderizar a resposta
+                rh.render = function() {
+                    done();
+                };
                 rh.process(mockRequest(url, method), mockResponse());
-                assert.equal(true, controlVars.componentMethodCalled);
             });
 
-            it('should allow the model to retrieve components', function () {
-                controlVars = {};
+            it('should allow the model to retrieve components', function (done) {
                 var rh = mockRequestHandler({
                     MyController : function () {
                         this.post = function (callback) {
                             var myModel = this.model('MyModel');
                             var myComponent = myModel.component('MyComponent');
+                            assert(myComponent !== null);
                             myComponent.method(callback);
                         };
                     }
                 });
+                // Finaliza o teste após renderizar a resposta
+                rh.render = function() {
+                    done();
+                };
                 rh.process(mockRequest(url, method), mockResponse());
-                assert.equal(true, controlVars.componentMethodCalled);
             });
 
-            it('should allow the controller to retrieve models', function () {
-                controlVars = {};
+            it('should allow the controller to retrieve models', function (done) {
                 var rh = mockRequestHandler({
                     MyController : function () {
                         this.post = function (callback) {
@@ -249,43 +258,85 @@ describe('RequestHandler.js', function () {
                         };
                     }
                 });
+                // Finaliza o teste após renderizar a resposta
+                rh.render = function() {
+                    done();
+                };
                 rh.process(mockRequest(url, method), mockResponse());
-                assert.equal(true, controlVars.modelMethodCalled);
             });
 
-            it('should invoke the controller and render if the url is valid', function () {
-                controlVars = {};
+            it('should invoke the controller and render if the url is valid', function (done) {
                 var expectedResponseAndRequestHeaders = {
                     'header' : 'value'
                 };
-                var rh = mockRequestHandler();
+                var rh = mockRequestHandler({
+                    MyController : function () {
+                        this.post = function (callback) {
+                            this.responseHeaders.header = 'value';
+                            callback({});
+                        };
+                        this.after = function (callback) {
+                            assert.equal(true, this.readonly.request !== undefined);
+                            assert.equal(true, this.readonly.response !== undefined);
+                            assert.equal(true, this.query !== undefined);
+                            assert.equal(true, this.payload !== undefined);
+                            assert.equal(true, this.name !== undefined);
+                            assert.equal(true, typeof this.component === 'function');
+                            assert.equal(JSON.stringify(expectedResponseAndRequestHeaders), JSON.stringify(this.requestHeaders));
+                            assert.equal(JSON.stringify(expectedResponseAndRequestHeaders), JSON.stringify(this.responseHeaders));
+                            assert.equal('service', this.prefixes.service);
+                            assert.equal('version', this.prefixes.version);
+                            assert.equal('app', this.application);
+                            callback();
+                        };
+                    }
+                });
+                // Finaliza o teste após a execução do método render()
+                rh.render = function(output, statusCode, contentType) {
+                    assert.equal(true, output !== null);
+                    // Certifica-se que os headers foram setados
+                    assert.equal(true, controlVars.headersSet);
+                    done();
+                };
                 rh.process(mockRequest(url, method), mockResponse());
-                assert.equal(true, controlVars.output !== null);
-                assert.equal(true, controlVars.controllerInstance.readonly.request !== undefined);
-                assert.equal(true, controlVars.controllerInstance.readonly.response !== undefined);
-                assert.equal(true, controlVars.controllerInstance.query !== undefined);
-                assert.equal(true, controlVars.controllerInstance.payload !== undefined);
-                assert.equal(true, controlVars.controllerInstance.name !== undefined);
-                assert.equal(true, typeof controlVars.controllerInstance.component === 'function');
-                assert.equal(JSON.stringify(expectedResponseAndRequestHeaders), JSON.stringify(controlVars.controllerInstance.requestHeaders));
-                assert.equal(JSON.stringify(expectedResponseAndRequestHeaders), JSON.stringify(controlVars.controllerInstance.responseHeaders));
-                assert.equal('service', controlVars.controllerInstance.prefixes.service);
-                assert.equal('version', controlVars.controllerInstance.prefixes.version);
-                assert.equal('app', controlVars.controllerInstance.application);
-                // Certifica-se que os headers foram setados
-                assert.equal(true, controlVars.headersSet);
             });
 
             it('should call before and after methods if they are defined', function () {
-                controlVars = {};
-                var rh = mockRequestHandler();
+                var beforeCalled = true;
+                var rh = mockRequestHandler({
+                    MyController : function () {
+                        this.post = function (callback) {
+                            callback();
+                        };
+                        this.before = function (callback) {
+                            beforeCalled = true;
+                        };
+                        this.after = function (callback) {
+                            done();
+                        };
+                    }
+                });
                 rh.process(mockRequest(url, method), mockResponse());
-                assert.equal(true, controlVars.beforeCalled);
-                assert.equal(true, controlVars.afterCalled);
+            });
+
+            it('should handle the exception if the request timed out', function (done) {
+                var rh = mockRequestHandler({
+                    MyController : function () {
+                        this.post = function (callback) {
+                            // Callback not called
+                            // Timeout                            
+                        };
+                    }
+                });
+                rh.configs.requestTimeout = 10;
+                rh.render = function() {
+                    assert.equal('Timeout', controlVars.exception);
+                    done();
+                };
+                rh.process(mockRequest(url, method), mockResponse());
             });
 
             it('should handle the exception if the resource is forbidden', function () {
-                controlVars = {};
                 var rh = mockRequestHandler();
                 rh.isAllowed = function () { return false; };
                 rh.process(mockRequest(url, method), mockResponse());

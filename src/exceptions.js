@@ -39,6 +39,11 @@ module.exports = {
         this.name = 'MethodNotFound';
         this.message = message;
     },
+    Timeout : function (message, cause) {
+        this.cause = cause;
+        this.name = 'Timeout';
+        this.message = message;
+    },
     IllegalArgument : function (message) {
         this.message = message;
         this.name = 'IllegalArgument';

@@ -1,5 +1,6 @@
 {
     "urlFormat" : "/$application/$controller",
+    "requestTimeout" : 10000,
     "dataSources" : {
         "default" : {
         	"type" : "Couchbase",

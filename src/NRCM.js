@@ -7,6 +7,7 @@ var http = require('http');
 var exceptions = require('./exceptions');
 var sync = require('./sync');
 var RequestHandler = require('./RequestHandler');
+
 // Constructor
 function NRCM() {
     this.applications = {};
@@ -15,10 +16,12 @@ function NRCM() {
         'url' : '/$controller'
     };
 }
+
 // Log
 NRCM.prototype.log = function (message) {
     console.log('[NRCM] ' + message);
 };
+
 /**
  * Initiate an application inside the framework, it creates the directory structure if they do not exist
  * It loads all application files on memory
@@ -104,6 +107,7 @@ NRCM.prototype.setUp = function (appName) {
         }
     }
 };
+
 /**
  * It parses the configuration file, a json object, that controls the framework behavior, such url parameters,
  * data sources, etc...
@@ -122,6 +126,7 @@ NRCM.prototype.configure = function (configJSONFile) {
         throw new exceptions.Fatal('urlFormat is not a string');
     }
 };
+
 /**
  * Starts the nodejs server for all your applications
  *

@@ -11,6 +11,7 @@ var applicationRegex = /\$application/;
 var controllerRegex = /\$controller/;
 var url = require('url');
 var path = require('path');
+
 /**
  * The router object
  *
@@ -23,6 +24,7 @@ function Router(urlFormat) {
     this.urlFormat = urlFormat;
     this.urlFormatParts = urlFormat.split('/');
 }
+
 /**
  * It checks if the url received by the server was formated according to the configuration
  *

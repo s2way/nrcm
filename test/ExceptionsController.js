@@ -36,4 +36,10 @@ describe('ExceptionsController.js', function () {
             instance.onGeneral(function () { return; }, { });
         });
     });
+
+    describe('onTimeout', function () {
+        it('should return a JSON object', function () {
+            instance.onTimeout(function () { return; }, { });
+        });
+    });
 });

@@ -105,7 +105,7 @@ RequestHandler.prototype.invokeController = function (controller, method) {
     var application = that.applications[that.appName];
     var dataSourceName, dataSourceConfig, modelInstance, ComponentConstructor, componentInstance, ModelConstructor, dataSource, modelDataSourceName;
     var dataSources = [];
-    var savedOutput = '';
+    var savedOutput = null;
     if (application.controllers[controllerCamelCase] === undefined) {
         that.debug('controller not found');
         throw new exceptions.ControllerNotFound();
@@ -191,6 +191,8 @@ RequestHandler.prototype.invokeController = function (controller, method) {
         controllerInstance.requestHeaders = that.request.headers;
         controllerInstance.responseHeaders = {};
         try {
+            var timer = null;
+
             var afterCallback = function () {
                 var name, dataSourceNameAC, dataSourceAC, value;
                 try {
@@ -220,6 +222,8 @@ RequestHandler.prototype.invokeController = function (controller, method) {
                 } catch (e) {
                     that.handleRequestException(e);
                 }
+                // Done, clear the timeout
+                clearTimeout(timer);
             };
             var controllerMethodCallback = function (output) {
                 savedOutput = output;
@@ -243,13 +247,23 @@ RequestHandler.prototype.invokeController = function (controller, method) {
                     that.handleRequestException(e);
                 }
             };
-            // If before() is defined, call it
-            if (controllerInstance.before !== undefined) {
-                that.debug('controllerInstance.before()');
-                controllerInstance.before(beforeCallback);
-            } else {
-                beforeCallback();
-            }
+
+            // Encapsulate the method in a immediate so it can be killed
+            var controllerMethodImmediate = setImmediate(function () {
+                // If before() is defined, call it
+                if (controllerInstance.before !== undefined) {
+                    that.debug('controllerInstance.before()');
+                    controllerInstance.before(beforeCallback);
+                } else {
+                    beforeCallback();
+                }
+            });
+            // Timer that checks if the 
+            timer = setTimeout(function () {
+                that.debug('Request timeout!');
+                clearImmediate(controllerMethodImmediate);
+                that.handleRequestException(new exceptions.Timeout());
+            }, that.configs.requestTimeout);
         } catch (e) {
             that.handleRequestException(e);
         }
