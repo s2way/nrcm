@@ -12,7 +12,7 @@ function SchemaMatcher(schema) {
     this.schema = this._isValidJson(schema);
     if (this.schema === false) {
         throw new exceptions.IllegalArgument('The schema is invalid!');
-    }    
+    }
 }
 
 SchemaMatcher.prototype._isValidJson = function (jsonOb) {
@@ -74,7 +74,7 @@ SchemaMatcher.prototype.match = function (data) {
     var newData = this._isValidJson(data);
     if (!newData) {
         throw new exceptions.IllegalArgument('The data is invalid!');
-    } 
+    }
     return this._matchAgainst(data);
 };
 
