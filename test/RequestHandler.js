@@ -1,5 +1,5 @@
 /*jslint devel: true, node: true, indent: 4 */
-/*globals describe, it */
+/*globals describe, it, beforeEach */
 'use strict';
 var RequestHandler = require('./../src/RequestHandler.js');
 var exceptions = require('./../src/exceptions.js');
@@ -7,7 +7,7 @@ var assert = require('assert');
 
 var controlVars = { };
 
-function mockExceptionsController() {
+function MockExceptionsController() {
     this.onApplicationNotFound = function (callback) {
         controlVars.exception = 'ApplicationNotFound';
         this.statusCode = 404;
@@ -171,7 +171,7 @@ function mockRequestHandler(controllers, components) {
             'components' : components,
             'models' : models
         }
-    }, mockExceptionsController);
+    }, MockExceptionsController);
     rh.debug = rh.info = function () { return; };
 
     rh.isAllowed = function () {
@@ -181,12 +181,13 @@ function mockRequestHandler(controllers, components) {
 }
 
 describe('RequestHandler.js', function () {
+
     describe('RequestHandler', function () {
         var url = '/service/version/app/my_controller?x=1&y=2&z=3';
         var method = 'POST';
 
         describe('process', function () {
-            beforeEach(function() {
+            beforeEach(function () {
                 controlVars = {};
             });
 
@@ -217,7 +218,7 @@ describe('RequestHandler.js', function () {
                     }
                 });
                 // Finaliza o teste após renderizar a resposta
-                rh.render = function() {
+                rh.render = function () {
                     done();
                 };
                 rh.process(mockRequest(url, method), mockResponse());
@@ -235,7 +236,7 @@ describe('RequestHandler.js', function () {
                     }
                 });
                 // Finaliza o teste após renderizar a resposta
-                rh.render = function() {
+                rh.render = function () {
                     done();
                 };
                 rh.process(mockRequest(url, method), mockResponse());
@@ -259,7 +260,7 @@ describe('RequestHandler.js', function () {
                     }
                 });
                 // Finaliza o teste após renderizar a resposta
-                rh.render = function() {
+                rh.render = function () {
                     done();
                 };
                 rh.process(mockRequest(url, method), mockResponse());
@@ -292,16 +293,17 @@ describe('RequestHandler.js', function () {
                     }
                 });
                 // Finaliza o teste após a execução do método render()
-                rh.render = function(output, statusCode, contentType) {
-                    assert.equal(true, output !== null);
+                rh.render = function (output, statusCode) {
+                    assert(statusCode === 200);
+                    assert(output !== null);
                     // Certifica-se que os headers foram setados
-                    assert.equal(true, controlVars.headersSet);
+                    assert(controlVars.headersSet);
                     done();
                 };
                 rh.process(mockRequest(url, method), mockResponse());
             });
 
-            it('should call before and after methods if they are defined', function () {
+            it('should call before and after methods if they are defined', function (done) {
                 var beforeCalled = true;
                 var rh = mockRequestHandler({
                     MyController : function () {
@@ -310,8 +312,11 @@ describe('RequestHandler.js', function () {
                         };
                         this.before = function (callback) {
                             beforeCalled = true;
+                            callback(true);
                         };
                         this.after = function (callback) {
+                            assert(callback !== null);
+                            assert(beforeCalled === true);
                             done();
                         };
                     }
@@ -324,12 +329,13 @@ describe('RequestHandler.js', function () {
                     MyController : function () {
                         this.post = function (callback) {
                             // Callback not called
-                            // Timeout                            
+                            // Timeout            
+                            assert(callback);
                         };
                     }
                 });
                 rh.configs.requestTimeout = 10;
-                rh.render = function() {
+                rh.render = function () {
                     assert.equal('Timeout', controlVars.exception);
                     done();
                 };
