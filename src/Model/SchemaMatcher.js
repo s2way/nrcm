@@ -8,7 +8,7 @@ var exceptions = require('./../exceptions.js');
  * @method SchemaMatcher
  * @param {json} schema The json base schema to validate data
  */
-function SchemaMatcher (schema) {
+function SchemaMatcher(schema) {
     this.schema = this._isValidJson(schema);
     if (this.schema === false) {
         throw new exceptions.IllegalArgument('The schema is invalid!');
@@ -17,7 +17,7 @@ function SchemaMatcher (schema) {
 
 SchemaMatcher.prototype._isValidJson = function (jsonOb) {
     var newJson;
-    if (jsonOb === undefined || jsonOb == null) {
+    if (jsonOb === undefined || jsonOb === null) {
         return false;
     }
     try {
@@ -40,7 +40,7 @@ SchemaMatcher.prototype._matchAgainst = function (data, level, schema) {
         level += 1;
     }
     for (n in data) {
-        if (data.hasOwnProperty(n)) {            
+        if (data.hasOwnProperty(n)) {
             if (Array.isArray(data[n])) {
                 if (!Array.isArray(schema[n])) {
                     return false;
