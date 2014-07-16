@@ -190,5 +190,27 @@ describe('SchemaMatcher.js', function () {
                 assert.equal(x, false);
             }
         });
+        it('should return false if the data contains more data then schema expects', function () {
+            var schema = {
+                'string' : 'string',
+                'array' : [],
+                'object' : []
+            };
+            var data = {
+                'x': 'string',
+                'array' : [0,1,3],
+            };
+            try {
+                var sm = new SchemaMatcher(schema);             
+            } catch (e) {
+                assert.fail();                  
+            }
+            try {
+                var x = sm.match(data);
+                assert.fail();
+            } catch (e) {
+                assert.equal(x, false);
+            }
+        });
     });
 });
