@@ -2,6 +2,7 @@
 'use strict';
 var exceptions = require('./../exceptions.js');
 var Validator = require('./Validator.js');
+var SchemaMatcher = require('./SchemaMatcher.js');
 var utils = require('./utils.js');
 var util = require('util');
 var ModelTrigger = require('./ModelTrigger');
@@ -33,6 +34,8 @@ function CouchbaseInterface(dataSource, configurations) {
     this.requires = configurations.requires;
     // Separator
     this.separator = configurations.separator;
+    // SchemaMatcher
+    this.schema = configurations.schema;
     // Bucket
     this.bucket = dataSource.index;
     // Validation rules
@@ -51,6 +54,9 @@ function CouchbaseInterface(dataSource, configurations) {
     }
     if (this.separator === undefined || typeof this.separator !== 'string') {
         this.separator = '_';
+    }
+    if (this.schema !== undefined) {
+        this.sm = new SchemaMatcher(this.schema);
     }
     this.validator = new Validator(this.validate);
 }
@@ -417,6 +423,11 @@ CouchbaseInterface.prototype.save = function (id, data, callback, prefix, option
     }
     if (typeof callback !== 'function') {
         throw new exceptions.IllegalArgument('callback must be a function');
+    }
+    if (this.sm !== undefined) {
+        if (!this.sm.match(data)) {
+            throw new exceptions.IllegalArgument('data doesnt match according to schema');
+        }
     }
     var operation = function (callback) {
         that.dataSource.connect(function (connection) {
