@@ -177,7 +177,11 @@ RequestHandler.prototype.invokeController = function (controller, method) {
     // All data received
     this.request.on('end', function () {
         that.debug('request.end()');
-        controllerInstance.payload = querystring.parse(that.payload);
+        try {
+            controllerInstance.payload = JSON.parse(that.payload);
+        } catch (e) {
+            controllerInstance.payload = querystring.parse(that.payload);
+        }
         controllerInstance.query = that.query;
         controllerInstance.prefixes = that.prefixes;
         controllerInstance.readonly = {

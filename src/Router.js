@@ -36,6 +36,10 @@ Router.prototype.isValid = function (requestUrl) {
     if (path.extname(parsedUrl) !== '') {
         return false;
     }
+    // Remove / at the end of the URL
+    if (parsedUrl.charAt(parsedUrl.length - 1) === '/') {
+        parsedUrl = parsedUrl.substring(0, parsedUrl.length - 1);
+    }
     // Must start with /
     if (parsedUrl.charAt(0) !== '/') {
         return false;
@@ -65,7 +69,7 @@ Router.prototype.decompose = function (requestUrl) {
     var application = 'app';
     var that = this;
     parts.forEach(function (part) {
-        if (i > 0) {
+        if (part && i > 0) {
             var urlFormatPart = that.urlFormatParts[i];
             var formatPartFirstChar = urlFormatPart.charAt(0);
             if (formatPartFirstChar === '#') {

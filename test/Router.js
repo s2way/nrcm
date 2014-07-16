@@ -5,17 +5,26 @@ var assert = require('assert');
 var Router = require('./../src/Router');
 
 describe('Router.js', function () {
+
     describe('isValid', function () {
         var router = new Router('/#prefix1/#prefix2/$application/$controller');
+        
         it('should return false when the number of parts of the URL differ from the number of parts specified in the format', function () {
             assert.equal(false, router.isValid('/1/2/3/4/5'));
             assert.equal(false, router.isValid('/1/2/3'));
         });
+        
         it('should return false if the url does not start with /', function () {
             assert.equal(false, router.isValid('a/1/2/3/'));
         });
+        
         it('cannot have an extension', function () {
             assert.equal(false, router.isValid('/1/2/3/4.json'));
+        });
+
+        it('must accept urls ending with /', function () {
+            assert.equal(true, router.isValid('/p1/p2/app/controller'));
+            assert.equal(true, router.isValid('/p1/p2/app/controller/'));
         });
     });
 
@@ -39,4 +48,5 @@ describe('Router.js', function () {
             assert.equal(JSON.stringify(expected), JSON.stringify(router.decompose(url)));
         });
     });
+
 });
