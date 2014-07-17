@@ -172,6 +172,7 @@ function mockRequestHandler(controllers, components) {
             'models' : models
         }
     }, MockExceptionsController);
+    rh.appName = 'app';
     rh.debug = rh.info = function () { return; };
 
     rh.isAllowed = function () {
@@ -185,6 +186,86 @@ describe('RequestHandler.js', function () {
     describe('RequestHandler', function () {
         var url = '/service/version/app/my_controller?x=1&y=2&z=3';
         var method = 'POST';
+
+        describe('invokeController', function () {
+            var requestHandler, instance;
+
+            beforeEach(function () {
+                requestHandler = mockRequestHandler();
+                instance = requestHandler.prepareController('MyController');
+            });
+
+            it('should throw a MethodNotFound exception if the method passed is not implemented inside the controller', function () {
+
+                try {
+                    requestHandler.invokeController(instance, 'put');
+                } catch (e) {
+                    assert.equal('MethodNotFound', e.name);
+                }
+            });
+
+        });
+
+        describe('prepareController', function () {
+            var requestHandler, instance;
+
+            beforeEach(function () {
+                requestHandler = mockRequestHandler();
+                instance = requestHandler.prepareController('MyController');
+            });
+
+            it('should inject the name property', function () {
+                assert.equal('MyController', instance.name);
+            });
+
+            it('should inject the application property', function () {
+                assert.equal('app', instance.application);
+            });
+
+            it('should inject the method for retrieving components', function () {
+                var myComponent = instance.component('MyComponent');
+                // Just to be sure that this component really is MyComponent
+                assert.equal('MyComponent', myComponent.name);
+            });
+
+            it('should inject the method for retrieving models', function () {
+                var myModel = instance.model('MyModel');
+                // Just to be sure that this model really is MyModel
+                assert.equal('MyModel', myModel.name);
+            });
+
+            it('should inject all ModelInterface methods inside the models retrieved by the model method', function () {
+                var myModel = instance.model('MyModel');
+
+                assert.equal('function', typeof myModel._findAll);
+                assert.equal('function', typeof myModel._findByKey);
+                assert.equal('function', typeof myModel._findById);
+                assert.equal('function', typeof myModel._find);
+                assert.equal('function', typeof myModel._removeById);
+                assert.equal('function', typeof myModel._save);
+            });
+
+            it('should inject the method for retrieving models inside the models retrieved by the model method', function () {
+                var myModel = instance.model('MyModel');
+                // Retrieving itself
+                assert.equal('MyModel', myModel.model('MyModel').name);
+            });
+
+            it('should inject the method for retrieving components inside the models retrieved by the model method', function () {
+                var myModel = instance.model('MyModel');
+                // Model retrieving a component
+                assert.equal('MyComponent', myModel.component('MyComponent').name);
+            });
+
+            it('should throw a ControllerNotFound exception if the controller does not exist', function () {
+                try {
+                    requestHandler.prepareController('InvalidController');
+                    assert.fail();
+                } catch (e) {
+                    assert.equal('ControllerNotFound', e.name);
+                }
+            });
+        });
 
         describe('process', function () {
             beforeEach(function () {

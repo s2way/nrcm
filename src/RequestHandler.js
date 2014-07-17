@@ -84,38 +84,52 @@ RequestHandler.prototype.process = function (request, response) {
             throw new exceptions.Forbidden();
         }
 
-        this.invokeController(controller, method);
+        var controllerNameCamelCase = stringUtils.lowerCaseUnderscoredToCamelCase(decomposedURL.controller);
+
+        var controllerInstance = this.prepareController(controllerNameCamelCase);
+        this.invokeController(controllerInstance, method);
 
     } catch (e) {
         this.handleRequestException(e);
     }
 };
 
-/**
- * It executes a function within the controller
- *
- * @method invokeController
- * @param {string} controller The controller`s name
- * @param {string} method The controller`s method that should be invoked
+/** 
+ * Prepares the controller to be invoked
+ * Controller dependency injection happens here
+ * @return The controller instance that should be passed to invokeController
  */
-RequestHandler.prototype.invokeController = function (controller, method) {
+RequestHandler.prototype.prepareController = function (controllerName) {
     var that = this;
-    that.debug('invokeController()');
-    var controllerCamelCase = stringUtils.lowerCaseUnderscoredToCamelCase(controller);
-    var application = that.applications[that.appName];
-    var dataSourceName, dataSourceConfig, modelInstance, ComponentConstructor, componentInstance, ModelConstructor, dataSource, modelDataSourceName;
+    this.debug('prepareController()');
+
+    var dataSourceName, dataSourceConfig, modelInstance, componentInstance, ModelConstructor, dataSource, modelDataSourceName;
     var dataSources = [];
-    var savedOutput = null;
-    if (application.controllers[controllerCamelCase] === undefined) {
+
+    // Instantiate all DataSources
+    for (dataSourceName in this.configs.dataSources) {
+        if (this.configs.dataSources.hasOwnProperty(dataSourceName)) {
+            dataSourceConfig = this.configs.dataSources[dataSourceName];
+            dataSources[dataSourceName] = new DataSource(dataSourceName, dataSourceConfig);
+        }
+    }
+    that.dataSources = dataSources;
+
+    var application = that.applications[that.appName];
+    if (application.controllers[controllerName] === undefined) {
         that.debug('controller not found');
         throw new exceptions.ControllerNotFound();
     }
-    var ControllerConstructor = application.controllers[controllerCamelCase];
+
+    var ControllerConstructor = application.controllers[controllerName];
+    // Instantiate the controller
     var controllerInstance = new ControllerConstructor();
-    controllerInstance.name = controllerCamelCase;
+
+    controllerInstance.name = controllerName;
     controllerInstance.application = that.appName;
 
     var retrieveComponent = function (componentName) {
+        var ComponentConstructor;
         if (application.components[componentName] !== undefined) {
             ComponentConstructor = application.components[componentName];
             componentInstance = new ComponentConstructor();
@@ -129,21 +143,12 @@ RequestHandler.prototype.invokeController = function (controller, method) {
     // Injects the method for retrieving components in the controller and inside each component
     controllerInstance.component = retrieveComponent;
 
-    // Instantiate all DataSources
-    for (dataSourceName in this.configs.dataSources) {
-        if (this.configs.dataSources.hasOwnProperty(dataSourceName)) {
-            dataSourceConfig = this.configs.dataSources[dataSourceName];
-            dataSources[dataSourceName] = new DataSource(dataSourceName, dataSourceConfig);
-        }
-    }
-
-
     var retrieveModel = function (modelName) {
         var modelInterface, i, modelInterfaceMethod;
 
-        function modelInterfaceDelegation() {
+        function modelInterfaceDelegation(method) {
             return function () {
-                return modelInterface[modelInterfaceMethod]();
+                return modelInterface[method].apply(modelInterface, arguments);
             };
         }
 
@@ -167,10 +172,9 @@ RequestHandler.prototype.invokeController = function (controller, method) {
             for (i in modelInterface.methods) {
                 if (modelInterface.methods.hasOwnProperty(i)) {
                     modelInterfaceMethod = modelInterface.methods[i];
-                    modelInstance['_' + modelInterfaceMethod] = modelInterfaceDelegation();
+                    modelInstance['_' + modelInterfaceMethod] = modelInterfaceDelegation(modelInterfaceMethod);
                 }
             }
-            modelInstance.$interface = modelInterface;
             modelInstance.model = retrieveModel;
             modelInstance.component = retrieveComponent;
             return modelInstance;
@@ -180,19 +184,44 @@ RequestHandler.prototype.invokeController = function (controller, method) {
 
     // Injects the method for retrieving models
     controllerInstance.model = retrieveModel;
+    return controllerInstance;
+};
 
-    if (controllerInstance[method] === undefined) {
-        that.debug('method not found');
-        throw new exceptions.MethodNotFound();
-    }
-
-    // Receiving data
+RequestHandler.prototype._receivePayload = function () {
+    var that = this;
     this.request.on('data', function (data) {
         that.debug('on data');
         that.payload += data;
     });
+};
+
+RequestHandler.prototype._endRequest = function (callback) {
+    this.request.on('end', callback);
+};
+
+/**
+ * It executes a function within the controller
+ *
+ * @method invokeController
+ * @param {string} controller The controller's name
+ * @param {string} method The controller`s method that should be invoked
+ */
+RequestHandler.prototype.invokeController = function (controllerInstance, httpMethod, done) {
+    var that = this;
+    that.debug('invokeController()');
+
+    var savedOutput = null;
+
+    if (controllerInstance[httpMethod] === undefined) {
+        that.debug('http method not found');
+        throw new exceptions.MethodNotFound();
+    }
+
+    // Receiving data
+    this._receivePayload();
+
     // All data received
-    this.request.on('end', function () {
+    this._endRequest(function () {
         that.debug('request.end()');
         try {
             controllerInstance.payload = JSON.parse(that.payload);
@@ -226,9 +255,9 @@ RequestHandler.prototype.invokeController = function (controller, method) {
                         }
                     }
                     // Shutdown all connections
-                    for (dataSourceNameAC in dataSources) {
-                        if (dataSources.hasOwnProperty(dataSourceNameAC)) {
-                            dataSourceAC = dataSources[dataSourceNameAC];
+                    for (dataSourceNameAC in that.dataSources) {
+                        if (that.dataSources.hasOwnProperty(dataSourceNameAC)) {
+                            dataSourceAC = that.dataSources[dataSourceNameAC];
                             dataSourceAC.disconnect();
                         }
                     }
@@ -236,6 +265,9 @@ RequestHandler.prototype.invokeController = function (controller, method) {
                         savedOutput,
                         controllerInstance.statusCode
                     );
+                    if (typeof done === 'function') {
+                        done();
+                    }
                 } catch (e) {
                     that.handleRequestException(e);
                 }
@@ -259,7 +291,7 @@ RequestHandler.prototype.invokeController = function (controller, method) {
             var beforeCallback = function () {
                 try {
                     // Call the controller method (put, get, delete, post, etc)
-                    savedOutput = controllerInstance[method](controllerMethodCallback);
+                    savedOutput = controllerInstance[httpMethod](controllerMethodCallback);
                 } catch (e) {
                     that.handleRequestException(e);
                 }
