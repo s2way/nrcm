@@ -11,9 +11,9 @@ var exceptions = require('./../exceptions');
 function ModelInterface(dataSource, configurations) {
     this.dataSource = dataSource;
     if (dataSource.type === 'Couchbase') {
-        this.model = new CouchbaseInterface(dataSource, configurations);
+        this._model = new CouchbaseInterface(dataSource, configurations);
     } else if (dataSource.type === 'Mock') {
-        this.model = new MockedModelInterface(dataSource, configurations);
+        this._model = new MockedModelInterface(dataSource, configurations);
     } else {
         throw new exceptions.IllegalArgument('Invalid DataSource type: ' + dataSource.type);
     }
@@ -29,7 +29,7 @@ function ModelInterface(dataSource, configurations) {
  * @param {function} callback
  */
 ModelInterface.prototype.find = function (query, callback) {
-    return this.model.find(query, callback);
+    return this._model.find(query, callback);
 };
 
 /**
@@ -41,7 +41,7 @@ ModelInterface.prototype.find = function (query, callback) {
 * @param {function} callback
 */
 ModelInterface.prototype.findByKey = function (keyValue, keyName, callback) {
-    return this.model.findByKey(keyValue, keyName, callback);
+    return this._model.findByKey(keyValue, keyName, callback);
 };
 
 /**
@@ -52,7 +52,7 @@ ModelInterface.prototype.findByKey = function (keyValue, keyName, callback) {
 * @param {function} callback
 */
 ModelInterface.prototype.findById = function (id, callback) {
-    return this.model.findById(id, callback);
+    return this._model.findById(id, callback);
 };
 
 /**
@@ -65,7 +65,7 @@ ModelInterface.prototype.findById = function (id, callback) {
  * @param {function} callback
  */
 ModelInterface.prototype.findAll = function (viewName, viewOptions, queryOptions, callback) {
-    return this.model.findAll(viewName, viewOptions, queryOptions, callback);
+    return this._model.findAll(viewName, viewOptions, queryOptions, callback);
 };
 
 /**
@@ -79,7 +79,7 @@ ModelInterface.prototype.findAll = function (viewName, viewOptions, queryOptions
 * @param {json} data Options to report to the database behavior
 */
 ModelInterface.prototype.save = function (id, data, callback, prefix, options) {
-    return this.model.save(id, data, callback, prefix, options);
+    return this._model.save(id, data, callback, prefix, options);
 };
 
 /**
@@ -91,7 +91,7 @@ ModelInterface.prototype.save = function (id, data, callback, prefix, options) {
 * @param {json} data Options to report to the database behavior
 */
 ModelInterface.prototype.removeById = function (id, callback, options) {
-    return this.model.removeById(id, callback, options);
+    return this._model.removeById(id, callback, options);
 };
 
 module.exports = ModelInterface;

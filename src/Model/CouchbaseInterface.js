@@ -160,7 +160,7 @@ CouchbaseInterface.prototype.removeById = function (id, callback, options) {
         options = {};
     }
     if (typeof callback !== 'function') {
-        throw new exceptions.IllegalArgument('callback is not a fucntion');
+        throw new exceptions.IllegalArgument('callback is not a function');
     }
     var operation = function (callback) {
         that.dataSource.connect(function (connection) {

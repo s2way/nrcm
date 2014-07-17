@@ -159,7 +159,9 @@ RequestHandler.prototype.invokeController = function (controller, method) {
             for (i in modelInterface.methods) {
                 if (modelInterface.methods.hasOwnProperty(i)) {
                     modelInterfaceMethod = modelInterface.methods[i];
-                    modelInstance['_' + modelInterfaceMethod] = modelInterface[modelInterfaceMethod];
+                    modelInstance['_' + modelInterfaceMethod] = function() {
+                        return modelInterface[modelInterfaceMethod]();
+                    };
                 }
             }
 
