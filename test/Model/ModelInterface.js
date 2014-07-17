@@ -36,7 +36,7 @@ describe('ModelInterface.js', function () {
             var model = new ModelInterface(dataSource, configurations);
             var emailValue = 'davi@versul.com.br';
             var emailName = 'email';
-            model.model.findByKey = function (keyValue, keyName, callback) {
+            model._model.findByKey = function (keyValue, keyName, callback) {
                 assert.equal(emailValue, keyValue);
                 assert.equal(emailName, keyName);
                 assert.equal('function', typeof callback);
@@ -53,7 +53,7 @@ describe('ModelInterface.js', function () {
             var data = {};
             var options = {};
 
-            model.model.save = function (_id, _data, callback, prefix, _options) {
+            model._model.save = function (_id, _data, callback, prefix, _options) {
                 assert.equal(id, _id);
                 assert.equal(data, _data);
                 assert.equal(null, prefix);
@@ -70,7 +70,7 @@ describe('ModelInterface.js', function () {
             var model = new ModelInterface(dataSource, configurations);
             var id = '02895328099';
 
-            model.model.save = function (_id, callback) {
+            model._model.save = function (_id, callback) {
                 assert.equal(id, _id);
                 assert.equal('function', typeof callback);
                 done();

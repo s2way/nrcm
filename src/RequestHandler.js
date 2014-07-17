@@ -137,8 +137,16 @@ RequestHandler.prototype.invokeController = function (controller, method) {
         }
     }
 
+
     var retrieveModel = function (modelName) {
         var modelInterface, i, modelInterfaceMethod;
+
+        function modelInterfaceDelegation() {
+            return function () {
+                return modelInterface[modelInterfaceMethod]();
+            };
+        }
+
         if (application.models[modelName] !== undefined) {
             ModelConstructor = application.models[modelName];
             modelInstance = new ModelConstructor();
@@ -159,12 +167,10 @@ RequestHandler.prototype.invokeController = function (controller, method) {
             for (i in modelInterface.methods) {
                 if (modelInterface.methods.hasOwnProperty(i)) {
                     modelInterfaceMethod = modelInterface.methods[i];
-                    modelInstance['_' + modelInterfaceMethod] = function() {
-                        return modelInterface[modelInterfaceMethod]();
-                    };
+                    modelInstance['_' + modelInterfaceMethod] = modelInterfaceDelegation();
                 }
             }
-
+            modelInstance.$interface = modelInterface;
             modelInstance.model = retrieveModel;
             modelInstance.component = retrieveComponent;
             return modelInstance;

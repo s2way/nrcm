@@ -35,10 +35,12 @@ function DataSource(name, configs) {
         return;
     }
 }
+
 // Log
 DataSource.prototype.log = function (msg) {
     console.log('[DataSource] ' + this.name + ' -> ' + msg);
 };
+
 /**
  * Establish a connection with the database
  *
@@ -76,6 +78,7 @@ DataSource.prototype.connect = function (onSuccess, onError) {
         onError();
     }
 };
+
 /**
  * Disconnect from the database
  *
