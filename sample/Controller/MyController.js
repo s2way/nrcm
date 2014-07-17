@@ -2,6 +2,14 @@ function MyController() {
 
 }
 
+MyController.prototype.before = function (callback) {
+	callback(true);
+};
+
+MyController.prototype.after = function (callback) {
+	callback();
+};
+
 MyController.prototype.post = function (callback) {
 	callback(this.payload);
 };

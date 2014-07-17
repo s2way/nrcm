@@ -17,7 +17,21 @@ function ModelInterface(dataSource, configurations) {
     } else {
         throw new exceptions.IllegalArgument('Invalid DataSource type: ' + dataSource.type);
     }
+    // Methods that are going to be injected directly 
+    this.methods = ['find', 'findByKey', 'findById', 'findAll', 'save', 'removeById'];
 }
+
+/**
+ * Smart find - by Id or by View 
+ * PENDING: Check if query has a key field
+ * @method find
+ * @param {string} query
+ * @param {function} callback
+ */
+ModelInterface.prototype.find = function (query, callback) {
+    return this.model.find(query, callback);
+};
+
 /**
 * Get a document using one of the related keys that points to this document
 *
@@ -29,6 +43,7 @@ function ModelInterface(dataSource, configurations) {
 ModelInterface.prototype.findByKey = function (keyValue, keyName, callback) {
     return this.model.findByKey(keyValue, keyName, callback);
 };
+
 /**
 * Get a document using the id
 *
@@ -39,6 +54,7 @@ ModelInterface.prototype.findByKey = function (keyValue, keyName, callback) {
 ModelInterface.prototype.findById = function (id, callback) {
     return this.model.findById(id, callback);
 };
+
 /**
  * Get documents using a view
  *
@@ -51,6 +67,7 @@ ModelInterface.prototype.findById = function (id, callback) {
 ModelInterface.prototype.findAll = function (viewName, viewOptions, queryOptions, callback) {
     return this.model.findAll(viewName, viewOptions, queryOptions, callback);
 };
+
 /**
 * Index a document in the database
 *
@@ -64,6 +81,7 @@ ModelInterface.prototype.findAll = function (viewName, viewOptions, queryOptions
 ModelInterface.prototype.save = function (id, data, callback, prefix, options) {
     return this.model.save(id, data, callback, prefix, options);
 };
+
 /**
 * Delete a document
 *

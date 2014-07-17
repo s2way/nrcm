@@ -5,6 +5,11 @@ function MockedModelInterface(dataSource, configurations) {
     this.configurations = configurations;
 }
 
+MockedModelInterface.prototype.find = function (query, callback) {
+    this.query = query;
+    callback();
+};
+
 MockedModelInterface.prototype.removeById = function (id, callback, options) {
     this.id = id;
     this.options = options;

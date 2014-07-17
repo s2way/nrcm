@@ -125,6 +125,9 @@ NRCM.prototype.configure = function (configJSONFile) {
     if ((typeof this.configs.urlFormat) !== 'string') {
         throw new exceptions.Fatal('urlFormat is not a string');
     }
+    if (this.configs.requestTimeout === undefined) {
+        throw new exceptions.Fatal('requestTimeout has not been specified');
+    }
 };
 
 /**

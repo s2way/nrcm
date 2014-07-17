@@ -23,35 +23,50 @@ describe('NRCM.js', function () {
     var nrcm = new NRCM();
     nrcm.log = function () { return; };
 
-    it('should load the configs without throwing an exception', function () {
-        var configFileName = 'config_test.json';
-        sync.createFileIfNotExists(configFileName, '{ "urlFormat": "/$application/$controller" }');
-        nrcm.configure(configFileName);
-        fs.unlinkSync(configFileName);
-    });
+    describe('configure', function () {
 
-    it('should throw a Fatal exception if the config file is not a valid JSON file', function () {
-        var configFileName = 'config_test.json';
-        sync.createFileIfNotExists(configFileName, 'this is not a json file');
-        try {
+        it('should load the configs without throwing an exception', function () {
+            var configFileName = 'config_test.json';
+            sync.createFileIfNotExists(configFileName, '{ "urlFormat": "/$application/$controller", "requestTimeout" : 10000 }');
             nrcm.configure(configFileName);
-        } catch (e) {
-            assert.equal('Fatal', e.name);
-            assert.equal('Configuration file is not a valid JSON', e.message);
-        }
-        fs.unlinkSync(configFileName);
-    });
+            fs.unlinkSync(configFileName);
+        });
 
-    it('should throw a Fatal exception if the urlFormat is not a string or it is not defined', function () {
-        var configFileName = 'config_test.json';
-        sync.createFileIfNotExists(configFileName, '{}');
-        try {
-            nrcm.configure(configFileName);
-        } catch (e) {
-            assert.equal('Fatal', e.name);
-            assert.equal('urlFormat is not a string', e.message);
-        }
-        fs.unlinkSync(configFileName);
+        it('should throw a Fatal exception if the config file is not a valid JSON file', function () {
+            var configFileName = 'config_test.json';
+            sync.createFileIfNotExists(configFileName, 'this is not a json file');
+            try {
+                nrcm.configure(configFileName);
+            } catch (e) {
+                assert.equal('Fatal', e.name);
+                assert.equal('Configuration file is not a valid JSON', e.message);
+            }
+            fs.unlinkSync(configFileName);
+        });
+
+        it('should throw a Fatal exception if the urlFormat is not a string or it is not defined', function () {
+            var configFileName = 'config_test.json';
+            sync.createFileIfNotExists(configFileName, '{}');
+            try {
+                nrcm.configure(configFileName);
+            } catch (e) {
+                assert.equal('Fatal', e.name);
+                assert.equal('urlFormat is not a string', e.message);
+            }
+            fs.unlinkSync(configFileName);
+        });
+
+        it('should throw a Fatal exception if the requestTimeout if it is not defined', function () {
+            var configFileName = 'config_test.json';
+            sync.createFileIfNotExists(configFileName, '{ "urlFormat": ""}');
+            try {
+                nrcm.configure(configFileName);
+            } catch (e) {
+                assert.equal('Fatal', e.name);
+                assert.equal('requestTimeout has not been specified', e.message);
+            }
+            fs.unlinkSync(configFileName);
+        });
     });
 
     it('should start the application', function () {

@@ -138,6 +138,7 @@ RequestHandler.prototype.invokeController = function (controller, method) {
     }
 
     var retrieveModel = function (modelName) {
+        var modelInterface, i, modelInterfaceMethod;
         if (application.models[modelName] !== undefined) {
             ModelConstructor = application.models[modelName];
             modelInstance = new ModelConstructor();
@@ -147,13 +148,21 @@ RequestHandler.prototype.invokeController = function (controller, method) {
             }
             dataSource = dataSources[modelDataSourceName];
             modelInstance.name = modelName;
-            modelInstance.model = new ModelInterface(dataSource, {
+            modelInterface = new ModelInterface(dataSource, {
                 'uid' : modelInstance.uid,
                 'keys' : modelInstance.keys,
                 'locks' : modelInstance.locks,
                 'requires' : modelInstance.requires,
                 'validate' : modelInstance.validate
             });
+
+            for (i in modelInterface.methods) {
+                if (modelInterface.methods.hasOwnProperty(i)) {
+                    modelInterfaceMethod = modelInterface.methods[i];
+                    modelInstance['_' + modelInterfaceMethod] = modelInterface[modelInterfaceMethod];
+                }
+            }
+
             modelInstance.model = retrieveModel;
             modelInstance.component = retrieveComponent;
             return modelInstance;

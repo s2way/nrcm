@@ -1,5 +1,5 @@
 function MyModel() {
-
+	this.uid = 'my_model';
 }
 
 MyModel.prototype.find = function (callback) {
