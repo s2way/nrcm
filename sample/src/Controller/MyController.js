@@ -14,6 +14,10 @@ MyController.prototype.post = function (callback) {
 	callback(this.payload);
 };
 
+MyController.prototype.delete = function (callback) {
+    this.model('MyModel').test(callback);
+};
+
 MyController.prototype.put = function (callback) {
 	var myComponent = this.component('MyComponent');
 	callback(myComponent.method());

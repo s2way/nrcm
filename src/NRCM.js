@@ -34,18 +34,32 @@ NRCM.prototype.log = function (message) {
 NRCM.prototype.setUp = function (appName) {
     var app = {}, name;
     app.basePath = path.join(appName);
-    app.controllersPath = path.join(appName, 'Controller');
-    app.componentsPath = path.join(appName, 'Component');
-    app.modelsPath = path.join(appName, 'Model');
-    app.configPath = path.join(appName, 'Config');
-    app.coreFileName = path.join(appName, 'Config', 'core.json');
-    app.aclFileName = path.join(appName, 'Config', 'acl.json');
-    // Directory creation
+    app.srcPath = path.join(appName, 'src');
+    app.controllersPath = path.join(app.srcPath, 'Controller');
+    app.componentsPath = path.join(app.srcPath, 'Component');
+    app.modelsPath = path.join(app.srcPath, 'Model');
+    app.configPath = path.join(app.srcPath, 'Config');
+    app.coreFileName = path.join(app.srcPath, 'Config', 'core.json');
+    app.aclFileName = path.join(app.srcPath, 'Config', 'acl.json');
+
+    app.testPath = path.join(appName, 'test');
+    app.controllersTestPath = path.join(app.testPath, 'Controller');
+    app.componentsTestPath = path.join(app.testPath, 'Component');
+    app.modelsTestPath = path.join(app.testPath, 'Model');
+
+    // src directory creation
     sync.createDirIfNotExists(app.basePath);
+    sync.createDirIfNotExists(app.srcPath);
     sync.createDirIfNotExists(app.controllersPath);
     sync.createDirIfNotExists(app.componentsPath);
     sync.createDirIfNotExists(app.modelsPath);
     sync.createDirIfNotExists(app.configPath);
+    // test directory creation
+    sync.createDirIfNotExists(app.testPath);
+    sync.createDirIfNotExists(app.controllersTestPath);
+    sync.createDirIfNotExists(app.modelsTestPath);
+    sync.createDirIfNotExists(app.componentsTestPath);
+
     // Acl file creation
     sync.copyIfNotExists(path.join(__dirname, 'acl.json'), app.aclFileName);
     // Core file creation

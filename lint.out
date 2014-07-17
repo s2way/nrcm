@@ -1,4 +1,6 @@
 
+src/ControllerTesting.js is OK.
+
 src/ExceptionsController.js is OK.
 
 src/NRCM.js is OK.
@@ -14,6 +16,8 @@ src/exceptions.js is OK.
 src/stringUtils.js is OK.
 
 src/sync.js is OK.
+
+test/ControllerTesting.js is OK.
 
 test/ExceptionsController.js is OK.
 
