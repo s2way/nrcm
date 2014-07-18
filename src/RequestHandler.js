@@ -237,9 +237,12 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
         controllerInstance.requestHeaders = that.request.headers;
         controllerInstance.responseHeaders = {};
         try {
-            var timer = null;
+            var timer;
 
             var afterCallback = function () {
+                // Done, clear the timeout
+                clearTimeout(timer);
+
                 var name, dataSourceNameAC, dataSourceAC, value;
                 try {
                     if (controllerInstance.statusCode === undefined) {
@@ -271,8 +274,6 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
                 } catch (e) {
                     that.handleRequestException(e);
                 }
-                // Done, clear the timeout
-                clearTimeout(timer);
             };
             var controllerMethodCallback = function (output) {
                 savedOutput = output;
@@ -285,6 +286,8 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
                         afterCallback();
                     }
                 } catch (e) {
+                    // Clear the timer if an exception occurs because handleRequestException will respond
+                    clearTimeout(timer);
                     that.handleRequestException(e);
                 }
             };
@@ -293,6 +296,8 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
                     // Call the controller method (put, get, delete, post, etc)
                     savedOutput = controllerInstance[httpMethod](controllerMethodCallback);
                 } catch (e) {
+                    // Clear the timer if an exception occurs because handleRequestException will respond
+                    clearTimeout(timer);
                     that.handleRequestException(e);
                 }
             };
@@ -314,6 +319,8 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
                 that.handleRequestException(new exceptions.Timeout());
             }, that.configs.requestTimeout);
         } catch (e) {
+            // Clear the timer if an exception occurs because handleRequestException will respond
+            clearTimeout(timer);
             that.handleRequestException(e);
         }
     });
