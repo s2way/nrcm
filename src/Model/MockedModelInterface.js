@@ -23,6 +23,12 @@ MockedModelInterface.prototype.findByKey = function (keyValue, keyName, callback
     callback();
 };
 
+MockedModelInterface.prototype.getMulti = function (keys, options, callback) {
+    this.keys = keys;
+    this.options = options;
+    callback();
+};
+
 MockedModelInterface.prototype.findAll = function (viewName, viewOptions, queryOptions, callback) {
     this.viewName = viewName;
     this.viewOptions = viewOptions;

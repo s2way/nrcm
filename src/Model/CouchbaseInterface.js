@@ -147,6 +147,32 @@ CouchbaseInterface.prototype._searchKeys = function (keys, data) {
     return removeIds;
 };
 /**
+ * getMulti - Retrieve multiples doc
+ *
+ * @method getMulti
+ * @param {array} keys Ids that will be used to retrieve data
+ * @param {json} options Options
+ * @param {function} callback
+ */
+CouchbaseInterface.prototype.getMulti = function (keys, options, callback) {
+    var that = this;
+    options = options || {};
+    if (typeof callback !== 'function') {
+        throw new exceptions.IllegalArgument('callback is not a function');
+    }
+    if (!Array.isArray(keys)) {
+        callback(new exceptions.IllegalArgument('keys must be an array'));
+        return;
+    }
+    that.dataSource.connect(function (connection) {
+        connection.getMulti(keys, options, function(err, result) {
+            callback(err, result);
+        });
+    }, function (err) {
+        callback(err);
+    });
+};
+/**
  * Delete a document
  *
  * @method removeById
@@ -160,7 +186,7 @@ CouchbaseInterface.prototype.removeById = function (id, callback, options) {
         options = {};
     }
     if (typeof callback !== 'function') {
-        throw new exceptions.IllegalArgument('callback is not a function');
+        throw new exceptions.IllegalArgument('All arguments are mandatory');
     }
     var operation = function (callback) {
         that.dataSource.connect(function (connection) {
@@ -342,7 +368,7 @@ CouchbaseInterface.prototype.find = function (query, callback) {
         var queryOptions = {};
         queryOptions.limit = query.limit !== undefined ? query.limit : 10;
         queryOptions.skip = query.skip !== undefined ? query.skip : 0;
-        this.findAll('item', {}, queryOptions, function (err, result) {
+        this.findAll(this.uid, {}, queryOptions, function (err, result) {
             callback(err, result);
         });
     }
@@ -426,7 +452,8 @@ CouchbaseInterface.prototype.save = function (id, data, callback, prefix, option
     }
     if (this.sm !== undefined) {
         if (!this.sm.match(data)) {
-            throw new exceptions.IllegalArgument('data doesnt match according to schema');
+            callback(new exceptions.InvalidSchema());
+            return;
         }
     }
     var operation = function (callback) {
@@ -530,6 +557,7 @@ CouchbaseInterface.prototype.save = function (id, data, callback, prefix, option
             });
         }, function (err) {
             callback(err);
+            return;
         });
     };
 

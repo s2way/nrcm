@@ -73,5 +73,9 @@ module.exports = {
     OperationInterrupted : function (message) {
         this.message = message;
         this.name = 'OperationInterrupted';
+    },
+    InvalidSchema : function (message) {
+        this.message = message;
+        this.name = 'InvalidSchema';
     }
 };

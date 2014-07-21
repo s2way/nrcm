@@ -45,6 +45,18 @@ ModelInterface.prototype.findByKey = function (keyValue, keyName, callback) {
 };
 
 /**
+ * getMulti - Retrieve multiples doc
+ *
+ * @method getMulti
+ * @param {array} keys Ids that will be used to retrieve data
+ * @param {json} options Options
+ * @param {function} callback
+ */
+ModelInterface.prototype.getMulti = function (keys, options, callback) {
+    return this._model.getMulti(keys, options, callback);
+};
+
+/**
 * Get a document using the id
 *
 * @method findById

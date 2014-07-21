@@ -3,160 +3,177 @@
 'use strict';
 var assert = require('assert');
 var util = require('util');
-var CouchbaseInterface = require('./../../src/Model/CouchbaseInterface');
-var DataSource = require('./../../src/Model/DataSource');
-
-var controlVars = {};
-var data = {
-    'email' : 'davi@versul.com.br',
-    'senha' : '123456',
-    'endereco' : {
-        'logradouro' : 'Rua José de Alencar',
-        'cep' : '93310210',
-    },
-    'preferencias' : ['Cerveja', 'Salgadinho']
-};
-
-function mockLogFunction() {
-    return function (msg) {
-        this.msg = msg;
-    };
-}
-
-function mockCouchbase(options) {
-    if (options === undefined) {
-        options = {};
-    }
-    return {
-        'Connection' : function (connOptions, connectionCallback) {
-            controlVars.connOptions = connOptions;
-            this.set = function (key, value, options, callback) {
-                controlVars.setCalled = true;
-                controlVars.setKey = key;
-                controlVars.setValue = value;
-                controlVars.setOptions = options;
-                controlVars.setCallback = callback;
-                setTimeout(function () {
-                    callback();
-                }, 10);
-            };
-            this.shutdown = function () {
-                controlVars.disconnected = true;
-            };
-            this.setMulti = function (documents, options, callback) {
-                controlVars.setMultiDocuments = documents;
-                controlVars.setMultiOptions = options;
-                setTimeout(function () {
-                    callback();
-                }, 10);
-            };
-            this.removeMulti = function (ids, options, callback) {
-                controlVars.removeMultiIds = ids;
-                controlVars.removeMultiOptions = options;
-                setTimeout(function () {
-                    callback();
-                }, 10);
-            };
-            this.get = function (key, getOptions, getCallback) {
-                controlVars.key = key;
-                controlVars.options = getOptions;
-                getCallback(options.getError, options.getResult);
-            };
-            this.replace = function (key, data, saveOptions, callback) {
-                controlVars.replaceCalled = true;
-                controlVars.replaceKey = key;
-                controlVars.replaceData = data;
-                controlVars.replaceSaveOptions = saveOptions;
-                controlVars.replaceCallback = callback;
-
-                setTimeout(function () {
-                    callback();
-                }, 10);
-            };
-            this.insert = function (key, data, options, callback) {
-                setTimeout(function () {
-                    if (controlVars.insertFail === true) {
-                        controlVars.insertCalled = true;
-                        callback(true);
-                    } else {
-                        controlVars.insertCalled = true;
-                        callback(null, {                            
-                            'value' : 2
-                        });
-                    }
-                }, 10);
-            };
-            this.view = function (viewName, viewOptions, queryOptions) {
-                return { 'query' : function (queryOptions, callback) {
-                    callback(null, true);
-                }};
-            };
-            this.incr = function (keyName, options, callback) {
-                setTimeout(function () {
-                    if (controlVars.incrFail === true) {
-                        controlVars.incrCalled = true;
-                        callback(true);
-                    } else {
-                        controlVars.incrCalled = true;
-                        callback(null, {
-                            'value' : 2
-                        });                        
-                    }
-                }, 10);
-            };
-            this.remove = function (key, options, callback) {
-                controlVars.removeCalled = true;
-                controlVars.removeKey = key;
-                controlVars.removeOptions = options;
-                controlVars.removeCallback = callback;
-                // Assync callback
-                setTimeout(function () {
-                    callback();
-                }, 10);
-            };
-            if (connectionCallback !== undefined) {
-                // Assync callback
-                setTimeout(function () {
-                    connectionCallback();
-                    controlVars.connectionCallbackCalled = true;
-                }, 10);
-            }
-        }
-    };
-}
-
-function createDataSource(couchbase) {
-    var ds = new DataSource('default', {
-        'index' : 'bucket',
-        'type' : 'Couchbase',
-        'host' : 'localhost',
-        'port' : '8091'
-    });
-    ds.log = function (msg) {
-        this.msg = msg;
-    };
-    if (couchbase === undefined) {
-        couchbase = mockCouchbase();
-    }
-    ds.couchbase = couchbase;
-    return ds;
-}
-
-function createModelInterface(couchbase) {
-    controlVars = {};
-    if (couchbase === undefined) {
-        couchbase = mockCouchbase({
-            'getResult' : {
-                'value' : data
-            }
-        });
-    }
-    var modelInterface = new CouchbaseInterface(createDataSource(couchbase), {'uid': 'pessoa'});
-    modelInterface.log = mockLogFunction();
-    return modelInterface;
-}
 
 describe('CouchbaseInterface.js', function () {
+    var CouchbaseInterface = require('./../../src/Model/CouchbaseInterface');
+    var DataSource = require('./../../src/Model/DataSource');
+
+    var controlVars = {};
+    var data = {
+        'email' : 'davi@versul.com.br',
+        'senha' : '123456',
+        'endereco' : {
+            'logradouro' : 'Rua José de Alencar',
+            'cep' : '93310210',
+        },
+        'preferencias' : ['Cerveja', 'Salgadinho']
+    };
+    var multiDocs = {
+       'token_1': {value: {name: 'Frank'}},
+       'token_2': {value: {name: 'Bob'}}
+    };
+
+    function mockLogFunction() {
+        return function (msg) {
+            this.msg = msg;
+        };
+    }
+
+    function mockCouchbase(options) {
+        if (options === undefined) {
+            options = {};
+        }
+        return {
+            'Connection' : function (connOptions, connectionCallback) {
+                controlVars.connOptions = connOptions;
+                this.set = function (key, value, options, callback) {
+                    controlVars.setCalled = true;
+                    controlVars.setKey = key;
+                    controlVars.setValue = value;
+                    controlVars.setOptions = options;
+                    controlVars.setCallback = callback;
+                    setTimeout(function () {
+                        callback();
+                    }, 10);
+                };
+                this.shutdown = function () {
+                    controlVars.disconnected = true;
+                };
+                this.setMulti = function (documents, options, callback) {
+                    controlVars.setMultiDocuments = documents;
+                    controlVars.setMultiOptions = options;
+                    setTimeout(function () {
+                        callback();
+                    }, 10);
+                };
+                this.getMulti = function (ids, options, callback) {
+                    controlVars.getMultiIds = ids;
+                    controlVars.getMultiOptions = options;
+                    if (controlVars.getMultiError !== undefined) {
+                        setTimeout(function () {
+                            callback({});
+                        }, 10);
+                    } else {
+                        setTimeout(function () {
+                            callback(null, {'token_1': {value: {name: 'Frank'}},'token_2': {value: {name: 'Bob'}}});
+                        }, 10);
+                    }
+                };
+                this.removeMulti = function (ids, options, callback) {
+                    controlVars.removeMultiIds = ids;
+                    controlVars.removeMultiOptions = options;
+                    setTimeout(function () {
+                        callback();
+                    }, 10);
+                };
+                this.get = function (key, getOptions, getCallback) {
+                    controlVars.key = key;
+                    controlVars.options = getOptions;
+                    getCallback(options.getError, options.getResult);
+                };
+                this.replace = function (key, data, saveOptions, callback) {
+                    controlVars.replaceCalled = true;
+                    controlVars.replaceKey = key;
+                    controlVars.replaceData = data;
+                    controlVars.replaceSaveOptions = saveOptions;
+                    controlVars.replaceCallback = callback;
+
+                    setTimeout(function () {
+                        callback();
+                    }, 10);
+                };
+                this.insert = function (key, data, options, callback) {
+                    setTimeout(function () {
+                        if (controlVars.insertFail === true) {
+                            controlVars.insertCalled = true;
+                            callback(true);
+                        } else {
+                            controlVars.insertCalled = true;
+                            callback(null, {                            
+                                'value' : 2
+                            });
+                        }
+                    }, 10);
+                };
+                this.view = function (viewName, viewOptions, queryOptions) {
+                    return { 'query' : function (queryOptions, callback) {
+                        callback(null, true);
+                    }};
+                };
+                this.incr = function (keyName, options, callback) {
+                    setTimeout(function () {
+                        if (controlVars.incrFail === true) {
+                            controlVars.incrCalled = true;
+                            callback(true);
+                        } else {
+                            controlVars.incrCalled = true;
+                            callback(null, {
+                                'value' : 2
+                            });                        
+                        }
+                    }, 10);
+                };
+                this.remove = function (key, options, callback) {
+                    controlVars.removeCalled = true;
+                    controlVars.removeKey = key;
+                    controlVars.removeOptions = options;
+                    controlVars.removeCallback = callback;
+                    // Assync callback
+                    setTimeout(function () {
+                        callback();
+                    }, 10);
+                };
+                if (connectionCallback !== undefined) {
+                    // Assync callback
+                    setTimeout(function () {
+                        connectionCallback();
+                        controlVars.connectionCallbackCalled = true;
+                    }, 10);
+                }
+            }
+        };
+    }
+
+    function createDataSource(couchbase) {
+        var ds = new DataSource('default', {
+            'index' : 'bucket',
+            'type' : 'Couchbase',
+            'host' : 'localhost',
+            'port' : '8091'
+        });
+        ds.log = function (msg) {
+            this.msg = msg;
+        };
+        if (couchbase === undefined) {
+            couchbase = mockCouchbase();
+        }
+        ds.couchbase = couchbase;
+        return ds;
+    }
+
+    function createModelInterface(couchbase) {
+        controlVars = {};
+        if (couchbase === undefined) {
+            couchbase = mockCouchbase({
+                'getResult' : {
+                    'value' : data
+                }
+            });
+        }
+        var modelInterface = new CouchbaseInterface(createDataSource(couchbase), {'uid': 'pessoa'});
+        modelInterface.log = mockLogFunction();
+        return modelInterface;
+    }
     describe('CouchbaseInterface', function () {
         it('should throw an exception if the uid is not provided', function () {
             controlVars = {};
@@ -358,6 +375,55 @@ describe('CouchbaseInterface.js', function () {
                 assert.equal(true, controlVars.afterRemoveCalled);
                 done();
             });
+        });
+    });
+
+    describe('getMulti', function() {
+        it('should throw an IllegalArgument exception if the callback is not a function', function () {
+            var modelInterface = new CouchbaseInterface(createDataSource(), {'uid' : 'pessoa'});
+            try {
+                modelInterface.getMulti([]);
+                assert.fail();
+            } catch (e) {
+                assert.equal('IllegalArgument', e.name);
+            }
+        });
+        it('should throw an IllegalArgument exception if the keys is not an array', function (done) {
+            var modelInterface = new CouchbaseInterface(createDataSource(), {'uid' : 'pessoa'});
+            try {
+                modelInterface.getMulti(null, {}, function (err, result) {
+                    try {
+                        if (err) {
+                            throw err;
+                        } else {
+                            assert.fail();
+                            done();
+                        }
+                    } catch (e) {
+                        assert.equal('IllegalArgument', e.name);
+                        done();
+                    }                    
+                });
+            } catch (e) {
+                assert.fail();
+                done();
+            }
+        });
+        it('should return the docs inside the array', function (done) {
+            var modelInterface = new CouchbaseInterface(createDataSource(), {'uid' : 'pessoa'});
+            try {
+                modelInterface.getMulti(['token_1','token_2'], {}, function (err, result) {
+                    if (err) {
+                        throw err;
+                    }
+                    assert(result['token_1']);
+                    assert(result['token_2']);
+                    done();
+                });                
+            } catch (e) {
+                assert.fail();
+                done();
+            }
         });
     });
 

@@ -166,7 +166,8 @@ RequestHandler.prototype.prepareController = function (controllerName) {
                 'keys' : modelInstance.keys,
                 'locks' : modelInstance.locks,
                 'requires' : modelInstance.requires,
-                'validate' : modelInstance.validate
+                'validate' : modelInstance.validate,
+                'schema' : modelInstance.schema
             });
 
             for (i in modelInterface.methods) {
