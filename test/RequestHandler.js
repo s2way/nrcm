@@ -1,187 +1,187 @@
 /*jslint devel: true, node: true, indent: 4 */
 /*globals describe, it, beforeEach */
 'use strict';
-var RequestHandler = require('./../src/RequestHandler.js');
-var exceptions = require('./../src/exceptions.js');
-var assert = require('assert');
-
-var controlVars = { };
-
-function MockExceptionsController() {
-    this.onApplicationNotFound = function (callback) {
-        controlVars.exception = 'ApplicationNotFound';
-        this.statusCode = 404;
-        callback({
-            'code' : 404,
-            'error' : 'ApplicationNotFound'
-        });
-    };
-
-    this.onControllerNotFound = function (callback) {
-        controlVars.exception = 'ControllerNotFound';
-        this.statusCode = 404;
-        callback({
-            'code' : 404,
-            'error' : 'ControllerNotFound'
-        });
-    };
-
-    this.onMethodNotFound = function (callback) {
-        controlVars.exception = 'MethodNotFound';
-        this.statusCode = 404;
-        callback({
-            'code' : 404,
-            'error' : 'MethodNotFound'
-        });
-    };
-
-    this.onForbidden = function (callback) {
-        controlVars.exception = 'Forbidden';
-        this.statusCode = 403;
-        callback({
-            'code' : 403,
-            'error' : 'Forbidden'
-        });
-    };
-
-    this.onGeneral = function (callback, exception) {
-        controlVars.exception = exception.name;
-        this.statusCode = 500;
-        if (exception.stack !== undefined) {
-            console.log(exception.stack);
-        }
-        callback({
-            'name' : 'General',
-            'cause' : exception,
-        });
-    };
-}
-
-function mockResponse() {
-    return {
-        setHeader : function () {
-            controlVars.headersSet = true;
-        },
-        writeHead : function (code, type) {
-            controlVars.code = code;
-            controlVars.contentType = type['Content-Type'];
-        },
-        write : function () {
-            controlVars.writeCalled = true;
-        },
-        end : function () {
-            controlVars.endCalled = true;
-        }
-    };
-}
-
-function mockRequest(url, method) {
-    return {
-        'method' : method,
-        'url' : url,
-        'headers' : {
-            'header' : 'value'
-        },
-        'on' : function (type, callback) {
-            if (type === 'end') {
-                callback();
-            } else if (type === 'data') {
-                callback('');
-            }
-        }
-    };
-}
-
-function mockRequestHandler(controllers, components) {
-    if (controllers === undefined) {
-        controllers = {
-            MyController : function () {
-                this.models = ['MyModel'];
-                var that = this;
-                this.before = function (callback) {
-                    controlVars.beforeCalled = true;
-                    callback();
-                };
-                this.after = function (callback) {
-                    controlVars.afterCalled = true;
-                    callback();
-                };
-                this.post = function (callback) {
-                    that.responseHeaders.header = 'value';
-                    var output = {
-                        'message' : 'This should be rendered'
-                    };
-                    controlVars.output = output;
-                    controlVars.controllerInstance = that;
-                    if (that.component('MyComponent')) {
-                        that.component('MyComponent').method(function () {
-                            callback(output);
-                        });
-                    } else {
-                        callback(output);
-                    }
-                };
-            }
-        };
-    }
-    if (components === undefined) {
-        components = {
-            MyComponent : function () {
-                this.method = function (callback) {
-                    controlVars.componentMethodCalled = true;
-                    callback();
-                };
-            }
-        };
-    }
-    var models = {
-        'MyModel' : function () {
-            this.uid = 'My';
-            this.validate = {};
-            this.requires = {};
-            this.locks = {};
-            this.keys = {};
-            this.bucket = 'bucket';
-            this.method = function (callback) {
-                controlVars.modelMethodCalled = true;
-                callback();
-            };
-        },
-        'HisModel' : function () {
-            this.method = function () {
-                return;
-            };
-        }
-    };
-
-    var rh = new RequestHandler({
-        'dataSources' : {
-            'default' : {
-                'type' : 'Mock',
-                'host' : '0.0.0.0',
-                'port' : '3298',
-                'index' : 'bucket'
-            }
-        },
-        'urlFormat' : '/#service/#version/$application/$controller',
-        'requestTimeout' : 500
-    }, {
-        'app' : {
-            'controllers' : controllers,
-            'components' : components,
-            'models' : models
-        }
-    }, MockExceptionsController);
-    rh.appName = 'app';
-    rh.debug = rh.info = function () { return; };
-
-    rh.isAllowed = function () {
-        return '**';
-    };
-    return rh;
-}
 
 describe('RequestHandler.js', function () {
+
+    var RequestHandler = require('./../src/RequestHandler.js');
+    var assert = require('assert');
+
+    var controlVars = { };
+
+    function MockExceptionsController() {
+        this.onApplicationNotFound = function (callback) {
+            controlVars.exception = 'ApplicationNotFound';
+            this.statusCode = 404;
+            callback({
+                'code' : 404,
+                'error' : 'ApplicationNotFound'
+            });
+        };
+
+        this.onControllerNotFound = function (callback) {
+            controlVars.exception = 'ControllerNotFound';
+            this.statusCode = 404;
+            callback({
+                'code' : 404,
+                'error' : 'ControllerNotFound'
+            });
+        };
+
+        this.onMethodNotFound = function (callback) {
+            controlVars.exception = 'MethodNotFound';
+            this.statusCode = 404;
+            callback({
+                'code' : 404,
+                'error' : 'MethodNotFound'
+            });
+        };
+
+        this.onForbidden = function (callback) {
+            controlVars.exception = 'Forbidden';
+            this.statusCode = 403;
+            callback({
+                'code' : 403,
+                'error' : 'Forbidden'
+            });
+        };
+
+        this.onGeneral = function (callback, exception) {
+            controlVars.exception = exception.name;
+            this.statusCode = 500;
+            if (exception.stack !== undefined) {
+                console.log(exception.stack);
+            }
+            callback({
+                'name' : 'General',
+                'cause' : exception,
+            });
+        };
+    }
+
+    function mockResponse() {
+        return {
+            setHeader : function () {
+                controlVars.headersSet = true;
+            },
+            writeHead : function (code, type) {
+                controlVars.code = code;
+                controlVars.contentType = type['Content-Type'];
+            },
+            write : function () {
+                controlVars.writeCalled = true;
+            },
+            end : function () {
+                controlVars.endCalled = true;
+            }
+        };
+    }
+
+    function mockRequest(url, method) {
+        return {
+            'method' : method,
+            'url' : url,
+            'headers' : {
+                'header' : 'value'
+            },
+            'on' : function (type, callback) {
+                if (type === 'end') {
+                    callback();
+                } else if (type === 'data') {
+                    callback('');
+                }
+            }
+        };
+    }
+
+    function mockRequestHandler(controllers, components) {
+        if (controllers === undefined) {
+            controllers = {
+                MyController : function () {
+                    this.models = ['MyModel'];
+                    var that = this;
+                    this.before = function (callback) {
+                        controlVars.beforeCalled = true;
+                        callback();
+                    };
+                    this.after = function (callback) {
+                        controlVars.afterCalled = true;
+                        callback();
+                    };
+                    this.post = function (callback) {
+                        that.responseHeaders.header = 'value';
+                        var output = {
+                            'message' : 'This should be rendered'
+                        };
+                        controlVars.output = output;
+                        controlVars.controllerInstance = that;
+                        if (that.component('MyComponent')) {
+                            that.component('MyComponent').method(function () {
+                                callback(output);
+                            });
+                        } else {
+                            callback(output);
+                        }
+                    };
+                }
+            };
+        }
+        if (components === undefined) {
+            components = {
+                MyComponent : function () {
+                    this.method = function (callback) {
+                        controlVars.componentMethodCalled = true;
+                        callback();
+                    };
+                }
+            };
+        }
+        var models = {
+            'MyModel' : function () {
+                this.uid = 'My';
+                this.validate = {};
+                this.requires = {};
+                this.locks = {};
+                this.keys = {};
+                this.bucket = 'bucket';
+                this.method = function (callback) {
+                    controlVars.modelMethodCalled = true;
+                    callback();
+                };
+            },
+            'HisModel' : function () {
+                this.method = function () {
+                    return;
+                };
+            }
+        };
+
+        var rh = new RequestHandler({
+            'dataSources' : {
+                'default' : {
+                    'type' : 'Mock',
+                    'host' : '0.0.0.0',
+                    'port' : '3298',
+                    'index' : 'bucket'
+                }
+            },
+            'urlFormat' : '/#service/#version/$application/$controller',
+            'requestTimeout' : 500
+        }, {
+            'app' : {
+                'controllers' : controllers,
+                'components' : components,
+                'models' : models
+            }
+        }, MockExceptionsController);
+        rh.appName = 'app';
+        rh.debug = rh.info = function () { return; };
+
+        rh.isAllowed = function () {
+            return '**';
+        };
+        return rh;
+    }
 
     describe('RequestHandler', function () {
         var url = '/service/version/app/my_controller?x=1&y=2&z=3';

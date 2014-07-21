@@ -161,4 +161,7 @@ NRCM.prototype.start = function (address, port) {
     this.log('Started!');
 };
 
+// Testing tools
+NRCM.ControllerTesting = require('./ControllerTesting');
+
 module.exports = NRCM;

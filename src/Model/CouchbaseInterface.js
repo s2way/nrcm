@@ -165,7 +165,7 @@ CouchbaseInterface.prototype.getMulti = function (keys, options, callback) {
         return;
     }
     that.dataSource.connect(function (connection) {
-        connection.getMulti(keys, options, function(err, result) {
+        connection.getMulti(keys, options, function (err, result) {
             callback(err, result);
         });
     }, function (err) {
