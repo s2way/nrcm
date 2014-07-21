@@ -47,7 +47,6 @@ module.exports = {
     IllegalArgument : function (message) {
         this.message = message;
         this.name = 'IllegalArgument';
-        this.stack = new Error(message).stack;
     },
     // Model exceptions
     ValidationFailed : function (message) {

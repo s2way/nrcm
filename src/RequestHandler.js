@@ -200,6 +200,28 @@ RequestHandler.prototype._endRequest = function (callback) {
     this.request.on('end', callback);
 };
 
+// Return the request headers
+RequestHandler.prototype._headers = function () {
+    return this.request.headers;
+};
+
+// Set the response headers
+RequestHandler.prototype._setHeader = function (name, value) {
+    this.response.setHeader(name, value);
+};
+
+RequestHandler.prototype._writeHead = function (statusCode, contentType) {
+    this.response.writeHead(statusCode, { 'Content-Type' : contentType });
+};
+
+RequestHandler.prototype._writeResponse = function (output) {
+    this.response.write(output);
+};
+
+RequestHandler.prototype._sendResponse = function () {
+    this.response.end();
+};
+
 /**
  * It executes a function within the controller
  *
@@ -235,76 +257,77 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
             'request' : that.request,
             'response' : that.response
         };
-        controllerInstance.requestHeaders = that.request.headers;
+        controllerInstance.requestHeaders = that._headers();
         controllerInstance.responseHeaders = {};
-        try {
-            var timer;
 
-            var afterCallback = function () {
-                // Done, clear the timeout
+        var timer;
+
+        var afterCallback = function () {
+            // Done, clear the timeout
+            clearTimeout(timer);
+
+            var name, dataSourceNameAC, dataSourceAC, value;
+            try {
+                if (controllerInstance.statusCode === undefined) {
+                    controllerInstance.statusCode = 200;
+                }
+                // Seta os headers
+                if (typeof controllerInstance.responseHeaders === 'object') {
+                    for (name in controllerInstance.responseHeaders) {
+                        if (controllerInstance.responseHeaders.hasOwnProperty(name)) {
+                            value = controllerInstance.responseHeaders[name];
+                            that._setHeader(name, value);
+                        }
+                    }
+                }
+                // Shutdown all connections
+                for (dataSourceNameAC in that.dataSources) {
+                    if (that.dataSources.hasOwnProperty(dataSourceNameAC)) {
+                        dataSourceAC = that.dataSources[dataSourceNameAC];
+                        dataSourceAC.disconnect();
+                    }
+                }
+                that.render(
+                    savedOutput,
+                    controllerInstance.statusCode
+                );
+                if (typeof done === 'function') {
+                    done();
+                }
+            } catch (e) {
+                that.handleRequestException(e);
+            }
+        };
+        var controllerMethodCallback = function (output) {
+            savedOutput = output;
+            try {
+                // If after() is defined, call it
+                if (controllerInstance.after !== undefined) {
+                    that.debug('controllerInstance.after()');
+                    controllerInstance.after(afterCallback);
+                } else {
+                    afterCallback();
+                }
+            } catch (e) {
+                // Clear the timer if an exception occurs because handleRequestException will respond
                 clearTimeout(timer);
+                that.handleRequestException(e);
+            }
+        };
+        var beforeCallback = function () {
+            try {
+                // Call the controller method (put, get, delete, post, etc)
+                savedOutput = controllerInstance[httpMethod](controllerMethodCallback);
+            } catch (e) {
+                // Clear the timer if an exception occurs because handleRequestException will respond
+                clearTimeout(timer);
+                that.handleRequestException(e);
+            }
+        };
 
-                var name, dataSourceNameAC, dataSourceAC, value;
-                try {
-                    if (controllerInstance.statusCode === undefined) {
-                        controllerInstance.statusCode = 200;
-                    }
-                    // Seta os headers
-                    if (typeof controllerInstance.responseHeaders === 'object') {
-                        for (name in controllerInstance.responseHeaders) {
-                            if (controllerInstance.responseHeaders.hasOwnProperty(name)) {
-                                value = controllerInstance.responseHeaders[name];
-                                that.response.setHeader(name, value);
-                            }
-                        }
-                    }
-                    // Shutdown all connections
-                    for (dataSourceNameAC in that.dataSources) {
-                        if (that.dataSources.hasOwnProperty(dataSourceNameAC)) {
-                            dataSourceAC = that.dataSources[dataSourceNameAC];
-                            dataSourceAC.disconnect();
-                        }
-                    }
-                    that.render(
-                        savedOutput,
-                        controllerInstance.statusCode
-                    );
-                    if (typeof done === 'function') {
-                        done();
-                    }
-                } catch (e) {
-                    that.handleRequestException(e);
-                }
-            };
-            var controllerMethodCallback = function (output) {
-                savedOutput = output;
-                try {
-                    // If after() is defined, call it
-                    if (controllerInstance.after !== undefined) {
-                        that.debug('controllerInstance.after()');
-                        controllerInstance.after(afterCallback);
-                    } else {
-                        afterCallback();
-                    }
-                } catch (e) {
-                    // Clear the timer if an exception occurs because handleRequestException will respond
-                    clearTimeout(timer);
-                    that.handleRequestException(e);
-                }
-            };
-            var beforeCallback = function () {
-                try {
-                    // Call the controller method (put, get, delete, post, etc)
-                    savedOutput = controllerInstance[httpMethod](controllerMethodCallback);
-                } catch (e) {
-                    // Clear the timer if an exception occurs because handleRequestException will respond
-                    clearTimeout(timer);
-                    that.handleRequestException(e);
-                }
-            };
-
-            // Encapsulate the method in a immediate so it can be killed
-            var controllerMethodImmediate = setImmediate(function () {
+        // Encapsulate the method in a immediate so it can be killed
+        var controllerMethodImmediate = setImmediate(function () {
+            try {
                 // If before() is defined, call it
                 if (controllerInstance.before !== undefined) {
                     that.debug('controllerInstance.before()');
@@ -312,18 +335,19 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
                 } else {
                     beforeCallback();
                 }
-            });
-            // Timer that checks if the 
-            timer = setTimeout(function () {
-                that.debug('Request timeout!');
-                clearImmediate(controllerMethodImmediate);
-                that.handleRequestException(new exceptions.Timeout());
-            }, that.configs.requestTimeout);
-        } catch (e) {
-            // Clear the timer if an exception occurs because handleRequestException will respond
-            clearTimeout(timer);
-            that.handleRequestException(e);
-        }
+            } catch (e) {
+                // Catch exceptions that may occur in the controller before method
+                clearTimeout(timer);
+                that.handleRequestException(e);
+            }
+        });
+
+        // Timer that checks if the 
+        timer = setTimeout(function () {
+            that.debug('Request timeout!');
+            clearImmediate(controllerMethodImmediate);
+            that.handleRequestException(new exceptions.Timeout());
+        }, that.configs.requestTimeout);
     });
 };
 
@@ -382,29 +406,30 @@ RequestHandler.prototype.handleRequestException = function (e) {
  * @param {string} contentType The text for the Content-Type http header
  */
 RequestHandler.prototype.render = function (output, statusCode, contentType) {
-    this.debug('render()');
-    var extensionsMapToContentType = {
-        '.htm' : 'text/html',
-        '.html' : 'text/html',
-        '.json' : 'application/json',
-        '.js' : 'application/json',
-        '.xml' : 'text/xml'
-    };
-    var stringOutput;
-    // If the content type has not been specified, use the extension
-    if (contentType === undefined) {
-        contentType = extensionsMapToContentType[this.extension];
+    if (this.stringOutput === undefined) {
+        this.debug('render()');
+        var extensionsMapToContentType = {
+            '.htm' : 'text/html',
+            '.html' : 'text/html',
+            '.json' : 'application/json',
+            '.js' : 'application/json',
+            '.xml' : 'text/xml'
+        };
+        // If the content type has not been specified, use the extension
+        if (contentType === undefined) {
+            contentType = extensionsMapToContentType[this.extension];
+        }
+        this._writeHead(statusCode, { 'Content-Type' : contentType });
+        if (typeof output === 'object') {
+            this.stringOutput = JSON.stringify(output);
+        } else {
+            this.stringOutput = output;
+        }
+        this._writeResponse(this.stringOutput);
+        this.info('output=' + JSON.stringify(output));
+        this._sendResponse();
     }
-    this.response.writeHead(statusCode, { 'Content-Type' : contentType });
-    if (typeof output === 'object') {
-        stringOutput = JSON.stringify(output);
-    } else {
-        stringOutput = output;
-    }
-    this.response.write(stringOutput);
-    this.info('output=' + JSON.stringify(output));
-    this.response.end();
-    return stringOutput;
+    return this.stringOutput;
 };
 
 module.exports = RequestHandler;
