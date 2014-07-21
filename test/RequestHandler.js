@@ -188,15 +188,36 @@ describe('RequestHandler.js', function () {
         var method = 'POST';
 
         describe('invokeController', function () {
-            var requestHandler, instance;
+            var requestHandler, instance, sendResponseCounter;
 
             beforeEach(function () {
+                sendResponseCounter = 0;
                 requestHandler = mockRequestHandler();
+                requestHandler._endRequest = function (callback) {
+                    callback();
+                };
+                requestHandler._receivePayload = function () {
+                    return;
+                };
+                requestHandler._headers = function () {
+                    return { };
+                };
+                requestHandler._setHeader = function () {
+                    return;
+                };
+                requestHandler._writeHead = function () {
+                    return;
+                };
+                requestHandler._writeResponse = function () {
+                    return;
+                };
+                requestHandler._sendResponse = function () {
+                    sendResponseCounter += 1;
+                };
                 instance = requestHandler.prepareController('MyController');
             });
 
             it('should throw a MethodNotFound exception if the method passed is not implemented inside the controller', function () {
-
                 try {
                     requestHandler.invokeController(instance, 'put');
                 } catch (e) {
@@ -204,6 +225,56 @@ describe('RequestHandler.js', function () {
                 }
             });
 
+            it('should call the render method only once if the invokeController is called twice', function (done) {
+                requestHandler.invokeController(instance, 'post', function () {
+                    requestHandler.invokeController(instance, 'post', function () {
+                        assert.equal(1, sendResponseCounter);
+                        done();
+                    });
+                });
+            });
+
+            it('should call handleRequestException if an exception occurs in the controller after() callback', function (done) {
+                var exception = {
+                    'name' : 'MyExceptionObject'
+                };
+                instance.after = function () {
+                    throw exception;
+                };
+                requestHandler.handleRequestException = function (e) {
+                    assert.equal(exception, e);
+                    done();
+                };
+                requestHandler.invokeController(instance, 'post');
+            });
+
+            it('should call the handleRequestException if an exception occurs in the controller before() callback', function (done) {
+                var exception = {
+                    'name' : 'MyExceptionObject'
+                };
+                instance.before = function () {
+                    throw exception;
+                };
+                requestHandler.handleRequestException = function (e) {
+                    assert.equal(exception, e);
+                    done();
+                };
+                requestHandler.invokeController(instance, 'post');
+            });
+
+            it('should call the handleRequestException if an exception occurs in the controller method', function (done) {
+                var exception = {
+                    'prop' : 'value'
+                };
+                instance.post = function () {
+                    throw exception;
+                };
+                requestHandler.handleRequestException = function (e) {
+                    assert.equal(exception, e);
+                    done();
+                };
+                requestHandler.invokeController(instance, 'post');
+            });
         });
 
         describe('prepareController', function () {
@@ -226,12 +297,14 @@ describe('RequestHandler.js', function () {
                 var myComponent = instance.component('MyComponent');
                 // Just to be sure that this component really is MyComponent
                 assert.equal('MyComponent', myComponent.name);
+                assert.equal(null, instance.component('InvalidComponent'));
             });
 
             it('should inject the method for retrieving models', function () {
                 var myModel = instance.model('MyModel');
                 // Just to be sure that this model really is MyModel
                 assert.equal('MyModel', myModel.name);
+                assert.equal(null, instance.model('InvalidModel'));
             });
 
             it('should inject all ModelInterface methods inside the models retrieved by the model method', function () {
