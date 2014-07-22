@@ -8,25 +8,26 @@ var path = require('path');
 var sync = require('./../src/Util/sync');
 var fs = require('fs');
 
-function clearStructure(dir) {
-    fs.rmdirSync(path.join(dir, 'src', 'Component'));
-    fs.rmdirSync(path.join(dir, 'src', 'Controller'));
-    fs.unlinkSync(path.join(dir, 'src', 'Config', 'acl.json'));
-    fs.unlinkSync(path.join(dir, 'src', 'Config', 'core.json'));
-    fs.rmdirSync(path.join(dir, 'src', 'Config'));
-    fs.rmdirSync(path.join(dir, 'src', 'Model'));
-    fs.rmdirSync(path.join(dir, 'src'));
-
-    fs.rmdirSync(path.join(dir, 'test', 'Component'));
-    fs.rmdirSync(path.join(dir, 'test', 'Controller'));
-    fs.rmdirSync(path.join(dir, 'test', 'Model'));
-    fs.rmdirSync(path.join(dir, 'test'));
-
-    fs.unlinkSync('ExceptionsController.js');
-    fs.rmdirSync(dir);
-}
-
 describe('NRCM.js', function () {
+
+    function clearStructure(dir) {
+        fs.rmdirSync(path.join(dir, 'src', 'Component'));
+        fs.rmdirSync(path.join(dir, 'src', 'Controller'));
+        fs.unlinkSync(path.join(dir, 'src', 'Config', 'acl.json'));
+        fs.unlinkSync(path.join(dir, 'src', 'Config', 'core.json'));
+        fs.rmdirSync(path.join(dir, 'src', 'Config'));
+        fs.rmdirSync(path.join(dir, 'src', 'Model'));
+        fs.rmdirSync(path.join(dir, 'src'));
+
+        fs.rmdirSync(path.join(dir, 'test', 'Component'));
+        fs.rmdirSync(path.join(dir, 'test', 'Controller'));
+        fs.rmdirSync(path.join(dir, 'test', 'Model'));
+        fs.rmdirSync(path.join(dir, 'test'));
+
+        fs.unlinkSync('ExceptionsController.js');
+        fs.rmdirSync(dir);
+    }
+
     var nrcm = new NRCM();
     nrcm.log = function () { return; };
 
@@ -77,104 +78,104 @@ describe('NRCM.js', function () {
     });
 
     it('should start the application', function () {
-        sync.createDirIfNotExists(path.join('apptest'));
-        sync.createDirIfNotExists(path.join('apptest', 'src'));
-        sync.createDirIfNotExists(path.join('apptest', 'src', 'Controller'));
-        sync.createDirIfNotExists(path.join('apptest', 'src', 'Component'));
+        sync.createDirIfNotExists(path.join('testing1'));
+        sync.createDirIfNotExists(path.join('testing1', 'src'));
+        sync.createDirIfNotExists(path.join('testing1', 'src', 'Controller'));
+        sync.createDirIfNotExists(path.join('testing1', 'src', 'Component'));
 
-        var controllerFile = path.join('apptest', 'src', 'Controller', 'MyController.js');
+        var controllerFile = path.join('testing1', 'src', 'Controller', 'MyController.js');
         sync.createFileIfNotExists(controllerFile, 'module.exports = function (){ };');
-        var componentFile = path.join('apptest', 'src', 'Component', 'MyComponent.js');
-        sync.createFileIfNotExists(componentFile, 'module.exports = function () {}');
+        var componentFile = path.join('testing1', 'src', 'Component', 'MyComponent.js');
+        sync.createFileIfNotExists(componentFile, 'module.exports = function () { };');
 
-        nrcm.setUp('apptest');
+        nrcm.setUp('testing1');
         nrcm.start();
         // Nothing to test here
-        fs.unlinkSync(path.join('apptest', 'src', 'Controller', 'MyController.js'));
-        fs.unlinkSync(path.join('apptest', 'src', 'Component', 'MyComponent.js'));
-        clearStructure('apptest');
+        fs.unlinkSync(path.join('testing1', 'src', 'Controller', 'MyController.js'));
+        fs.unlinkSync(path.join('testing1', 'src', 'Component', 'MyComponent.js'));
+        clearStructure('testing1');
     });
 
     it('should create the default internal structure', function () {
-        nrcm.setUp('testing');
-        assert.equal(true, fs.existsSync(path.join('testing', 'src', 'Controller')));
-        assert.equal(true, fs.existsSync(path.join('testing', 'src', 'Component')));
-        assert.equal(true, fs.existsSync(path.join('testing', 'src', 'Config', 'acl.json')));
-        assert.equal(true, fs.existsSync(path.join('testing', 'src', 'Config', 'core.json')));
-        assert.equal(true, fs.existsSync(path.join('testing', 'src', 'Model')));
-        assert.equal(true, fs.existsSync(path.join('testing', 'test', 'Controller')));
-        assert.equal(true, fs.existsSync(path.join('testing', 'test', 'Component')));
-        assert.equal(true, fs.existsSync(path.join('testing', 'test', 'Model')));
+        nrcm.setUp('testing2');
+        assert.equal(true, fs.existsSync(path.join('testing2', 'src', 'Controller')));
+        assert.equal(true, fs.existsSync(path.join('testing2', 'src', 'Component')));
+        assert.equal(true, fs.existsSync(path.join('testing2', 'src', 'Config', 'acl.json')));
+        assert.equal(true, fs.existsSync(path.join('testing2', 'src', 'Config', 'core.json')));
+        assert.equal(true, fs.existsSync(path.join('testing2', 'src', 'Model')));
+        assert.equal(true, fs.existsSync(path.join('testing2', 'test', 'Controller')));
+        assert.equal(true, fs.existsSync(path.join('testing2', 'test', 'Component')));
+        assert.equal(true, fs.existsSync(path.join('testing2', 'test', 'Model')));
         assert.equal(true, fs.existsSync(path.join('ExceptionsController.js')));
-        clearStructure('testing');
+        clearStructure('testing2');
     });
 
     it('should throw a Fatal exception if the controller does not export a function', function () {
-        sync.createDirIfNotExists(path.join('testing'));
-        sync.createDirIfNotExists(path.join('testing', 'src'));
-        sync.createDirIfNotExists(path.join('testing', 'src', 'Controller'));
-        var controllerFile = path.join('testing', 'src', 'Controller', 'MyController.js');
+        sync.createDirIfNotExists(path.join('testing3'));
+        sync.createDirIfNotExists(path.join('testing3', 'src'));
+        sync.createDirIfNotExists(path.join('testing3', 'src', 'Controller'));
+        var controllerFile = path.join('testing3', 'src', 'Controller', 'MyController.js');
         sync.createFileIfNotExists(controllerFile, '{}');
         try {
-            nrcm.setUp('testing');
+            nrcm.setUp('testing3');
             assert.fail();
         } catch (e) {
             assert.equal('Fatal', e.name);
             assert.equal('Controller does not export a function: MyController', e.message);
         }
         fs.unlinkSync(controllerFile);
-        clearStructure('testing');
+        clearStructure('testing3');
     });
 
     it('should throw a Fatal exception if the model does not export a function', function () {
-        sync.createDirIfNotExists(path.join('testing'));
-        sync.createDirIfNotExists(path.join('testing', 'src'));
-        sync.createDirIfNotExists(path.join('testing', 'src', 'Model'));
-        var modelFile = path.join('testing', 'src', 'Model', 'MyModel.js');
+        sync.createDirIfNotExists(path.join('testing4'));
+        sync.createDirIfNotExists(path.join('testing4', 'src'));
+        sync.createDirIfNotExists(path.join('testing4', 'src', 'Model'));
+        var modelFile = path.join('testing4', 'src', 'Model', 'MyModel.js');
         sync.createFileIfNotExists(modelFile, '{}');
         try {
-            nrcm.setUp('testing');
+            nrcm.setUp('testing4');
             assert.fail();
         } catch (e) {
             assert.equal('Fatal', e.name);
             assert.equal('Model does not export a function: MyModel', e.message);
         }
         fs.unlinkSync(modelFile);
-        clearStructure('testing');
+        clearStructure('testing4');
     });
 
     it('should throw a Fatal exception if the component does not export a function', function () {
-        sync.createDirIfNotExists(path.join('testing2'));
-        sync.createDirIfNotExists(path.join('testing2', 'src'));
-        sync.createDirIfNotExists(path.join('testing2', 'src', 'Controller'));
-        sync.createDirIfNotExists(path.join('testing2', 'src', 'Component'));
-        var componentFile = path.join('testing2', 'src', 'Component', 'MyComponent.js');
+        sync.createDirIfNotExists(path.join('testing5'));
+        sync.createDirIfNotExists(path.join('testing5', 'src'));
+        sync.createDirIfNotExists(path.join('testing5', 'src', 'Controller'));
+        sync.createDirIfNotExists(path.join('testing5', 'src', 'Component'));
+        var componentFile = path.join('testing5', 'src', 'Component', 'MyComponent.js');
         sync.createFileIfNotExists(componentFile, '{}');
         try {
-            nrcm.setUp('testing2');
+            nrcm.setUp('testing5');
             assert.fail();
         } catch (e) {
             assert.equal('Fatal', e.name);
             assert.equal('Component does not export a function: MyComponent', e.message);
         }
         fs.unlinkSync(componentFile);
-        clearStructure('testing2');
+        clearStructure('testing5');
     });
 
     it('should throw a Fatal exception if the controller method is not a function', function () {
-        sync.createDirIfNotExists(path.join('testing3'));
-        sync.createDirIfNotExists(path.join('testing3', 'src'));
-        sync.createDirIfNotExists(path.join('testing3', 'src', 'Controller'));
-        var controllerFile = path.join('testing3', 'src', 'Controller', 'MyController.js');
+        sync.createDirIfNotExists(path.join('testing6'));
+        sync.createDirIfNotExists(path.join('testing6', 'src'));
+        sync.createDirIfNotExists(path.join('testing6', 'src', 'Controller'));
+        var controllerFile = path.join('testing6', 'src', 'Controller', 'MyController.js');
         sync.createFileIfNotExists(controllerFile, 'module.exports = function (){ this.get = 1; };');
         try {
-            nrcm.setUp('testing3');
+            nrcm.setUp('testing6');
             assert.fail();
         } catch (e) {
             assert.equal('Fatal', e.name);
             assert.equal('MyController.get() must be a function!', e.message);
         }
         fs.unlinkSync(controllerFile);
-        clearStructure('testing3');
+        clearStructure('testing6');
     });
 });
