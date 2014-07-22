@@ -2,13 +2,13 @@
 'use strict';
 
 var path = require('path');
-var ComponentFactory = require('../ComponentFactory');
-var ModelFactory = require('../ModelFactory');
+var ComponentFactory = require('../Component/ComponentFactory');
+var ModelFactory = require('../Model/ModelFactory');
 var DataSource = require('../Model/DataSource');
-var RequestHandler = require('../RequestHandler');
+var RequestHandler = require('../Controller/RequestHandler');
 
 function Testing(applicationPath, dataSourceConfigs) {
-    var application, dataSources, dataSourceName, dataSourceConfig, componentFactory;
+    var application, dataSources, dataSourceName, dataSourceConfig;
 
     this.applicationPath = applicationPath;
     this.configs = {
@@ -37,8 +37,8 @@ function Testing(applicationPath, dataSourceConfigs) {
         }
     }
 
-    componentFactory = new ComponentFactory(application);
-    this.modelFactory = new ModelFactory(application, dataSources, componentFactory);
+    this.componentFactory = new ComponentFactory(application);
+    this.modelFactory = new ModelFactory(application, dataSources, this.componentFactory);
 }
 
 Testing.prototype._require = function (path) {
@@ -56,7 +56,13 @@ Testing.prototype.loadComponent = function (componentName) {
 };
 
 Testing.prototype.createModel = function (modelName) {
+    this.loadModel(modelName);
     return this.modelFactory.create(modelName);
+};
+
+Testing.prototype.createComponent = function (componentName) {
+    this.loadComponent(componentName);
+    return this.componentFactory.create(componentName);
 };
 
 Testing.prototype.callController = function (controllerName, httpMethod, options, callback) {

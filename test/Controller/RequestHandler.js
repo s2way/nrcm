@@ -1,11 +1,11 @@
 /*jslint devel: true, node: true, indent: 4 */
 /*globals describe, it, beforeEach */
 'use strict';
+var RequestHandler = require('./../../src/Controller/RequestHandler.js');
+var assert = require('assert');
 
 describe('RequestHandler.js', function () {
 
-    var RequestHandler = require('./../src/RequestHandler.js');
-    var assert = require('assert');
 
     var controlVars = { };
 

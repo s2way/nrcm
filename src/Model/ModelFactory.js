@@ -1,7 +1,7 @@
 /*jslint devel: true, node: true, indent: 4 */
 'use strict';
 
-var ModelInterface = require('./Model/ModelInterface');
+var ModelInterface = require('./ModelInterface');
 
 function ModelFactory(application, dataSources, componentFactory) {
     this.application = application;

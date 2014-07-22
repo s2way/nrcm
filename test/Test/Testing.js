@@ -50,7 +50,42 @@ describe('Testing', function () {
         });
     });
 
+    describe('createComponent', function () {
+        beforeEach(function () {
+            testing._require = function () {
+                return function () {
+                    return;
+                };
+            };
+        });
+        it('should call ComponentFactory.create()', function (done) {
+            testing.componentFactory.create = function (componentName) {
+                assert.equal('MyComponent', componentName);
+                done();
+            };
+            testing.createComponent('MyComponent');
+        });
+
+        it('should load the component before creating it', function (done) {
+            testing.loadComponent = function (componentName) {
+                assert.equal('MyComponent', componentName);
+                done();
+            };
+            testing.componentFactory.create = function (componentName) {
+                assert.equal('MyComponent', componentName);
+            };
+            testing.createComponent('MyComponent');
+        });
+    });
+
     describe('createModel', function () {
+        beforeEach(function () {
+            testing._require = function () {
+                return function () {
+                    return;
+                };
+            };
+        });
         it('should call ModelFactory.create()', function (done) {
             testing.modelFactory.create = function (modelName) {
                 assert.equal('MyModel', modelName);
@@ -62,11 +97,11 @@ describe('Testing', function () {
         it('should load the model before creating it', function (done) {
             testing.loadModel = function (modelName) {
                 assert.equal('MyModel', modelName);
+                done();
             };
 
             testing.modelFactory.create = function (modelName) {
                 assert.equal('MyModel', modelName);
-                done();
             };
             testing.createModel('MyModel');
         });

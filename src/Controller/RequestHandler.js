@@ -3,13 +3,13 @@
 // Dependencies
 var querystring = require('querystring');
 var util = require('util');
-var aclModule = require('./acl');
-var exceptions = require('./exceptions');
-var stringUtils = require('./stringUtils');
-var Router = require('./Router');
-var ComponentFactory = require('./ComponentFactory');
-var ModelFactory = require('./ModelFactory');
-var DataSource = require('./Model/DataSource');
+var aclModule = require('./../Core/acl');
+var exceptions = require('./../exceptions');
+var stringUtils = require('./../Util/stringUtils');
+var Router = require('./../Core/Router');
+var ComponentFactory = require('./../Component/ComponentFactory');
+var ModelFactory = require('./../Model/ModelFactory');
+var DataSource = require('./../Model/DataSource');
 
 /**
  * The request handler object

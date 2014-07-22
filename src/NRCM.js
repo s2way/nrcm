@@ -5,8 +5,8 @@ var fs = require('fs');
 var path = require('path');
 var http = require('http');
 var exceptions = require('./exceptions');
-var sync = require('./sync');
-var RequestHandler = require('./RequestHandler');
+var sync = require('./Util/sync');
+var RequestHandler = require('./Controller/RequestHandler');
 
 // Constructor
 function NRCM() {
@@ -61,11 +61,11 @@ NRCM.prototype.setUp = function (appName) {
     sync.createDirIfNotExists(app.componentsTestPath);
 
     // Acl file creation
-    sync.copyIfNotExists(path.join(__dirname, 'acl.json'), app.aclFileName);
+    sync.copyIfNotExists(path.join(__dirname, 'Copy', 'acl.json'), app.aclFileName);
     // Core file creation
-    sync.copyIfNotExists(path.join(__dirname, 'core.json'), app.coreFileName);
+    sync.copyIfNotExists(path.join(__dirname, 'Copy', 'core.json'), app.coreFileName);
     // ExceptionsController creation
-    sync.copyIfNotExists(path.join(__dirname, 'ExceptionsController.js'), path.join('ExceptionsController.js'));
+    sync.copyIfNotExists(path.join(__dirname, 'Controller', 'ExceptionsController.js'), path.join('ExceptionsController.js'));
     // Controller load
     app.controllers = sync.loadNodeFilesIntoArray(sync.listFilesFromDir(app.controllersPath));
     // Components load
@@ -76,7 +76,7 @@ NRCM.prototype.setUp = function (appName) {
     app.acl = sync.fileToJSON(app.aclFileName);
     // Loads core file
     app.core = sync.fileToJSON(app.coreFileName);
-    this.ExceptionsController = require('./ExceptionsController.js');
+    this.ExceptionsController = require('./Controller/ExceptionsController.js');
     this.applications[appName] = app;
     // Validate the controllers format
     var Controller, instance, methodsLength, methodName, j;

@@ -2,7 +2,7 @@
 /*globals describe, it */
 'use strict';
 var assert = require('assert');
-var stringUtils = require('./../src/stringUtils');
+var stringUtils = require('./../../src/Util/stringUtils');
 
 describe('stringUtils.js', function () {
 

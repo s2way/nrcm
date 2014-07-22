@@ -1,7 +1,7 @@
 /*jslint devel: true, node: true, indent: 4 */
 /*globals describe, it */
 'use strict';
-var sync = require('./../src/sync');
+var sync = require('./../../src/Util/sync');
 var assert = require('assert');
 var fs = require('fs');
 var path = require('path');

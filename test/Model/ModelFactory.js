@@ -3,7 +3,7 @@
 'use strict';
 
 var assert = require('assert');
-var ModelFactory = require('../src/ModelFactory');
+var ModelFactory = require('../../src/Model/ModelFactory');
 
 describe('ModelFactory.js', function () {
 

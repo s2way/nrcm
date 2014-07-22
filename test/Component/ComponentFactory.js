@@ -3,7 +3,7 @@
 'use strict';
 
 var assert = require('assert');
-var ComponentFactory = require('../src/ComponentFactory');
+var ComponentFactory = require('../../src/Component/ComponentFactory');
 
 describe('ComponentFactory.js', function () {
 

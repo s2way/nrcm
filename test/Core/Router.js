@@ -1,7 +1,7 @@
 /*jslint devel: true, node: true, indent: 4 */
 /*globals describe, it */
 'use strict';
-var acl = require('./../src/acl');
+var acl = require('./../../src/Core/acl');
 var assert = require('assert');
 
 describe('acl.js', function () {

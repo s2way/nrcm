@@ -1,6 +1,6 @@
 /*jslint devel: true, node: true, indent: 4, vars: true, maxlen: 256 */
 'use strict';
-var exceptions = require('./exceptions');
+var exceptions = require('./../exceptions');
 
 /**
  * Check if the user`s group has the right to proceed with the controller requested on url
