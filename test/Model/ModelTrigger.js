@@ -19,7 +19,7 @@ describe('ModelTrigger', function () {
                 afterCalled = true;
                 callback(result, err);
             };
-            var trigger = new ModelTrigger(null, operation, after, function (err, result) {
+            var trigger = new ModelTrigger(null, operation, after, function (err) {
                 assert.equal(true, operationCalled);
                 assert.equal(false, afterCalled);
                 assert.equal('an error', err);
@@ -76,18 +76,18 @@ describe('ModelTrigger', function () {
                 beforeCalled = true;
                 callback(false);
             };
-            
+
             var operation = function (callback) {
                 operationCalled = true;
                 callback(false, {});
             };
-            
+
             var after = function (callback, err, result) {
                 afterCalled = true;
                 callback(err, result);
             };
 
-            var trigger = new ModelTrigger(before, operation, after, function (err, result) {
+            var trigger = new ModelTrigger(before, operation, after, function () {
                 assert.equal(true, beforeCalled);
                 assert.equal(false, operationCalled);
                 assert.equal(false, afterCalled);

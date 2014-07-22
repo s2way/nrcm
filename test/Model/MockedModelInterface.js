@@ -1,6 +1,7 @@
 /*jslint devel: true, node: true, indent: 4 */
-/*globals describe, it */
+/*globals describe, it, beforeEach */
 'use strict';
+
 var assert = require('assert');
 var util = require('util');
 var MockedModelInterface = require('./../../src/Model/MockedModelInterface');

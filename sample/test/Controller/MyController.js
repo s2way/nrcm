@@ -1,10 +1,10 @@
 var assert = require('assert');
 var path = require('path');
-var ControllerTesting = require('../../../src/NRCM').ControllerTesting;
+var Testing = require('../../../src/NRCM').Testing;
 
 describe('MyController', function () {
 
-    var testing = new ControllerTesting(path.join(__dirname, '../../../sample'));
+    var testing = new Testing(path.join(__dirname, '../../../sample'));
 
     describe('post', function () {
 
@@ -20,13 +20,12 @@ describe('MyController', function () {
                     'query' : 'string'
                 }
             };
-            testing.call('MyController', 'post', options, function (response) {
+            testing.callController('MyController', 'post', options, function (response) {
                 assert.equal(JSON.stringify(options.payload), JSON.stringify(response.payload));
                 assert.equal(JSON.stringify(options.query), JSON.stringify(response.query));
                 done();
             });
         });
-
 
     });
 

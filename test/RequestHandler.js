@@ -293,43 +293,6 @@ describe('RequestHandler.js', function () {
                 assert.equal('app', instance.application);
             });
 
-            it('should inject the method for retrieving components', function () {
-                var myComponent = instance.component('MyComponent');
-                // Just to be sure that this component really is MyComponent
-                assert.equal('MyComponent', myComponent.name);
-                assert.equal(null, instance.component('InvalidComponent'));
-            });
-
-            it('should inject the method for retrieving models', function () {
-                var myModel = instance.model('MyModel');
-                // Just to be sure that this model really is MyModel
-                assert.equal('MyModel', myModel.name);
-                assert.equal(null, instance.model('InvalidModel'));
-            });
-
-            it('should inject all ModelInterface methods inside the models retrieved by the model method', function () {
-                var myModel = instance.model('MyModel');
-
-                assert.equal('function', typeof myModel._findAll);
-                assert.equal('function', typeof myModel._findByKey);
-                assert.equal('function', typeof myModel._findById);
-                assert.equal('function', typeof myModel._find);
-                assert.equal('function', typeof myModel._removeById);
-                assert.equal('function', typeof myModel._save);
-            });
-
-            it('should inject the method for retrieving models inside the models retrieved by the model method', function () {
-                var myModel = instance.model('MyModel');
-                // Retrieving itself
-                assert.equal('MyModel', myModel.model('MyModel').name);
-            });
-
-            it('should inject the method for retrieving components inside the models retrieved by the model method', function () {
-                var myModel = instance.model('MyModel');
-                // Model retrieving a component
-                assert.equal('MyComponent', myModel.component('MyComponent').name);
-            });
-
             it('should throw a ControllerNotFound exception if the controller does not exist', function () {
                 try {
                     requestHandler.prepareController('InvalidController');

@@ -1,5 +1,6 @@
 /*jslint devel: true, node: true, indent: 4 */
 /*globals describe, it */
+'use strict';
 var assert = require('assert');
 var ModelInterface = require('./../../src/Model/ModelInterface');
 

@@ -5,18 +5,25 @@ var assert = require('assert');
 var SchemaMatcher = require('./../../src/Model/SchemaMatcher');
 
 describe('SchemaMatcher.js', function () {
+
     describe('SchemaMatcher', function () {
         it('should throw an error if the schema is invalid', function () {
+            var sm;
             try {
-                new SchemaMatcher({'title' : function () {}});
+                sm = new SchemaMatcher({'title' : function () {
+                    return;
+                }});
+                assert(sm);
                 assert.fail();
             } catch (e) {
                 assert.equal('IllegalArgument', e.name);
             }
         });
         it('should throw an error if the schema is undefined or null', function () {
+            var sm;
             try {
-                new SchemaMatcher();
+                sm = new SchemaMatcher();
+                assert(sm);
                 assert.fail();
             } catch (e) {
                 assert.equal('IllegalArgument', e.name);
@@ -25,14 +32,17 @@ describe('SchemaMatcher.js', function () {
     });
     describe('match', function () {
         it('should throw an error if the data is invalid', function () {
-            var schema = {'title':'string','description':''};
+            var schema = {'title': 'string', 'description': ''};
+            var sm;
             try {
-                var sm = new SchemaMatcher(schema);             
+                sm = new SchemaMatcher(schema);
             } catch (e) {
-                assert.fail();                  
+                assert.fail();
             }
             try {
-                sm.match({'title' : function () {}});
+                sm.match({'title' : function () {
+                    return;
+                }});
                 assert.fail();
             } catch (e) {
                 assert.equal('IllegalArgument', e.name);
@@ -46,10 +56,11 @@ describe('SchemaMatcher.js', function () {
                     'object' : {'array' : []},
                 }
             };
+            var sm;
             try {
-                var sm = new SchemaMatcher(schema);             
+                sm = new SchemaMatcher(schema);
             } catch (e) {
-                assert.fail();                  
+                assert.fail();
             }
             try {
                 sm.match();
@@ -66,13 +77,16 @@ describe('SchemaMatcher.js', function () {
                     'object' : {'array' : []},
                 }
             };
+            var sm;
             try {
-                var sm = new SchemaMatcher(schema);             
+                sm = new SchemaMatcher(schema);
             } catch (e) {
-                assert.fail();                  
+                assert.fail();
             }
             try {
-                sm.match(function() {});
+                sm.match(function () {
+                    return;
+                });
                 assert.fail();
             } catch (e) {
                 assert.equal('IllegalArgument', e.name);
@@ -89,16 +103,17 @@ describe('SchemaMatcher.js', function () {
             };
             var data = {
                 'string': 'string',
-                'array' : [0,1,3],
+                'array' : [0, 1, 3],
                 'object' : {
-                    'object' : {'array' : [0,1,2]},
+                    'object' : {'array' : [0, 1, 2]},
                     'number' : 100
                 }
             };
+            var sm;
             try {
-                var sm = new SchemaMatcher(schema);             
+                sm = new SchemaMatcher(schema);
             } catch (e) {
-                assert.fail();                  
+                assert.fail();
             }
             try {
                 assert(sm.match(data));
@@ -117,19 +132,20 @@ describe('SchemaMatcher.js', function () {
             };
             var data = {
                 'string': 'string',
-                'array' : [0,1,3],
+                'array' : [0, 1, 3],
                 'object' : {
-                    'object' : {'array' : [0,1,2]},
+                    'object' : {'array' : [0, 1, 2]},
                     'number' : 'not_number'
                 }
             };
+            var sm, x;
             try {
-                var sm = new SchemaMatcher(schema);             
+                sm = new SchemaMatcher(schema);
             } catch (e) {
-                assert.fail();                  
+                assert.fail();
             }
             try {
-                var x = sm.match(data);
+                x = sm.match(data);
                 assert.fail();
             } catch (e) {
                 assert.equal(x, false);
@@ -146,19 +162,20 @@ describe('SchemaMatcher.js', function () {
             };
             var data = {
                 'string': 'string',
-                'array' : [0,1,3],
+                'array' : [0, 1, 3],
                 'object' : {
                     'object' : {'array' : []},
                     'number' : 'not_number'
                 }
             };
+            var sm, x;
             try {
-                var sm = new SchemaMatcher(schema);             
+                sm = new SchemaMatcher(schema);
             } catch (e) {
-                assert.fail();                  
+                assert.fail();
             }
             try {
-                var x = sm.match(data);
+                x = sm.match(data);
                 assert.fail();
             } catch (e) {
                 assert.equal(x, false);
@@ -172,19 +189,20 @@ describe('SchemaMatcher.js', function () {
             };
             var data = {
                 'string': 'string',
-                'array' : [0,1,3],
+                'array' : [0, 1, 3],
                 'object' : {
                     'object' : {'array' : []},
                     'number' : 'not_number'
                 }
             };
+            var sm, x;
             try {
-                var sm = new SchemaMatcher(schema);             
+                sm = new SchemaMatcher(schema);
             } catch (e) {
-                assert.fail();                  
+                assert.fail();
             }
             try {
-                var x = sm.match(data);
+                x = sm.match(data);
                 assert.fail();
             } catch (e) {
                 assert.equal(x, false);
@@ -198,15 +216,16 @@ describe('SchemaMatcher.js', function () {
             };
             var data = {
                 'x': 'string',
-                'array' : [0,1,3],
+                'array' : [0, 1, 3],
             };
+            var sm, x;
             try {
-                var sm = new SchemaMatcher(schema);             
+                sm = new SchemaMatcher(schema);
             } catch (e) {
-                assert.fail();                  
+                assert.fail();
             }
             try {
-                var x = sm.match(data);
+                x = sm.match(data);
                 assert.fail();
             } catch (e) {
                 assert.equal(x, false);

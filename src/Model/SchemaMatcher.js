@@ -1,6 +1,8 @@
 /*jslint devel: true, node: true, indent: 4, vars: true, stupid: true, nomen: true */
 'use strict';
+
 var exceptions = require('./../exceptions.js');
+
 /**
  * The matcher for the schema for all jsson objects - model
  *

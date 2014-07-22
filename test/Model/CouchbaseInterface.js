@@ -18,10 +18,6 @@ describe('CouchbaseInterface.js', function () {
         },
         'preferencias' : ['Cerveja', 'Salgadinho']
     };
-    var multiDocs = {
-       'token_1': {value: {name: 'Frank'}},
-       'token_2': {value: {name: 'Bob'}}
-    };
 
     function mockLogFunction() {
         return function (msg) {
@@ -65,7 +61,7 @@ describe('CouchbaseInterface.js', function () {
                         }, 10);
                     } else {
                         setTimeout(function () {
-                            callback(null, {'token_1': {value: {name: 'Frank'}},'token_2': {value: {name: 'Bob'}}});
+                            callback(null, {'token_1': { value: { name: 'Frank'}}, 'token_2': { value: { name: 'Bob'}}});
                         }, 10);
                     }
                 };
@@ -93,24 +89,30 @@ describe('CouchbaseInterface.js', function () {
                     }, 10);
                 };
                 this.insert = function (key, data, options, callback) {
+                    this.key = key; //jslint
+                    this.data = data; //jslint
+                    this.options = options; //jslint
                     setTimeout(function () {
                         if (controlVars.insertFail === true) {
                             controlVars.insertCalled = true;
                             callback(true);
                         } else {
                             controlVars.insertCalled = true;
-                            callback(null, {                            
+                            callback(null, {
                                 'value' : 2
                             });
                         }
                     }, 10);
                 };
-                this.view = function (viewName, viewOptions, queryOptions) {
+                this.view = function () {
                     return { 'query' : function (queryOptions, callback) {
+                        this.queryOptions = queryOptions; //jslint
                         callback(null, true);
                     }};
                 };
                 this.incr = function (keyName, options, callback) {
+                    this.keyName = keyName; //jslint
+                    this.options = options; //jslint
                     setTimeout(function () {
                         if (controlVars.incrFail === true) {
                             controlVars.incrCalled = true;
@@ -119,7 +121,7 @@ describe('CouchbaseInterface.js', function () {
                             controlVars.incrCalled = true;
                             callback(null, {
                                 'value' : 2
-                            });                        
+                            });
                         }
                     }, 10);
                 };
@@ -252,7 +254,7 @@ describe('CouchbaseInterface.js', function () {
         modelInterface.log = mockLogFunction();
         it('should return all records if the id is missing', function (done) {
             controlVars = {};
-            modelInterface.findAll('viewName', {}, {}, function (err, result) {
+            modelInterface.findAll('viewName', {}, {}, function (err) {
                 assert.equal(undefined, err);
                 done();
             });
@@ -272,7 +274,7 @@ describe('CouchbaseInterface.js', function () {
         modelInterface.log = mockLogFunction();
         it('should return all records calling findAll if the id is missing', function (done) {
             controlVars = {};
-            modelInterface.find({}, function (err, result) {
+            modelInterface.find({}, function (err) {
                 assert.equal(undefined, err);
                 done();
             });
@@ -378,7 +380,7 @@ describe('CouchbaseInterface.js', function () {
         });
     });
 
-    describe('getMulti', function() {
+    describe('getMulti', function () {
         it('should throw an IllegalArgument exception if the callback is not a function', function () {
             var modelInterface = new CouchbaseInterface(createDataSource(), {'uid' : 'pessoa'});
             try {
@@ -391,18 +393,17 @@ describe('CouchbaseInterface.js', function () {
         it('should throw an IllegalArgument exception if the keys is not an array', function (done) {
             var modelInterface = new CouchbaseInterface(createDataSource(), {'uid' : 'pessoa'});
             try {
-                modelInterface.getMulti(null, {}, function (err, result) {
+                modelInterface.getMulti(null, {}, function (err) {
                     try {
                         if (err) {
                             throw err;
-                        } else {
-                            assert.fail();
-                            done();
                         }
+                        assert.fail();
+                        done();
                     } catch (e) {
                         assert.equal('IllegalArgument', e.name);
                         done();
-                    }                    
+                    }
                 });
             } catch (e) {
                 assert.fail();
@@ -412,14 +413,14 @@ describe('CouchbaseInterface.js', function () {
         it('should return the docs inside the array', function (done) {
             var modelInterface = new CouchbaseInterface(createDataSource(), {'uid' : 'pessoa'});
             try {
-                modelInterface.getMulti(['token_1','token_2'], {}, function (err, result) {
+                modelInterface.getMulti(['token_1', 'token_2'], {}, function (err, result) {
                     if (err) {
                         throw err;
                     }
-                    assert(result['token_1']);
-                    assert(result['token_2']);
+                    assert(result.token_1);
+                    assert(result.token_2);
                     done();
-                });                
+                });
             } catch (e) {
                 assert.fail();
                 done();

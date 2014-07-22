@@ -1,3 +1,6 @@
+/*jslint devel: true, node: true, indent: 4 */
+/*globals describe, it, beforeEach */
+'use strict';
 var assert = require('assert');
 var DataSource = require('./../../src/Model/DataSource');
 

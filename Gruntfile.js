@@ -5,7 +5,7 @@ module.exports = function (grunt) {
     // Load grunt tasks automatically
     require('load-grunt-tasks')(grunt);
 
-    var jslintCommand = 'node node_modules/jslint/bin/jslint.js --node --vars --devel --nomen --stupid --indent 4 --maxlen 2048 **/*.js > lint.out || (cat lint.out && exit 1)';
+    var jslintCommand = 'node node_modules/jslint/bin/jslint.js --node --vars --devel --nomen --stupid --indent 4 --maxlen 2048 src/*.js test/*.js src/**/*.js test/**/*.js > lint.out || (cat lint.out && exit 1)';
 
     // Define the configuration for all the tasks
     grunt.initConfig({

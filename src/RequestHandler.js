@@ -7,7 +7,8 @@ var aclModule = require('./acl');
 var exceptions = require('./exceptions');
 var stringUtils = require('./stringUtils');
 var Router = require('./Router');
-var ModelInterface = require('./Model/ModelInterface');
+var ComponentFactory = require('./ComponentFactory');
+var ModelFactory = require('./ModelFactory');
 var DataSource = require('./Model/DataSource');
 
 /**
@@ -103,7 +104,8 @@ RequestHandler.prototype.prepareController = function (controllerName) {
     var that = this;
     this.debug('prepareController()');
 
-    var dataSourceName, dataSourceConfig, modelInstance, componentInstance, ModelConstructor, dataSource, modelDataSourceName;
+    var application = that.applications[that.appName];
+    var dataSourceName, dataSourceConfig;
     var dataSources = [];
 
     // Instantiate all DataSources
@@ -115,7 +117,9 @@ RequestHandler.prototype.prepareController = function (controllerName) {
     }
     that.dataSources = dataSources;
 
-    var application = that.applications[that.appName];
+    this.componentFactory = new ComponentFactory(application);
+    this.modelFactory = new ModelFactory(application, this.dataSources, this.componentFactory);
+
     if (application.controllers[controllerName] === undefined) {
         that.debug('controller not found');
         throw new exceptions.ControllerNotFound();
@@ -128,63 +132,16 @@ RequestHandler.prototype.prepareController = function (controllerName) {
     controllerInstance.name = controllerName;
     controllerInstance.application = that.appName;
 
-    var retrieveComponent = function (componentName) {
-        var ComponentConstructor;
-        if (application.components[componentName] !== undefined) {
-            ComponentConstructor = application.components[componentName];
-            componentInstance = new ComponentConstructor();
-            componentInstance.name = componentName;
-            componentInstance.component = retrieveComponent;
-            return componentInstance;
-        }
-        return null;
-    };
-
     // Injects the method for retrieving components in the controller and inside each component
-    controllerInstance.component = retrieveComponent;
-
-    var retrieveModel = function (modelName) {
-        var modelInterface, i, modelInterfaceMethod;
-
-        function modelInterfaceDelegation(method) {
-            return function () {
-                return modelInterface[method].apply(modelInterface, arguments);
-            };
-        }
-
-        if (application.models[modelName] !== undefined) {
-            ModelConstructor = application.models[modelName];
-            modelInstance = new ModelConstructor();
-            modelDataSourceName = modelInstance.dataSource;
-            if (modelDataSourceName === undefined) {
-                modelDataSourceName = 'default';
-            }
-            dataSource = dataSources[modelDataSourceName];
-            modelInstance.name = modelName;
-            modelInterface = new ModelInterface(dataSource, {
-                'uid' : modelInstance.uid,
-                'keys' : modelInstance.keys,
-                'locks' : modelInstance.locks,
-                'requires' : modelInstance.requires,
-                'validate' : modelInstance.validate,
-                'schema' : modelInstance.schema
-            });
-
-            for (i in modelInterface.methods) {
-                if (modelInterface.methods.hasOwnProperty(i)) {
-                    modelInterfaceMethod = modelInterface.methods[i];
-                    modelInstance['_' + modelInterfaceMethod] = modelInterfaceDelegation(modelInterfaceMethod);
-                }
-            }
-            modelInstance.model = retrieveModel;
-            modelInstance.component = retrieveComponent;
-            return modelInstance;
-        }
-        return null;
+    controllerInstance.component = function (componentName) {
+        return that.componentFactory.create(componentName);
     };
 
     // Injects the method for retrieving models
-    controllerInstance.model = retrieveModel;
+    controllerInstance.model = function (modelName) {
+        return that.modelFactory.create(modelName);
+    };
+
     return controllerInstance;
 };
 

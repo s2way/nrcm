@@ -1,22 +1,65 @@
+/*jslint devel: true, node: true, indent: 4 */
 'use strict';
-var path = require('path');
-var RequestHandler = require('./RequestHandler');
 
-function ControllerTesting(applicationPath) {
+var path = require('path');
+var ComponentFactory = require('../ComponentFactory');
+var ModelFactory = require('../ModelFactory');
+var DataSource = require('../Model/DataSource');
+var RequestHandler = require('../RequestHandler');
+
+function Testing(applicationPath, dataSourceConfigs) {
+    var application, dataSources, dataSourceName, dataSourceConfig, componentFactory;
+
     this.applicationPath = applicationPath;
-    this.configs = { };
-    this.applications = {
-        'app' : {
-            'controllers' : { }
-        }
+    this.configs = {
+        'requestTimeout' : 10000
     };
+    this.controllers = { };
+    this.components = { };
+    this.models = { };
+
+    application = {
+        'controllers' : this.controllers,
+        'components' : this.components,
+        'models' : this.models
+    };
+    dataSources = [];
+
+    this.applications = {
+        'app' : application
+    };
+
+    // Instantiate all DataSources
+    for (dataSourceName in dataSourceConfigs) {
+        if (dataSourceConfigs.hasOwnProperty(dataSourceName)) {
+            dataSourceConfig = dataSourceConfigs[dataSourceName];
+            dataSources[dataSourceName] = new DataSource(dataSourceName, dataSourceConfig);
+        }
+    }
+
+    componentFactory = new ComponentFactory(application);
+    this.modelFactory = new ModelFactory(application, dataSources, componentFactory);
 }
 
-ControllerTesting.prototype._require = function (path) {
+Testing.prototype._require = function (path) {
     return require(path);
 };
 
-ControllerTesting.prototype.call = function (controllerName, httpMethod, options, callback) {
+Testing.prototype.loadModel = function (modelName) {
+    this.models[modelName] = this._require(path.join(this.applicationPath, 'src', 'Model', modelName));
+    return this.models[modelName];
+};
+
+Testing.prototype.loadComponent = function (componentName) {
+    this.components[componentName] = this._require(path.join(this.applicationPath, 'src', 'Component', componentName));
+    return this.components[componentName];
+};
+
+Testing.prototype.createModel = function (modelName) {
+    return this.modelFactory.create(modelName);
+};
+
+Testing.prototype.callController = function (controllerName, httpMethod, options, callback) {
     var controllerPath = path.join(this.applicationPath, 'src', 'Controller', controllerName);
     this.applications.app.controllers[controllerName] = this._require(controllerPath);
 
@@ -26,6 +69,7 @@ ControllerTesting.prototype.call = function (controllerName, httpMethod, options
     requestHandler._endRequest = function (callback) {
         setImmediate(callback);
     };
+
     var blankFunction = function () {
         return;
     };
@@ -71,4 +115,4 @@ ControllerTesting.prototype.call = function (controllerName, httpMethod, options
     this.options = options;
 };
 
-module.exports = ControllerTesting;
+module.exports = Testing;
