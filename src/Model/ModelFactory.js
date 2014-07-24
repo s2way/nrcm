@@ -23,9 +23,11 @@ ModelFactory.prototype.create = function (modelName) {
         var ModelConstructor = this.application.models[modelName];
         var modelInstance = new ModelConstructor();
         var modelDataSourceName = modelInstance.dataSource;
+
         if (modelDataSourceName === undefined) {
             modelDataSourceName = 'default';
         }
+
         var dataSource = this.dataSources[modelDataSourceName];
         modelInstance.name = modelName;
         modelInterface = new ModelInterface(dataSource, {
@@ -43,12 +45,15 @@ ModelFactory.prototype.create = function (modelName) {
                 modelInstance['_' + modelInterfaceMethod] = modelInterfaceDelegation(modelInterfaceMethod);
             }
         }
+
         modelInstance.model = function (modelName) {
             return that.create(modelName);
         };
+
         modelInstance.component = function (componentName) {
             return that.componentFactory.create(componentName);
         };
+
         return modelInstance;
     }
     return null;

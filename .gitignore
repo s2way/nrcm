@@ -3,7 +3,6 @@ report.html
 app
 config.json
 index.js
-cc.json
 node_modules/**
 lint.out
 testing*

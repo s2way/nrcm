@@ -37,7 +37,7 @@
     "type": "git",
     "url": "http://github.com/nrcm/nrcm.git"
   },
-  "version": "0.1.0",
+  "version": "0.1.1",
   "scripts": {
     "preinstall": "npm install -g grunt jslint mocha blanket",
     "pretest": "node node_modules/jslint/bin/jslint.js --node --vars --devel --nomen --stupid --indent 4 --maxlen 2048 src/*.js test/*.js src/**/*.js test/**/*.js",
@@ -56,7 +56,7 @@
   ],
   "readme": "Please reade the README.md file.",
   "readmeFilename": "README.md",
-  "_id": "nrcm@0.1.0",
+  "_id": "nrcm@0.1.1",
   "_from": "nrcm@",
   "config": {
     "blanket": {

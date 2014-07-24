@@ -5,7 +5,6 @@
 var assert = require('assert');
 var Testing = require('../../src/Test/Testing');
 
-
 describe('Testing', function () {
 
     var testing = null;
@@ -110,15 +109,33 @@ describe('Testing', function () {
     describe('callController', function () {
 
         beforeEach(function () {
-            testing._require = function () {
-                return function () {
-                    this.post = function (callback) {
-                        callback({
-                            'payload' : this.payload,
-                            'query' : this.query
-                        });
+            testing._require = function (path) {
+                if (path === 'app/src/Controller/MyController') {
+                    // Controller constructor
+                    return function () {
+                        this.post = function (callback) {
+                            callback({
+                                'payload' : this.payload,
+                                'query' : this.query
+                            });
+                        };
+                        this.put = function (callback) {
+                            var model = this.model('MyModel');
+                            model.myModelMethod(callback);
+                        };
                     };
-                };
+                }
+                if (path === 'app/src/Model/MyModel') {
+                    // Model constructor
+                    return function () {
+                        this.myModelMethod = function (callback) {
+                            this._find({ }, function () {
+                                callback({ });
+                            });
+                        };
+                    };
+                }
+                return null;
             };
         });
 
@@ -133,6 +150,24 @@ describe('Testing', function () {
                 done();
             });
 
+        });
+
+        it('should pass the status code, headers and content type to the callback function', function (done) {
+            testing.callController('MyController', 'post', { }, function (response, info) {
+                assert(response);
+                assert.equal(200, info.statusCode);
+                assert.equal('application/json', info.contentType);
+                assert.equal('object', typeof info.headers);
+                done();
+            });
+
+        });
+
+        it('should load the model with a Mock DataSource if loadModel is called before callController', function (done) {
+            testing.loadModel('MyModel');
+            testing.callController('MyController', 'put', { }, function () {
+                done();
+            });
         });
 
         it('should access the payload as an empty string if it is not passed', function (done) {

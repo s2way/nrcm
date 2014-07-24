@@ -374,7 +374,11 @@ RequestHandler.prototype.render = function (output, statusCode, contentType) {
         };
         // If the content type has not been specified, use the extension
         if (contentType === undefined) {
-            contentType = extensionsMapToContentType[this.extension];
+            if (!this.extension) {
+                contentType = 'application/json';
+            } else {
+                contentType = extensionsMapToContentType[this.extension];
+            }
         }
         this._writeHead(statusCode, { 'Content-Type' : contentType });
         if (typeof output === 'object') {

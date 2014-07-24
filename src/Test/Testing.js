@@ -12,7 +12,8 @@ function Testing(applicationPath, dataSourceConfigs) {
 
     this.applicationPath = applicationPath;
     this.configs = {
-        'requestTimeout' : 10000
+        'requestTimeout' : 10000,
+        'dataSources' : dataSourceConfigs
     };
     this.controllers = { };
     this.components = { };
@@ -67,7 +68,7 @@ Testing.prototype.createComponent = function (componentName) {
 
 Testing.prototype.callController = function (controllerName, httpMethod, options, callback) {
     var controllerPath = path.join(this.applicationPath, 'src', 'Controller', controllerName);
-    this.applications.app.controllers[controllerName] = this._require(controllerPath);
+    this.controllers[controllerName] = this._require(controllerPath);
 
     var requestHandler = new RequestHandler(this.configs, this.applications, null);
 
@@ -100,12 +101,21 @@ Testing.prototype.callController = function (controllerName, httpMethod, options
     };
 
     // Set the response headers
-    requestHandler._setHeader = blankFunction;
-    requestHandler._writeHead = blankFunction;
     requestHandler._writeResponse = blankFunction;
     requestHandler._sendResponse = blankFunction;
     requestHandler.info = blankFunction;
     requestHandler.debug = blankFunction;
+
+    var responseStatusCode, contentType, responseHeaders = { };
+
+    requestHandler._writeHead = function (statusCode, headers) {
+        responseStatusCode = statusCode;
+        contentType = headers['Content-Type'];
+    };
+
+    requestHandler._setHeader = function (name, value) {
+        responseHeaders[name] = value;
+    };
 
     if (options.query !== undefined) {
         requestHandler.query = options.query;
@@ -116,7 +126,11 @@ Testing.prototype.callController = function (controllerName, httpMethod, options
     requestHandler.appName = 'app';
     var instance = requestHandler.prepareController(controllerName);
     requestHandler.invokeController(instance, httpMethod, function () {
-        callback(JSON.parse(requestHandler.stringOutput));
+        callback(JSON.parse(requestHandler.stringOutput), {
+            'statusCode' : responseStatusCode,
+            'contentType' : contentType,
+            'headers' : responseHeaders,
+        });
     });
     this.options = options;
 };
