@@ -10,7 +10,7 @@ function ModelFactory(application, dataSources, componentFactory) {
 }
 
 ModelFactory.prototype.create = function (modelName) {
-    var that = this;
+    var $this = this;
     var modelInterface, i, modelInterfaceMethod;
 
     function modelInterfaceDelegation(method) {
@@ -47,11 +47,11 @@ ModelFactory.prototype.create = function (modelName) {
         }
 
         modelInstance.model = function (modelName) {
-            return that.create(modelName);
+            return $this.create(modelName);
         };
 
         modelInstance.component = function (componentName) {
-            return that.componentFactory.create(componentName);
+            return $this.componentFactory.create(componentName);
         };
 
         return modelInstance;

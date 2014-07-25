@@ -26,117 +26,90 @@ describe('Testing', function () {
                 'index' : 'index'
             }
         });
-    });
-
-    describe('loadModel', function () {
-        it('should return the model constructor', function () {
-            testing._require = function (path) {
-                assert.equal('app/src/Model/MyModel', path);
+        testing._require = function (path) {
+            if (path === 'app/src/Controller/MyController') {
+                // Controller constructor
+                return function () {
+                    this.post = function (callback) {
+                        callback({
+                            'payload' : this.payload,
+                            'query' : this.query
+                        });
+                    };
+                    this.put = function (callback) {
+                        var model = this.model('MyModel');
+                        model.myModelMethod(callback);
+                    };
+                    this.delete = function (callback) {
+                        var model = this.model('MyModel');
+                        callback(model.mockedMethod());
+                    };
+                    this.get = function (callback) {
+                        var component = this.component('MyComponent');
+                        callback(component.mockedMethod());
+                    };
+                };
+            }
+            if (path === 'app/src/Model/MyModel') {
+                // Model constructor
+                return function () {
+                    this.myModelMethod = function (callback) {
+                        this._find({ }, function () {
+                            callback({ });
+                        });
+                    };
+                };
+            }
+            if (path === 'app/src/Component/MyComponent') {
+                // Component constructor
                 return function () {
                     return;
                 };
-            };
-            testing.loadModel('MyModel');
-        });
+            }
+            return null;
+        };
     });
 
-    describe('loadComponent', function () {
-        it('should return the model component', function () {
-            testing._require = function (path) {
-                assert.equal('app/src/Component/MyComponent', path);
-            };
-            testing.loadComponent('MyComponent');
+    describe('createModel', function () {
+
+        it('should return the instance of a model', function () {
+            assert.equal('MyModel', testing.createModel('MyModel').name);
         });
     });
 
     describe('createComponent', function () {
-        beforeEach(function () {
-            testing._require = function () {
-                return function () {
-                    return;
-                };
-            };
-        });
-        it('should call ComponentFactory.create()', function (done) {
-            testing.componentFactory.create = function (componentName) {
-                assert.equal('MyComponent', componentName);
-                done();
-            };
-            testing.createComponent('MyComponent');
-        });
 
-        it('should load the component before creating it', function (done) {
-            testing.loadComponent = function (componentName) {
-                assert.equal('MyComponent', componentName);
-                done();
-            };
-            testing.componentFactory.create = function (componentName) {
-                assert.equal('MyComponent', componentName);
-            };
-            testing.createComponent('MyComponent');
-        });
-    });
-
-    describe('createModel', function () {
-        beforeEach(function () {
-            testing._require = function () {
-                return function () {
-                    return;
-                };
-            };
-        });
-        it('should call ModelFactory.create()', function (done) {
-            testing.modelFactory.create = function (modelName) {
-                assert.equal('MyModel', modelName);
-                done();
-            };
-            testing.createModel('MyModel');
-        });
-
-        it('should load the model before creating it', function (done) {
-            testing.loadModel = function (modelName) {
-                assert.equal('MyModel', modelName);
-                done();
-            };
-
-            testing.modelFactory.create = function (modelName) {
-                assert.equal('MyModel', modelName);
-            };
-            testing.createModel('MyModel');
+        it('should return the instance of a component', function () {
+            assert.equal('MyComponent', testing.createComponent('MyComponent').name);
         });
     });
 
     describe('callController', function () {
 
-        beforeEach(function () {
-            testing._require = function (path) {
-                if (path === 'app/src/Controller/MyController') {
-                    // Controller constructor
-                    return function () {
-                        this.post = function (callback) {
-                            callback({
-                                'payload' : this.payload,
-                                'query' : this.query
-                            });
-                        };
-                        this.put = function (callback) {
-                            var model = this.model('MyModel');
-                            model.myModelMethod(callback);
-                        };
-                    };
+        it('should mock the Model methods passed to mockModel when callController is called', function (done) {
+            var dummy = { 'a' : 'json' };
+            testing.mockModel('MyModel', {
+                'mockedMethod' : function () {
+                    return dummy;
                 }
-                if (path === 'app/src/Model/MyModel') {
-                    // Model constructor
-                    return function () {
-                        this.myModelMethod = function (callback) {
-                            this._find({ }, function () {
-                                callback({ });
-                            });
-                        };
-                    };
+            });
+            testing.callController('MyController', 'delete', { }, function (response) {
+                assert.equal(JSON.stringify(dummy), JSON.stringify(response));
+                done();
+            });
+        });
+
+        it('should mock the Component methods passed to mockComponent when callController is called', function (done) {
+            var dummy = { 'a' : 'json' };
+            testing.mockComponent('MyComponent', {
+                'mockedMethod' : function () {
+                    return dummy;
                 }
-                return null;
-            };
+            });
+            testing.callController('MyController', 'get', { }, function (response) {
+                assert.equal(JSON.stringify(dummy), JSON.stringify(response));
+                done();
+            });
         });
 
         it('should call the controller method', function (done) {
@@ -171,12 +144,11 @@ describe('Testing', function () {
         });
 
         it('should access the payload as an empty string if it is not passed', function (done) {
-
+            testing.loadComponent('MyComponent');
             testing.callController('MyController', 'post', { }, function (response) {
                 assert.equal(JSON.stringify({}), JSON.stringify(response.payload));
                 done();
             });
-
         });
     });
 

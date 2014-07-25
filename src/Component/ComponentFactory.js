@@ -11,6 +11,9 @@ ComponentFactory.prototype.create = function (componentName) {
 
     if (this.application.components[componentName] !== undefined) {
         ComponentConstructor = this.application.components[componentName];
+        if (ComponentConstructor === null) {
+            return null;
+        }
         componentInstance = new ComponentConstructor();
         componentInstance.name = componentName;
         componentInstance.component = function (componentName) {

@@ -6,3 +6,4 @@ index.js
 node_modules/**
 lint.out
 testing*
+*.log
