@@ -6,6 +6,7 @@ var path = require('path');
 var http = require('http');
 var exceptions = require('./exceptions');
 var sync = require('./Util/sync');
+var logger = require('./Util/logger');
 var RequestHandler = require('./Controller/RequestHandler');
 
 // Constructor
@@ -19,7 +20,7 @@ function NRCM() {
 
 // Log
 NRCM.prototype.log = function (message) {
-    console.log('[NRCM] ' + message);
+    logger.info('[NRCM] ' + message);
 };
 
 /**
@@ -152,9 +153,14 @@ NRCM.prototype.configure = function (configJSONFile) {
  * @param {number} port The listening port of nodejs http.createServer function
  */
 NRCM.prototype.start = function (address, port) {
-    var requestHandler = new RequestHandler(this.configs, this.applications, this.ExceptionsController);
+    var $this = this;
     this.log('Starting...');
     http.createServer(function (request, response) {
+        var requestHandler = new RequestHandler(
+            $this.configs,
+            $this.applications,
+            $this.ExceptionsController
+        );
         requestHandler.process(request, response);
     }).listen(port, address);
     this.log(address + ':' + port);

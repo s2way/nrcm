@@ -10,6 +10,7 @@ var Router = require('./../Core/Router');
 var ComponentFactory = require('./../Component/ComponentFactory');
 var ModelFactory = require('./../Model/ModelFactory');
 var DataSource = require('./../Model/DataSource');
+var logger = require('./../Util/logger');
 
 /**
  * The request handler object
@@ -220,6 +221,7 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
         var timer;
 
         var afterCallback = function () {
+            that.debug('afterCallback()');
             // Done, clear the timeout
             clearTimeout(timer);
 
@@ -237,6 +239,7 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
                         }
                     }
                 }
+                that.debug('shutting down connections');
                 // Shutdown all connections
                 for (dataSourceNameAC in that.dataSources) {
                     if (that.dataSources.hasOwnProperty(dataSourceNameAC)) {
@@ -256,6 +259,7 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
             }
         };
         var controllerMethodCallback = function (output) {
+            that.debug('controllerMethodCallback()');
             savedOutput = output;
             try {
                 // If after() is defined, call it
@@ -272,6 +276,7 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
             }
         };
         var beforeCallback = function () {
+            that.debug('beforeCallback()');
             try {
                 // Call the controller method (put, get, delete, post, etc)
                 savedOutput = controllerInstance[httpMethod](controllerMethodCallback);
@@ -284,6 +289,7 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
 
         // Encapsulate the method in a immediate so it can be killed
         var controllerMethodImmediate = setImmediate(function () {
+            that.debug('controllerMethodImmediate()');
             try {
                 // If before() is defined, call it
                 if (controllerInstance.before !== undefined) {
@@ -299,6 +305,7 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
             }
         });
 
+        that.debug('Timeout timer started');
         // Timer that checks if the 
         timer = setTimeout(function () {
             that.debug('Request timeout!');
@@ -309,11 +316,11 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
 };
 
 RequestHandler.prototype.info = function (message) {
-    console.log('[RequestHandler] ' + message);
+    logger.info('[RequestHandler] ' + message);
 };
 
 RequestHandler.prototype.debug = function (message) {
-    console.log('[RequestHandler] ' + message);
+    logger.debug('[RequestHandler] ' + message);
 };
 /**
  * It handles the exceptions

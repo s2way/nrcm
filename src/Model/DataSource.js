@@ -1,6 +1,8 @@
 /*jslint devel: true, node: true, indent: 4, vars: true, maxlen: 256 */
 'use strict';
 var exceptions = require('./../exceptions');
+var logger = require('./../Util/logger');
+
 /**
  * DataSource object, the datasource is persistent and last the whole request
  *
@@ -38,7 +40,7 @@ function DataSource(name, configs) {
 
 // Log
 DataSource.prototype.log = function (msg) {
-    console.log('[DataSource] ' + this.name + ' -> ' + msg);
+    logger.info('[DataSource] ' + this.name + ' -> ' + msg);
 };
 
 /**

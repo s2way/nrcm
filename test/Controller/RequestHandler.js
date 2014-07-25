@@ -6,7 +6,6 @@ var assert = require('assert');
 
 describe('RequestHandler.js', function () {
 
-
     var controlVars = { };
 
     function MockExceptionsController() {

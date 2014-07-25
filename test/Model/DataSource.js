@@ -23,8 +23,8 @@ describe('DataSource.js', function () {
 
     function createDataSource(name, configs) {
         var ds = new DataSource(name, configs);
-        ds.log = function (msg) {
-            this.msg = msg; // JSLint empty block
+        ds.log = function () {
+            return;
         };
         return ds;
     }
