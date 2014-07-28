@@ -82,6 +82,8 @@ RequestHandler.prototype.process = function (request, response) {
         var rule = this.isAllowed(this.acl, 'admin', controller, method);
         this.rule = rule;
 
+        console.log('Authorization: ' + rule);
+
         if (rule === false) {
             throw new exceptions.Forbidden();
         }

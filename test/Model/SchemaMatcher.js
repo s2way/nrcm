@@ -69,7 +69,7 @@ describe('SchemaMatcher.js', function () {
                 assert.equal('IllegalArgument', e.name);
             }
         });
-        it('should throw an error if the data is other thing besides json', function () {
+        it('should throw an error if the data is other thing besides a json', function () {
             var schema = {
                 'string' : 'string',
                 'array' : [],
@@ -115,11 +115,7 @@ describe('SchemaMatcher.js', function () {
             } catch (e) {
                 assert.fail();
             }
-            try {
-                assert(sm.match(data));
-            } catch (e) {
-                assert.fail();
-            }
+            assert(sm.match(data));
         });
         it('should return false if the data is not according to schema', function () {
             var schema = {
@@ -144,12 +140,8 @@ describe('SchemaMatcher.js', function () {
             } catch (e) {
                 assert.fail();
             }
-            try {
-                x = sm.match(data);
-                assert.fail();
-            } catch (e) {
-                assert.equal(x, false);
-            }
+            x = sm.match(data);
+            assert.notEqual(x, true);
         });
         it('should return false if the schema is expecting an array and data it is not an array', function () {
             var schema = {
@@ -174,12 +166,8 @@ describe('SchemaMatcher.js', function () {
             } catch (e) {
                 assert.fail();
             }
-            try {
-                x = sm.match(data);
-                assert.fail();
-            } catch (e) {
-                assert.equal(x, false);
-            }
+            x = sm.match(data);
+            assert.notEqual(x, true);
         });
         it('should return false if the schema is expecting an object and data it is not an object', function () {
             var schema = {
@@ -201,12 +189,8 @@ describe('SchemaMatcher.js', function () {
             } catch (e) {
                 assert.fail();
             }
-            try {
-                x = sm.match(data);
-                assert.fail();
-            } catch (e) {
-                assert.equal(x, false);
-            }
+            x = sm.match(data);
+            assert.notEqual(x, true);
         });
         it('should return false if the data contains more data then schema expects', function () {
             var schema = {
@@ -224,12 +208,30 @@ describe('SchemaMatcher.js', function () {
             } catch (e) {
                 assert.fail();
             }
+            x = sm.match(data);
+            assert.notEqual(x, true);
+        });
+        it('should return true if the data matchs against the wildcard * (any typeof)', function () {
+            var schema = {
+                'any1' : '*',
+                'any2' : '*',
+                'any3' : '*',
+                'any4' : '*'
+            };
+            var data = {
+                'any1': 'string',
+                'any2' : [0, 1, 3],
+                'any3' : 1,
+                'any4' : {}
+            };
+            var sm, x;
             try {
-                x = sm.match(data);
-                assert.fail();
+                sm = new SchemaMatcher(schema);
             } catch (e) {
-                assert.equal(x, false);
+                assert.fail();
             }
+            x = sm.match(data);
+            assert.equal(x, true);
         });
     });
 });

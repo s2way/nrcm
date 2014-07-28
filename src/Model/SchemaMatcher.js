@@ -34,7 +34,7 @@ SchemaMatcher.prototype._isValidJson = function (jsonOb) {
 };
 
 SchemaMatcher.prototype._matchAgainst = function (data, level, schema) {
-    var n, typeData, typeSchema;
+    var n, typeData, typeSchema, test;
     if (level === undefined) {
         level = 1;
         schema = this.schema;
@@ -44,20 +44,25 @@ SchemaMatcher.prototype._matchAgainst = function (data, level, schema) {
     for (n in data) {
         if (data.hasOwnProperty(n)) {
             if (Array.isArray(data[n])) {
-                if (!Array.isArray(schema[n])) {
-                    return false;
+                if (schema[n] !== '*') {
+                    if (!Array.isArray(schema[n])) {
+                        return { 'field' : n, 'expecting' : 'array', 'level' : level };
+                    }
                 }
             } else if (typeof data[n] === 'object') {
                 if (typeof schema[n] === 'object') {
-                    if (!this._matchAgainst(data[n], level, schema[n])) {
-                        return false;
+                    test = this._matchAgainst(data[n], level, schema[n]);
+                    if (test !== true) {
+                        return test;
                     }
                 }
             } else {
                 typeData = typeof data[n];
                 typeSchema = typeof schema[n];
-                if (typeData !== typeSchema) {
-                    return false;
+                if (schema[n] !== '*') {
+                    if (typeData !== typeSchema) {
+                        return { 'field' : n, 'expecting' : typeSchema, 'level' : level };
+                    }
                 }
             }
         }
@@ -72,7 +77,7 @@ SchemaMatcher.prototype._matchAgainst = function (data, level, schema) {
  * @param {json} data The data to be compared against the json schema
  * @return {Boolean} 
  */
-SchemaMatcher.prototype.match = function (data) {
+SchemaMatcher.prototype.match = function (data) {    
     var newData = this._isValidJson(data);
     if (!newData) {
         throw new exceptions.IllegalArgument('The data is invalid!');

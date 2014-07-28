@@ -77,7 +77,8 @@ CouchbaseInterface.prototype._counter = function (keyName, callback) {
             that.log('[_counter] key ' + 'counter:' + keyName);
             if (err) {
                 that.log('[_counter] counter ' + err);
-                connection.insert('counter:' + keyName, 1, {}, function (err) {
+                console.log(connection);
+                connection.set('counter:' + keyName, 1, {}, function (err) {
                     if (err) {
                         that.log('[_counter] insert' + err);
                         callback(err);
@@ -185,24 +186,30 @@ CouchbaseInterface.prototype.removeById = function (id, callback, options) {
     if (options === undefined) {
         options = {};
     }
-    if (typeof callback !== 'function') {
+    if (typeof callback !== 'function' || id === undefined) {
         throw new exceptions.IllegalArgument('All arguments are mandatory');
     }
     var operation = function (callback) {
         that.dataSource.connect(function (connection) {
             that.log('[removeById] connected');
-            connection.get(that.uid + that.separator + id, {}, function (err, result) {
+            connection.get(id, {}, function (err, result) {
                 if (err) {
+                    that.log('[removeById] NOT found');
                     callback(err);
                     return;
                 }
                 that.log('[removeById] found');
                 var data = result.value;
-                connection.remove(that.uid + that.separator + id, options, function () {
+                connection.remove(id, options, function (err) {
+                    if (err) {
+                        that.log('[removeById] Err');
+                        callback(err);
+                        return;
+                    }
                     that.log('[removeById] main record removed');
                     var ids = that._searchKeys(that.keys, data);
                     if (ids.length === 0) {
-                        callback();
+                        callback(null, {});
                     } else {
                         connection.removeMulti(ids, {}, function (err) {
                             if (!err) {
@@ -313,9 +320,11 @@ CouchbaseInterface.prototype._checkRequired = function (data, requiredFields) {
 */
 CouchbaseInterface.prototype._find = function (conditions, options, callback) {
     var that = this;
+    var keysToGet = [];
     if (conditions._id !== undefined) {
+        keysToGet.push(conditions._id);
         this.dataSource.connect(function (connection) {
-            connection.get(conditions._id, options, callback);
+            connection.getMulti(keysToGet, options, callback);
         }, function (err) {
             that.log('findById error: ' + err);
             callback(err);
@@ -334,6 +343,7 @@ CouchbaseInterface.prototype._find = function (conditions, options, callback) {
  */
 CouchbaseInterface.prototype.findAll = function (viewName, viewOptions, queryOptions, callback) {
     var that = this;
+    var keysToGet = [];
     that.dataSource.connect(function (connection) {
         that.log('[findAll] connected ' + that.bucket + ' | ' + viewName);
         queryOptions.limit = queryOptions.limit === undefined ? 10 : queryOptions.limit;
@@ -344,7 +354,13 @@ CouchbaseInterface.prototype.findAll = function (viewName, viewOptions, queryOpt
                 callback(err);
             } else {
                 that.log('[findAll] ok');
-                callback(err, result);
+                for (var i = 0, l = result.length; i < l; i += 1) {
+                    keysToGet.push(result[i].id);
+                }
+                connection.getMulti(keysToGet, {}, function (err, result) {
+                    callback(err, result);
+                });
+                // callback(err, result);
             }
         });
     }, function (err) {
@@ -385,12 +401,15 @@ CouchbaseInterface.prototype.find = function (query, callback) {
  */
 CouchbaseInterface.prototype.findByKey = function (keyValue, keyName, callback) {
     var that = this;
+    var keysToGet = [];
+    var getByKeys = [];
     if (keyValue === undefined || keyName === undefined || typeof callback !== 'function') {
         throw new exceptions.IllegalArgument('All parameters are mandatory');
     }
     that.dataSource.connect(function (connection) {
         that.log('[findByKey] connected');
-        connection.get(that.uid + that.separator + keyName + that.separator + keyValue, {}, function (err, result) {
+        keysToGet.push(that.uid + that.separator + keyName + that.separator + keyValue);
+        connection.getMulti(keysToGet, {}, function (err, result) {
             if (err) {
                 that.log('[findByKey] ' + err);
                 callback(err);
@@ -399,7 +418,8 @@ CouchbaseInterface.prototype.findByKey = function (keyValue, keyName, callback) 
                     callback(new exceptions.InvalidKeyFormat());
                 } else {
                     that.log('[findByKey] key = ' + result.value.key);
-                    connection.get(result.value.key, {}, callback);
+                    getByKeys.push(result.value.key);
+                    connection.getMulti(getByKeys, {}, callback);
                 }
             }
         });
@@ -419,7 +439,7 @@ CouchbaseInterface.prototype.findById = function (id, callback) {
     if (id === undefined || typeof callback !== 'function') {
         throw new exceptions.IllegalArgument('All arguments are mandatory');
     }
-    this.log('findById(' + id + ')');
+    this.log('[CouchbaseInterface] findById(' + id + ')');
     this._find({'_id' : this.uid + this.separator + id}, {}, callback);
 };
 // Log
@@ -444,6 +464,8 @@ CouchbaseInterface.prototype.save = function (id, data, callback, prefix, option
         options.saveOptions = {};
     }
     var that = this;
+    var keysToGet = [];
+    keysToGet = prefix + that.separator + id;
     if (prefix === undefined || prefix === null) {
         prefix = this.uid;
     }
@@ -451,14 +473,15 @@ CouchbaseInterface.prototype.save = function (id, data, callback, prefix, option
         throw new exceptions.IllegalArgument('callback must be a function');
     }
     if (this.sm !== undefined) {
-        if (!this.sm.match(data)) {
-            callback(new exceptions.InvalidSchema());
+        var smData = this.sm.match(data);
+        if (!smData) {
+            callback(new exceptions.InvalidSchema(smData));
             return;
         }
     }
     var operation = function (callback) {
         that.dataSource.connect(function (connection) {
-            connection.get(prefix + that.separator + id, {}, function (err, result) {
+            connection.getMulti(keysToGet, {}, function (err, result) {
                 var isUpdate = !err;
                 var isSave = !isUpdate;
                 var oldData = isUpdate ? result.value : {};
