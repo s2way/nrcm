@@ -344,6 +344,8 @@ CouchbaseInterface.prototype._find = function (conditions, options, callback) {
 CouchbaseInterface.prototype.findAll = function (viewName, viewOptions, queryOptions, callback) {
     var that = this;
     var keysToGet = [];
+    var i = 0; 
+    var l = 0;
     that.dataSource.connect(function (connection) {
         that.log('[findAll] connected ' + that.bucket + ' | ' + viewName);
         queryOptions.limit = queryOptions.limit === undefined ? 10 : queryOptions.limit;
@@ -354,7 +356,7 @@ CouchbaseInterface.prototype.findAll = function (viewName, viewOptions, queryOpt
                 callback(err);
             } else {
                 that.log('[findAll] ok');
-                for (var i = 0, l = result.length; i < l; i += 1) {
+                for (i = 0, l = result.length; i < l; i += 1) {
                     keysToGet.push(result[i].id);
                 }
                 connection.getMulti(keysToGet, {}, function (err, result) {
