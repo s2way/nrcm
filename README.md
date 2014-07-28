@@ -1,6 +1,12 @@
-nrcm
+NRCM
 ====
 
-Node RCM is a Request Controller Model
+NRCM is a Request Controller Model framework for NodeJS.
 
-NRCM is a UTLRA light implemantation of REST LIKE API for node to act as JSON content provider
+It is an ultra lightweight implementation of a RESTful API that acts as a content provider.
+
+Features
+========
+
+* MVC similar design: except for the View, which will be always JSONs;
+* Couchbase model support;
