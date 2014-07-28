@@ -32,7 +32,7 @@ describe('SchemaMatcher.js', function () {
     });
     describe('match', function () {
         it('should throw an error if the data is invalid', function () {
-            var schema = {'title': 'string', 'description': ''};
+            var schema = {'title': false, 'description': false};
             var sm;
             try {
                 sm = new SchemaMatcher(schema);
@@ -49,19 +49,7 @@ describe('SchemaMatcher.js', function () {
             }
         });
         it('should throw an error if the data is undefined or null', function () {
-            var schema = {
-                'string' : 'string',
-                'array' : [],
-                'object' : {
-                    'object' : {'array' : []},
-                }
-            };
-            var sm;
-            try {
-                sm = new SchemaMatcher(schema);
-            } catch (e) {
-                assert.fail();
-            }
+            var sm = new SchemaMatcher({ 'field' : true });
             try {
                 sm.match();
                 assert.fail();
@@ -70,19 +58,7 @@ describe('SchemaMatcher.js', function () {
             }
         });
         it('should throw an error if the data is other thing besides a json', function () {
-            var schema = {
-                'string' : 'string',
-                'array' : [],
-                'object' : {
-                    'object' : {'array' : []},
-                }
-            };
-            var sm;
-            try {
-                sm = new SchemaMatcher(schema);
-            } catch (e) {
-                assert.fail();
-            }
+            var sm = new SchemaMatcher({ 'field' : true });
             try {
                 sm.match(function () {
                     return;
@@ -94,11 +70,13 @@ describe('SchemaMatcher.js', function () {
         });
         it('should return true if the data is according to schema', function () {
             var schema = {
-                'string' : 'string',
-                'array' : [],
+                'string' : true,
+                'array' : true,
                 'object' : {
-                    'object' : {'array' : []},
-                    'number' : 0
+                    'object' : {
+                        'array' : false
+                    },
+                    'number' : true
                 }
             };
             var data = {
@@ -117,121 +95,59 @@ describe('SchemaMatcher.js', function () {
             }
             assert(sm.match(data));
         });
-        it('should return false if the data is not according to schema', function () {
+        it('should return an error if there is a missing required field', function () {
             var schema = {
-                'string' : 'string',
-                'array' : [],
+                'string' : false,
+                'array' : true,
                 'object' : {
-                    'object' : {'array' : []},
-                    'number' : 0
+                    'object' : {
+                        'array' : false
+                    },
+                    'number' : false
                 }
             };
             var data = {
                 'string': 'string',
-                'array' : [0, 1, 3],
                 'object' : {
                     'object' : {'array' : [0, 1, 2]},
                     'number' : 'not_number'
                 }
             };
-            var sm, x;
-            try {
-                sm = new SchemaMatcher(schema);
-            } catch (e) {
-                assert.fail();
-            }
-            x = sm.match(data);
-            assert.notEqual(x, true);
+            var sm = new SchemaMatcher(schema);
+            var result = sm.match(data);
+            assert.equal(
+                JSON.stringify({
+                    'field' : 'array',
+                    'level' : 1,
+                    'error' : 'required'
+                }),
+                JSON.stringify(result)
+            );
         });
-        it('should return false if the schema is expecting an array and data it is not an array', function () {
+        it('should return an error if there is a field that is not specified in the schema', function () {
             var schema = {
-                'string' : 'string',
-                'array' : [],
+                'string' : false,
+                'array' : false,
                 'object' : {
-                    'object' : {'array' : {}},
-                    'number' : 0
+                    'object' : false,
+                    'number' : false
                 }
             };
             var data = {
-                'string': 'string',
-                'array' : [0, 1, 3],
                 'object' : {
-                    'object' : {'array' : []},
-                    'number' : 'not_number'
+                    'iShouldnt' : 'beHere'
                 }
             };
-            var sm, x;
-            try {
-                sm = new SchemaMatcher(schema);
-            } catch (e) {
-                assert.fail();
-            }
-            x = sm.match(data);
-            assert.notEqual(x, true);
-        });
-        it('should return false if the schema is expecting an object and data it is not an object', function () {
-            var schema = {
-                'string' : 'string',
-                'array' : [],
-                'object' : []
-            };
-            var data = {
-                'string': 'string',
-                'array' : [0, 1, 3],
-                'object' : {
-                    'object' : {'array' : []},
-                    'number' : 'not_number'
-                }
-            };
-            var sm, x;
-            try {
-                sm = new SchemaMatcher(schema);
-            } catch (e) {
-                assert.fail();
-            }
-            x = sm.match(data);
-            assert.notEqual(x, true);
-        });
-        it('should return false if the data contains more data then schema expects', function () {
-            var schema = {
-                'string' : 'string',
-                'array' : [],
-                'object' : []
-            };
-            var data = {
-                'x': 'string',
-                'array' : [0, 1, 3],
-            };
-            var sm, x;
-            try {
-                sm = new SchemaMatcher(schema);
-            } catch (e) {
-                assert.fail();
-            }
-            x = sm.match(data);
-            assert.notEqual(x, true);
-        });
-        it('should return true if the data matchs against the wildcard * (any typeof)', function () {
-            var schema = {
-                'any1' : '*',
-                'any2' : '*',
-                'any3' : '*',
-                'any4' : '*'
-            };
-            var data = {
-                'any1': 'string',
-                'any2' : [0, 1, 3],
-                'any3' : 1,
-                'any4' : {}
-            };
-            var sm, x;
-            try {
-                sm = new SchemaMatcher(schema);
-            } catch (e) {
-                assert.fail();
-            }
-            x = sm.match(data);
-            assert.equal(x, true);
+            var sm = new SchemaMatcher(schema);
+            var result = sm.match(data);
+            assert.equal(
+                JSON.stringify({
+                    'field' : 'iShouldnt',
+                    'level' : 2,
+                    'error' : 'denied'
+                }),
+                JSON.stringify(result)
+            );
         });
     });
 });

@@ -21,6 +21,14 @@ describe('ModelInterface.js', function () {
             assert.equal(true, model.model !== null);
         });
 
+        it('shoud instantiate the DataSource object when a Couchbase data source type is passed', function () {
+            var model = new ModelInterface({
+                'bucket' : 'bucket',
+                'type' : 'Couchbase'
+            }, configurations);
+            assert.equal(true, model.model !== null);
+        });
+
         it('should throw an IllegalArgument exception if the DataSource cannot be found', function () {
             try {
                 var mi = new ModelInterface('Invalid', configurations);
@@ -30,6 +38,50 @@ describe('ModelInterface.js', function () {
                 assert.equal('IllegalArgument', e.name);
             }
         });
+    });
+
+    describe('getMulti', function () {
+
+        it('should call DataSource getMulti', function (done) {
+            var model = new ModelInterface(dataSource, configurations);
+            model.getMulti(null, null, function () {
+                done();
+            });
+        });
+
+    });
+
+    describe('findById', function () {
+
+        it('should call DataSource findById', function (done) {
+            var model = new ModelInterface(dataSource, configurations);
+            model.findById(null, function () {
+                done();
+            });
+        });
+
+    });
+
+    describe('removeById', function () {
+
+        it('should call DataSource removeById', function (done) {
+            var model = new ModelInterface(dataSource, configurations);
+            model.removeById(null, function () {
+                done();
+            });
+        });
+
+    });
+
+    describe('findAll', function () {
+
+        it('should call DataSource findAll', function (done) {
+            var model = new ModelInterface(dataSource, configurations);
+            model.findAll(null, null, null, function () {
+                done();
+            });
+        });
+
     });
 
     describe('findByKey', function () {

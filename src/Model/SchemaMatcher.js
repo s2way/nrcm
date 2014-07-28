@@ -11,59 +11,58 @@ var exceptions = require('./../exceptions.js');
  * @param {json} schema The json base schema to validate data
  */
 function SchemaMatcher(schema) {
-    this.schema = this._isValidJson(schema);
-    if (this.schema === false) {
-        throw new exceptions.IllegalArgument('The schema is invalid!');
+    this.schema = this._isJSONValid(schema);
+    if (!this.schema) {
+        throw new exceptions.IllegalArgument('Invalid schema!');
     }
 }
 
-SchemaMatcher.prototype._isValidJson = function (jsonOb) {
-    var newJson;
+SchemaMatcher.prototype._isJSONValid = function (jsonOb) {
+    var newJSON;
     if (jsonOb === undefined || jsonOb === null) {
         return false;
     }
     try {
-        newJson = JSON.parse(JSON.stringify(jsonOb));
+        newJSON = JSON.parse(JSON.stringify(jsonOb));
     } catch (e) {
         return false;
     }
-    if (Object.getOwnPropertyNames(newJson).length > 0) {
-        return newJson;
+    if (Object.getOwnPropertyNames(newJSON).length > 0) {
+        return newJSON;
     }
     return false;
 };
 
 SchemaMatcher.prototype._matchAgainst = function (data, level, schema) {
-    var n, typeData, typeSchema, test;
+    var n, test;
     if (level === undefined) {
         level = 1;
         schema = this.schema;
     } else {
         level += 1;
     }
+    // check schema field presence
     for (n in data) {
         if (data.hasOwnProperty(n)) {
-            if (Array.isArray(data[n])) {
-                if (schema[n] !== '*') {
-                    if (!Array.isArray(schema[n])) {
-                        return { 'field' : n, 'expecting' : 'array', 'level' : level };
-                    }
+            // schema for this field was not set, block
+            if (schema[n] === undefined) {
+                return { 'field' : n, 'level' : level, 'error' : 'denied' };
+            }
+            // schema set and it is an object: recursive
+            if (typeof schema[n] === 'object') {
+                test = this._matchAgainst(data[n], level, schema[n]);
+                if (test !== true) {
+                    return test;
                 }
-            } else if (typeof data[n] === 'object') {
-                if (typeof schema[n] === 'object') {
-                    test = this._matchAgainst(data[n], level, schema[n]);
-                    if (test !== true) {
-                        return test;
-                    }
-                }
-            } else {
-                typeData = typeof data[n];
-                typeSchema = typeof schema[n];
-                if (schema[n] !== '*') {
-                    if (typeData !== typeSchema) {
-                        return { 'field' : n, 'expecting' : typeSchema, 'level' : level };
-                    }
-                }
+            }
+        }
+    }
+    // check for required fields
+    for (n in schema) {
+        if (schema.hasOwnProperty(n)) {
+            if (schema[n] === true && data[n] === undefined) {
+                // required field not present
+                return { 'field' : n, 'level' : level, 'error' : 'required' };
             }
         }
     }
@@ -77,8 +76,8 @@ SchemaMatcher.prototype._matchAgainst = function (data, level, schema) {
  * @param {json} data The data to be compared against the json schema
  * @return {Boolean} 
  */
-SchemaMatcher.prototype.match = function (data) {    
-    var newData = this._isValidJson(data);
+SchemaMatcher.prototype.match = function (data) {
+    var newData = this._isJSONValid(data);
     if (!newData) {
         throw new exceptions.IllegalArgument('The data is invalid!');
     }
