@@ -24,10 +24,10 @@ NRCM.prototype.log = function (message) {
 };
 
 /**
- * Initiate an application inside the framework, it creates the directory structure if they do not exist
+ * Initiate an application inside the framework
+ * Create the directory structure if it does not exist
  * It loads all application files on memory
- * It is possible to have more then one application running on the same nodejs server, it works as an alias or
- * as a namespace
+ * It is possible to have more then one application running on the same nodejs server
  *
  * @method setUp
  * @param {string} appName The name of application, it will be also used as directory's name
@@ -75,10 +75,16 @@ NRCM.prototype.setUp = function (appName) {
     app.models = sync.loadNodeFilesIntoArray(sync.listFilesFromDir(app.modelsPath));
     // Loads acl file
     app.acl = sync.fileToJSON(app.aclFileName);
-    // Loads core file
-    app.core = sync.fileToJSON(app.coreFileName);
-    this.ExceptionsController = require('./Controller/ExceptionsController.js');
+    // Load the core configuration file of the application
+    try {
+        app.core = sync.fileToJSON(app.coreFileName);
+    } catch (e) {
+        throw new exceptions.Fatal('The core configuration file is not a valid JSON', e);
+    }
+
     this.applications[appName] = app;
+
+    this.ExceptionsController = require('./Controller/ExceptionsController.js');
     // Validate the controllers format
     var Controller, instance, methodsLength, methodName, j;
     var methods = ['before', 'after', 'put', 'delete', 'get', 'post', 'options', 'head', 'path'];
@@ -138,10 +144,10 @@ NRCM.prototype.configure = function (configJSONFile) {
     }
     // Validate the json object within configuration's file
     if ((typeof this.configs.urlFormat) !== 'string') {
-        throw new exceptions.Fatal('urlFormat is not a string');
+        throw new exceptions.Fatal('urlFormat has not been specified or it is not a string');
     }
-    if (this.configs.requestTimeout === undefined) {
-        throw new exceptions.Fatal('requestTimeout has not been specified');
+    if (typeof this.configs.requestTimeout !== 'number') {
+        throw new exceptions.Fatal('requestTimeout has not been specified or it is not a number');
     }
 };
 

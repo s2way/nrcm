@@ -156,18 +156,20 @@ describe('RequestHandler.js', function () {
         };
 
         var rh = new RequestHandler({
-            'dataSources' : {
-                'default' : {
-                    'type' : 'Mock',
-                    'host' : '0.0.0.0',
-                    'port' : '3298',
-                    'index' : 'bucket'
-                }
-            },
             'urlFormat' : '/#service/#version/$application/$controller',
             'requestTimeout' : 500
         }, {
             'app' : {
+                'core' : {
+                    'dataSources' : {
+                        'default' : {
+                            'type' : 'Mock',
+                            'host' : '0.0.0.0',
+                            'port' : '3298',
+                            'index' : 'bucket'
+                        }
+                    }
+                },
                 'controllers' : controllers,
                 'components' : components,
                 'models' : models

@@ -12,8 +12,7 @@ function Testing(applicationPath, dataSourceConfigs) {
 
     this.applicationPath = applicationPath;
     this.configs = {
-        'requestTimeout' : 10000,
-        'dataSources' : dataSourceConfigs
+        'requestTimeout' : 10000
     };
     this.controllers = { };
     this.components = { };
@@ -22,7 +21,10 @@ function Testing(applicationPath, dataSourceConfigs) {
     this.application = {
         'controllers' : this.controllers,
         'components' : this.components,
-        'models' : this.models
+        'models' : this.models,
+        'core' : {
+            'dataSources' : dataSourceConfigs
+        }
     };
     this.mockedMethods = {
         'components' : { },

@@ -112,9 +112,9 @@ RequestHandler.prototype.prepareController = function (controllerName) {
     var dataSources = [];
 
     // Instantiate all DataSources
-    for (dataSourceName in this.configs.dataSources) {
-        if (this.configs.dataSources.hasOwnProperty(dataSourceName)) {
-            dataSourceConfig = this.configs.dataSources[dataSourceName];
+    for (dataSourceName in application.core.dataSources) {
+        if (application.core.dataSources.hasOwnProperty(dataSourceName)) {
+            dataSourceConfig = application.core.dataSources[dataSourceName];
             dataSources[dataSourceName] = new DataSource(dataSourceName, dataSourceConfig);
         }
     }

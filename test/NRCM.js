@@ -59,7 +59,7 @@ describe('NRCM.js', function () {
                 nrcm.configure(configFileName);
             } catch (e) {
                 assert.equal('Fatal', e.name);
-                assert.equal('urlFormat is not a string', e.message);
+                assert.equal('urlFormat has not been specified or it is not a string', e.message);
             }
             fs.unlinkSync(configFileName);
         });
@@ -71,9 +71,26 @@ describe('NRCM.js', function () {
                 nrcm.configure(configFileName);
             } catch (e) {
                 assert.equal('Fatal', e.name);
-                assert.equal('requestTimeout has not been specified', e.message);
+                assert.equal('requestTimeout has not been specified or it is not a number', e.message);
             }
             fs.unlinkSync(configFileName);
+        });
+
+        it('should throw a Fatal exception if the core configuration file is not a valid JSON', function () {
+            sync.createDirIfNotExists(path.join('testing'));
+            sync.createDirIfNotExists(path.join('testing', 'src'));
+            sync.createDirIfNotExists(path.join('testing', 'src', 'Config'));
+            sync.createFileIfNotExists(path.join('testing', 'src', 'Config', 'core.json'), '');
+
+            try {
+                nrcm.setUp('testing');
+                assert.fail();
+            } catch (e) {
+                assert.equal('Fatal', e.name);
+                assert.equal('The core configuration file is not a valid JSON', e.message);
+            }
+
+            clearStructure('testing');
         });
     });
 
