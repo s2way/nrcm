@@ -124,7 +124,7 @@ Testing.prototype._component = function (componentName) {
 Testing.prototype.callController = function (controllerName, httpMethod, options, callback) {
     var $this = this;
     var controllerPath = path.join(this.applicationPath, 'src', 'Controller', controllerName);
-    var responseStatusCode, contentType, responseHeaders = { }, instance;
+    var responseStatusCode, responseContentType, responseHeaders = { }, instance;
 
     this.controllers[controllerName] = this._require(controllerPath);
     var requestHandler = new RequestHandler(this.configs, this.applications, null);
@@ -163,9 +163,9 @@ Testing.prototype.callController = function (controllerName, httpMethod, options
     requestHandler.info = blankFunction;
     requestHandler.debug = blankFunction;
 
-    requestHandler._writeHead = function (statusCode, headers) {
+    requestHandler._writeHead = function (statusCode, contentType) {
         responseStatusCode = statusCode;
-        contentType = headers['Content-Type'];
+        responseContentType = contentType;
     };
 
     requestHandler._setHeader = function (name, value) {
@@ -195,7 +195,7 @@ Testing.prototype.callController = function (controllerName, httpMethod, options
     requestHandler.invokeController(instance, httpMethod, function () {
         callback(JSON.parse(requestHandler.stringOutput), {
             'statusCode' : responseStatusCode,
-            'contentType' : contentType,
+            'contentType' : responseContentType,
             'headers' : responseHeaders,
         });
     });

@@ -5,6 +5,8 @@
 var assert = require('assert');
 var ModelFactory = require('../../src/Model/ModelFactory');
 
+ModelFactory.prototype.info = function () { return; };
+
 describe('ModelFactory.js', function () {
 
     describe('load', function () {

@@ -39,8 +39,11 @@ function DataSource(name, configs) {
 }
 
 // Log
-DataSource.prototype.log = function (msg) {
-    logger.info('[DataSource] ' + this.name + ' -> ' + msg);
+DataSource.prototype.info = function (msg) {
+    logger.info('[DataSource] [' + this.name + '] ' + msg);
+};
+DataSource.prototype.debug = function (msg) {
+    logger.info('[DataSource] [' + this.name + '] ' + msg);
 };
 
 /**
@@ -51,28 +54,28 @@ DataSource.prototype.log = function (msg) {
  * @param {function} onError Callback for the error
  */
 DataSource.prototype.connect = function (onSuccess, onError) {
-    var that = this;
+    var $this = this;
     if (typeof onSuccess !== 'function' ||
             typeof onError !== 'function') {
         throw new exceptions.IllegalArgument('DataSource.connect() onSuccess and onError must be functions');
     }
     if (this.connection !== null) {
-        this.log('Recycling connection');
+        this.info('Recycling connection');
         onSuccess(this.connection);
         return;
     }
     if (this.type === 'Couchbase') {
-        this.log('Connecting to ' + this.host + ':' + this.port);
+        this.info('Connecting to ' + this.host + ':' + this.port);
         var connection = new this.couchbase.Connection({
             'host' : this.host + ':' + this.port,
             'bucket' : this.index
         }, function (error) {
-            that.connection = connection;
+            $this.connection = connection;
             if (error) {
-                that.log('Connection error: ' + error);
+                $this.info('Connection error: ' + error);
                 onError(error);
             } else {
-                that.log('Connection successful');
+                $this.info('Connection successful');
                 onSuccess(connection);
             }
         });
@@ -87,12 +90,11 @@ DataSource.prototype.connect = function (onSuccess, onError) {
  * @method disconnect
  */
 DataSource.prototype.disconnect = function () {
-    var that = this;
     if (this.connection !== null) {
         if (this.type === 'Couchbase') {
-            that.log('Disconnecting');
+            this.info('Disconnecting');
             this.connection.shutdown();
-            that.log('Disconnected');
+            this.info('Disconnected');
             this.connection = null;
         }
     }

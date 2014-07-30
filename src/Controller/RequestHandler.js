@@ -22,6 +22,7 @@ var logger = require('./../Util/logger');
  * @param {object} ExceptionsController
  */
 function RequestHandler(configs, applications, ExceptionsController) {
+    this.info('RequestHandler created');
     this.applications = applications;
     this.configs = configs;
     this.isAllowed = aclModule.isAllowed;
@@ -36,8 +37,6 @@ function RequestHandler(configs, applications, ExceptionsController) {
  * @param {object} response The nodejs response object
  */
 RequestHandler.prototype.process = function (request, response) {
-    this.debug('process()');
-
     this.request = request;
     this.response = response;
     this.extension = '.json';
@@ -73,16 +72,16 @@ RequestHandler.prototype.process = function (request, response) {
         this.prefixes = decomposedURL.prefixes;
         var controller = decomposedURL.controller;
 
-        this.info('application=' + this.appName);
-        this.info('controller=' + controller);
-        this.info('method=' + method);
-        this.info('prefixes=' + JSON.stringify(this.prefixes));
-        this.info('query=' + JSON.stringify(this.query));
+        this.info('Application: ' + this.appName);
+        this.info('Controller: ' + controller);
+        this.info('Method: ' + method);
+        this.info('Prefixes: ' + JSON.stringify(this.prefixes));
+        this.info('Query: ' + JSON.stringify(this.query));
 
         var rule = this.isAllowed(this.acl, 'admin', controller, method);
         this.rule = rule;
 
-        this.info('Authorization: ' + rule);
+        this.info('Rule: ' + rule);
 
         if (rule === false) {
             throw new exceptions.Forbidden();
@@ -112,6 +111,7 @@ RequestHandler.prototype.prepareController = function (controllerName) {
     var dataSources = [];
 
     // Instantiate all DataSources
+    this.info('Creating DataSources');
     for (dataSourceName in application.core.dataSources) {
         if (application.core.dataSources.hasOwnProperty(dataSourceName)) {
             dataSourceConfig = application.core.dataSources[dataSourceName];
@@ -120,6 +120,7 @@ RequestHandler.prototype.prepareController = function (controllerName) {
     }
     that.dataSources = dataSources;
 
+    this.info('Creating factories');
     this.componentFactory = new ComponentFactory(application);
     this.modelFactory = new ModelFactory(application, this.dataSources, this.componentFactory);
 
@@ -130,6 +131,7 @@ RequestHandler.prototype.prepareController = function (controllerName) {
 
     var ControllerConstructor = application.controllers[controllerName];
     // Instantiate the controller
+    this.info('Creating controller');
     var controllerInstance = new ControllerConstructor();
 
     controllerInstance.name = controllerName;
@@ -191,7 +193,7 @@ RequestHandler.prototype._sendResponse = function () {
  */
 RequestHandler.prototype.invokeController = function (controllerInstance, httpMethod, done) {
     var that = this;
-    that.debug('invokeController()');
+    that.info('Invoking controller');
 
     var savedOutput = null;
 
@@ -201,11 +203,12 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
     }
 
     // Receiving data
+    that.info('Receiving payload');
     this._receivePayload();
 
     // All data received
     this._endRequest(function () {
-        that.debug('request.end()');
+        that.info('All data received');
         try {
             controllerInstance.payload = JSON.parse(that.payload);
         } catch (e) {
@@ -241,7 +244,7 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
                         }
                     }
                 }
-                that.debug('shutting down connections');
+                that.info('Shutting down connections');
                 // Shutdown all connections
                 for (dataSourceNameAC in that.dataSources) {
                     if (that.dataSources.hasOwnProperty(dataSourceNameAC)) {
@@ -307,7 +310,7 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
             }
         });
 
-        that.debug('Timeout timer started');
+        that.info('Timeout timer started');
         // Timer that checks if the 
         timer = setTimeout(function () {
             that.debug('Request timeout!');
@@ -332,19 +335,21 @@ RequestHandler.prototype.debug = function (message) {
  * @return {mixed} Returns false if it is an undefined exception or it will render the exception
  */
 RequestHandler.prototype.handleRequestException = function (e) {
-    this.debug('handleRequestException()');
+    this.info('Handling exception');
     // Known exceptions
     if (e.name !== undefined) {
+        var $this = this;
         var output = {};
         var method = 'on' + e.name;
+        this.info('Creating ExceptionsController instance');
         var instance = new this.ExceptionsController();
-        var that = this;
         instance.statusCode = 200;
         var callback = function () {
             if (instance.statusCode === undefined) {
                 instance.statusCode = 200;
             }
-            return that.render(output, instance.statusCode);
+            $this.info('Rendering exception');
+            return $this.render(output, instance.statusCode);
         };
         if (typeof instance[method] === 'function') {
             output = instance[method](callback);
@@ -373,7 +378,7 @@ RequestHandler.prototype.handleRequestException = function (e) {
  */
 RequestHandler.prototype.render = function (output, statusCode, contentType) {
     if (this.stringOutput === undefined) {
-        this.debug('render()');
+        this.info('Rendering');
         var extensionsMapToContentType = {
             '.htm' : 'text/html',
             '.html' : 'text/html',
@@ -389,14 +394,15 @@ RequestHandler.prototype.render = function (output, statusCode, contentType) {
                 contentType = extensionsMapToContentType[this.extension];
             }
         }
-        this._writeHead(statusCode, { 'Content-Type' : contentType });
+        this.info('Content-Type: ' + contentType);
+        this._writeHead(statusCode, contentType);
         if (typeof output === 'object') {
             this.stringOutput = JSON.stringify(output);
         } else {
             this.stringOutput = output;
         }
         this._writeResponse(this.stringOutput);
-        this.info('output=' + JSON.stringify(output));
+        this.info('Output: ' + JSON.stringify(output));
         this._sendResponse();
     }
     return this.stringOutput;

@@ -4,6 +4,9 @@
 var RequestHandler = require('./../../src/Controller/RequestHandler.js');
 var assert = require('assert');
 
+RequestHandler.prototype.info = function () { return; };
+RequestHandler.prototype.debug = function () { return; };
+
 describe('RequestHandler.js', function () {
 
     var controlVars = { };
@@ -176,7 +179,6 @@ describe('RequestHandler.js', function () {
             }
         }, MockExceptionsController);
         rh.appName = 'app';
-        rh.debug = rh.info = function () { return; };
 
         rh.isAllowed = function () {
             return '**';

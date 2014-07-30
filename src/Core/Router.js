@@ -11,6 +11,7 @@ var applicationRegex = /\$application/;
 var controllerRegex = /\$controller/;
 var url = require('url');
 var path = require('path');
+var logger = require('./../Util/logger');
 
 /**
  * The router object
@@ -23,7 +24,12 @@ var path = require('path');
 function Router(urlFormat) {
     this.urlFormat = urlFormat;
     this.urlFormatParts = urlFormat.split('/');
+    this.info('Router created');
 }
+
+Router.prototype.info = function (msg) {
+    logger.info('[Router] ' + msg);
+};
 
 /**
  * It checks if the url received by the server was formated according to the configuration
@@ -36,6 +42,7 @@ Router.prototype.isValid = function (requestUrl) {
     var parsedUrl = url.parse(requestUrl, true).pathname;
     // This version does not allow extension at this moment
     if (path.extname(parsedUrl) !== '') {
+        this.info('Extension is not allowed');
         return false;
     }
     // Remove / at the end of the URL
@@ -44,11 +51,13 @@ Router.prototype.isValid = function (requestUrl) {
     }
     // Must start with /
     if (parsedUrl.charAt(0) !== '/') {
+        this.info('URL does not start with /');
         return false;
     }
     var parts = parsedUrl.split('/');
     // The number of parameters must be the same of the format
     if (parts.length !== this.urlFormatParts.length) {
+        this.info('URL parts do not match the specified format');
         return false;
     }
     return true;
@@ -62,6 +71,7 @@ Router.prototype.isValid = function (requestUrl) {
  * @return {object} Returns a splited json object of the url
  */
 Router.prototype.decompose = function (requestUrl) {
+    this.info('Decomposing URL');
     var parsedUrl = url.parse(requestUrl, true);
     var path = parsedUrl.pathname;
     var parts = path.split('/');
@@ -84,6 +94,7 @@ Router.prototype.decompose = function (requestUrl) {
         }
         i += 1;
     });
+    this.info('URL decomposed');
     return {
         'controller' : controller,
         'application' : application,

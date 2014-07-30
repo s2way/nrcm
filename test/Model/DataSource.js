@@ -6,6 +6,9 @@ var DataSource = require('./../../src/Model/DataSource');
 
 var controlVars = { };
 
+DataSource.prototype.info = function () { return; };
+DataSource.prototype.debug = function () { return; };
+
 describe('DataSource.js', function () {
     function mockCouchbase() {
         return {
@@ -23,9 +26,6 @@ describe('DataSource.js', function () {
 
     function createDataSource(name, configs) {
         var ds = new DataSource(name, configs);
-        ds.log = function () {
-            return;
-        };
         return ds;
     }
 

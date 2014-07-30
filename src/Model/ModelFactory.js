@@ -2,14 +2,21 @@
 'use strict';
 
 var ModelInterface = require('./ModelInterface');
+var logger = require('./../Util/logger');
 
 function ModelFactory(application, dataSources, componentFactory) {
     this.application = application;
     this.dataSources = dataSources;
     this.componentFactory = componentFactory;
+    this.info('ModelFactory created');
 }
 
+ModelFactory.prototype.info = function (msg) {
+    logger.info('[ModelFactory] ' + msg);
+};
+
 ModelFactory.prototype.create = function (modelName) {
+    this.info('Creating model: ' + modelName);
     var $this = this;
     var modelInterface, i, modelInterfaceMethod;
 
@@ -30,6 +37,7 @@ ModelFactory.prototype.create = function (modelName) {
 
         var dataSource = this.dataSources[modelDataSourceName];
         modelInstance.name = modelName;
+        this.info('Creating ModelInterface');
         modelInterface = new ModelInterface(dataSource, {
             'uid' : modelInstance.uid,
             'keys' : modelInstance.keys,
@@ -53,9 +61,12 @@ ModelFactory.prototype.create = function (modelName) {
         modelInstance.component = function (componentName) {
             return $this.componentFactory.create(componentName);
         };
+        this.info('All model methods injected');
 
         return modelInstance;
     }
+    this.info('Model not found');
+
     return null;
 };
 

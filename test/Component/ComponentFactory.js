@@ -5,6 +5,8 @@
 var assert = require('assert');
 var ComponentFactory = require('../../src/Component/ComponentFactory');
 
+ComponentFactory.prototype.info = function () { return; };
+
 describe('ComponentFactory.js', function () {
 
     describe('create', function () {
