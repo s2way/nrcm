@@ -66,7 +66,7 @@ NRCM.prototype.setUp = function (appName) {
     // Core file creation
     sync.copyIfNotExists(path.join(__dirname, 'Copy', 'core.json'), app.coreFileName);
     // ExceptionsController creation
-    sync.copyIfNotExists(path.join(__dirname, 'Controller', 'ExceptionsController.js'), path.join('ExceptionsController.js'));
+    sync.copyIfNotExists(path.join(__dirname, 'Controller', 'Exceptions.js'), path.join('Exceptions.js'));
     // Controller load
     app.controllers = sync.loadNodeFilesIntoArray(sync.listFilesFromDir(app.controllersPath));
     // Components load
@@ -81,10 +81,11 @@ NRCM.prototype.setUp = function (appName) {
     } catch (e) {
         throw new exceptions.Fatal('The core configuration file is not a valid JSON', e);
     }
+    this._validateCoreFile(app.core);
 
     this.applications[appName] = app;
 
-    this.ExceptionsController = require('./Controller/ExceptionsController.js');
+    this.ExceptionsController = require('./Controller/Exceptions.js');
     // Validate the controllers format
     var Controller, instance, methodsLength, methodName, j;
     var methods = ['before', 'after', 'put', 'delete', 'get', 'post', 'options', 'head', 'path'];
@@ -129,6 +130,15 @@ NRCM.prototype.setUp = function (appName) {
     }
 };
 
+NRCM.prototype._validateCoreFile = function (core) {
+    if (core.requestTimeout === undefined) {
+        throw new exceptions.Fatal('The requestTimeout configuration is not defined');
+    }
+    if (typeof core.requestTimeout !== 'number') {
+        throw new exceptions.Fatal('The requestTimeout configuration is not a number');
+    }
+};
+
 /**
  * It parses the configuration file, a json object, that controls the framework behavior, such url parameters,
  * data sources, etc...
@@ -145,9 +155,6 @@ NRCM.prototype.configure = function (configJSONFile) {
     // Validate the json object within configuration's file
     if ((typeof this.configs.urlFormat) !== 'string') {
         throw new exceptions.Fatal('urlFormat has not been specified or it is not a string');
-    }
-    if (typeof this.configs.requestTimeout !== 'number') {
-        throw new exceptions.Fatal('requestTimeout has not been specified or it is not a number');
     }
 };
 

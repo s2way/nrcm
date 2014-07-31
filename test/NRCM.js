@@ -24,7 +24,7 @@ describe('NRCM.js', function () {
         fs.rmdirSync(path.join(dir, 'test', 'Model'));
         fs.rmdirSync(path.join(dir, 'test'));
 
-        fs.unlinkSync('ExceptionsController.js');
+        fs.unlinkSync('Exceptions.js');
         fs.rmdirSync(dir);
     }
 
@@ -35,7 +35,7 @@ describe('NRCM.js', function () {
 
         it('should load the configs without throwing an exception', function () {
             var configFileName = 'config_test.json';
-            sync.createFileIfNotExists(configFileName, '{ "urlFormat": "/$application/$controller", "requestTimeout" : 10000 }');
+            sync.createFileIfNotExists(configFileName, '{ "urlFormat": "/$application/$controller" }');
             nrcm.configure(configFileName);
             fs.unlinkSync(configFileName);
         });
@@ -60,18 +60,6 @@ describe('NRCM.js', function () {
             } catch (e) {
                 assert.equal('Fatal', e.name);
                 assert.equal('urlFormat has not been specified or it is not a string', e.message);
-            }
-            fs.unlinkSync(configFileName);
-        });
-
-        it('should throw a Fatal exception if the requestTimeout if it is not defined', function () {
-            var configFileName = 'config_test.json';
-            sync.createFileIfNotExists(configFileName, '{ "urlFormat": ""}');
-            try {
-                nrcm.configure(configFileName);
-            } catch (e) {
-                assert.equal('Fatal', e.name);
-                assert.equal('requestTimeout has not been specified or it is not a number', e.message);
             }
             fs.unlinkSync(configFileName);
         });
@@ -123,7 +111,7 @@ describe('NRCM.js', function () {
         assert.equal(true, fs.existsSync(path.join('testing2', 'test', 'Controller')));
         assert.equal(true, fs.existsSync(path.join('testing2', 'test', 'Component')));
         assert.equal(true, fs.existsSync(path.join('testing2', 'test', 'Model')));
-        assert.equal(true, fs.existsSync(path.join('ExceptionsController.js')));
+        assert.equal(true, fs.existsSync(path.join('Exceptions.js')));
         clearStructure('testing2');
     });
 
@@ -194,5 +182,42 @@ describe('NRCM.js', function () {
         }
         fs.unlinkSync(controllerFile);
         clearStructure('testing6');
+    });
+
+    describe('setUp', function () {
+
+        it('should throw a Fatal exception if the requestTimeout in is not a number', function () {
+            var coreFile = path.join('testing7', 'src', 'Config', 'core.json');
+            sync.createDirIfNotExists(path.join('testing7'));
+            sync.createDirIfNotExists(path.join('testing7', 'src'));
+            sync.createDirIfNotExists(path.join('testing7', 'src', 'Config'));
+            sync.createFileIfNotExists(coreFile, '{ "requestTimeout": "string" }');
+
+            try {
+                nrcm.setUp('testing7');
+                assert.fail();
+            } catch (e) {
+                assert.equal('Fatal', e.name);
+                assert.equal('The requestTimeout configuration is not a number', e.message);
+            }
+            clearStructure('testing7');
+        });
+
+        it('should throw a Fatal exception if the requestTimeout is not defined', function () {
+            var coreFile = path.join('testing8', 'src', 'Config', 'core.json');
+            sync.createDirIfNotExists(path.join('testing8'));
+            sync.createDirIfNotExists(path.join('testing8', 'src'));
+            sync.createDirIfNotExists(path.join('testing8', 'src', 'Config'));
+            sync.createFileIfNotExists(coreFile, '{ }');
+
+            try {
+                nrcm.setUp('testing8');
+                assert.fail();
+            } catch (e) {
+                assert.equal('Fatal', e.name);
+                assert.equal('The requestTimeout configuration is not defined', e.message);
+            }
+            clearStructure('testing8');
+        });
     });
 });

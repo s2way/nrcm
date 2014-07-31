@@ -2,11 +2,11 @@
 /*globals describe, it */
 'use strict';
 var assert = require('assert');
-var ExceptionsController = require('./../../src/Controller/ExceptionsController');
+var Exceptions = require('./../../src/Controller/Exceptions');
 
-var instance = new ExceptionsController();
+var instance = new Exceptions();
 
-describe('ExceptionsController.js', function () {
+describe('Exceptions.js', function () {
     describe('onControllerNotFound', function () {
         it('should return a JSON object', function () {
             instance.onControllerNotFound(function () { return; });
