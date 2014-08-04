@@ -11,7 +11,7 @@ describe('ModelInterface.js', function () {
     };
     var dataSource = {
         'bucket' : 'bucket',
-        'type' : 'Mock'
+        'type' : 'Couchbase'
     };
 
     describe('ModelInterface', function () {
@@ -37,98 +37,6 @@ describe('ModelInterface.js', function () {
             } catch (e) {
                 assert.equal('IllegalArgument', e.name);
             }
-        });
-    });
-
-    describe('getMulti', function () {
-
-        it('should call DataSource getMulti', function (done) {
-            var model = new ModelInterface(dataSource, configurations);
-            model.getMulti(null, null, function () {
-                done();
-            });
-        });
-
-    });
-
-    describe('findById', function () {
-
-        it('should call DataSource findById', function (done) {
-            var model = new ModelInterface(dataSource, configurations);
-            model.findById(null, function () {
-                done();
-            });
-        });
-
-    });
-
-    describe('removeById', function () {
-
-        it('should call DataSource removeById', function (done) {
-            var model = new ModelInterface(dataSource, configurations);
-            model.removeById(null, function () {
-                done();
-            });
-        });
-
-    });
-
-    describe('findAll', function () {
-
-        it('should call DataSource findAll', function (done) {
-            var model = new ModelInterface(dataSource, configurations);
-            model.findAll(null, null, null, function () {
-                done();
-            });
-        });
-
-    });
-
-    describe('findByKey', function () {
-        it('should call the DataSource findByKey', function (done) {
-            var model = new ModelInterface(dataSource, configurations);
-            var emailValue = 'davi@versul.com.br';
-            var emailName = 'email';
-            model._model.findByKey = function (keyValue, keyName, callback) {
-                assert.equal(emailValue, keyValue);
-                assert.equal(emailName, keyName);
-                assert.equal('function', typeof callback);
-                done();
-            };
-            model.findByKey(emailValue, emailName, function () { return; });
-        });
-    });
-
-    describe('save', function () {
-        it('should call the DataSource save', function (done) {
-            var model = new ModelInterface(dataSource, configurations);
-            var id = '02895328099';
-            var data = {};
-            var options = {};
-
-            model._model.save = function (_id, _data, callback, prefix, _options) {
-                assert.equal(id, _id);
-                assert.equal(data, _data);
-                assert.equal(null, prefix);
-                assert.equal(options, _options);
-                assert.equal('function', typeof callback);
-                done();
-            };
-            model.save(id, data, function () { return; }, null, options);
-        });
-    });
-
-    describe('removeById', function () {
-        it('should call the DataSource removeById', function (done) {
-            var model = new ModelInterface(dataSource, configurations);
-            var id = '02895328099';
-
-            model._model.save = function (_id, callback) {
-                assert.equal(id, _id);
-                assert.equal('function', typeof callback);
-                done();
-            };
-            model.save(id, function () { return; });
         });
     });
 });

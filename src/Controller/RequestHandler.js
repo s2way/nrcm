@@ -27,6 +27,7 @@ function RequestHandler(configs, applications, ExceptionsController) {
     this.configs = configs;
     this.isAllowed = aclModule.isAllowed;
     this.ExceptionsController = ExceptionsController;
+    this.start = new Date();
 }
 
 /**
@@ -44,9 +45,9 @@ RequestHandler.prototype.process = function (request, response) {
     this.payload = '';
 
     var requestUrl = this.request.url;
-    this.info('---------------------------------');
+    this.info('---------------------------------------------------------------------------------------------------');
     this.info('Request: ' + requestUrl);
-    this.info('---------------------------------');
+    this.info('---------------------------------------------------------------------------------------------------');
 
     try {
         var router = new Router(this.configs.urlFormat);
@@ -196,6 +197,7 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
     that.info('Invoking controller');
 
     var savedOutput = null;
+    var application = that.applications[that.appName];
 
     if (controllerInstance[httpMethod] === undefined) {
         that.debug('http method not found');
@@ -316,7 +318,7 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
             that.debug('Request timeout!');
             clearImmediate(controllerMethodImmediate);
             that.handleRequestException(new exceptions.Timeout());
-        }, that.configs.requestTimeout);
+        }, application.core.requestTimeout);
     });
 };
 
@@ -339,12 +341,11 @@ RequestHandler.prototype.handleRequestException = function (e) {
     // Known exceptions
     if (e.name !== undefined) {
         var $this = this;
-        var output = {};
         var method = 'on' + e.name;
         this.info('Creating ExceptionsController instance');
         var instance = new this.ExceptionsController();
         instance.statusCode = 200;
-        var callback = function () {
+        var callback = function (output) {
             if (instance.statusCode === undefined) {
                 instance.statusCode = 200;
             }
@@ -352,12 +353,12 @@ RequestHandler.prototype.handleRequestException = function (e) {
             return $this.render(output, instance.statusCode);
         };
         if (typeof instance[method] === 'function') {
-            output = instance[method](callback);
+            instance[method](callback);
         } else if (instance.onGeneral !== undefined) {
-            output = instance.onGeneral(callback, e);
+            instance.onGeneral(callback, e);
         } else {
-            output = JSON.stringify(e);
-            callback();
+            console.log(e);
+            return;
         }
         this.info('Exception ' + e.name + ' handled');
     } else { // Unknown exceptions: no response
@@ -402,8 +403,12 @@ RequestHandler.prototype.render = function (output, statusCode, contentType) {
             this.stringOutput = output;
         }
         this._writeResponse(this.stringOutput);
-        this.info('Output: ' + JSON.stringify(output));
+        this.info('Output: ' + (this.stringOutput.length > 1000 ? this.stringOutput.substring(0, 1000) + '...' : this.stringOutput));
         this._sendResponse();
+        this.end = new Date();
+        this.info('---------------------------------------------------------------------------------------------------');
+        this.info('Time: ' + (this.end.getTime() - this.start.getTime()) + 'ms');
+        this.info('---------------------------------------------------------------------------------------------------');
     }
     return this.stringOutput;
 };

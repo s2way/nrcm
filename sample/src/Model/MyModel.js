@@ -9,7 +9,7 @@ MyModel.prototype.find = function (callback) {
 
 MyModel.prototype.test = function (callback) {
     callback({
-        '_find' : typeof this._find
+        '$find' : typeof this.$find
     })
 }
 

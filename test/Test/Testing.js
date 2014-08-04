@@ -4,8 +4,15 @@
 
 var assert = require('assert');
 var Testing = require('../../src/Test/Testing');
+var ModelFactory = require('../../src/Model/ModelFactory');
+var ComponentFactory = require('../../src/Component/ComponentFactory');
+var RequestHandler = require('../../src/Controller/RequestHandler');
 
 describe('Testing', function () {
+
+    ModelFactory.prototype.info = function () { return; };
+    ComponentFactory.prototype.info = function () { return; };
+    RequestHandler.prototype.info = function () { return; };
 
     var testing = null;
     var payload = {
@@ -20,7 +27,7 @@ describe('Testing', function () {
     beforeEach(function () {
         testing = new Testing('app', {
             'default' : {
-                'type' : 'Mock',
+                'type' : 'Couchbase',
                 'host' : '0.0.0.0',
                 'port' : '8091',
                 'index' : 'index'
@@ -53,10 +60,9 @@ describe('Testing', function () {
             if (path === 'app/src/Model/MyModel') {
                 // Model constructor
                 return function () {
+                    this.uid = 'something';
                     this.myModelMethod = function (callback) {
-                        this._find({ }, function () {
-                            callback({ });
-                        });
+                        callback({});
                     };
                 };
             }
@@ -134,13 +140,6 @@ describe('Testing', function () {
                 done();
             });
 
-        });
-
-        it('should load the model with a Mock DataSource if loadModel is called before callController', function (done) {
-            testing.loadModel('MyModel');
-            testing.callController('MyController', 'put', { }, function () {
-                done();
-            });
         });
 
         it('should access the payload as an empty string if it is not passed', function (done) {

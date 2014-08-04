@@ -13,16 +13,19 @@ var logger = require('./../Util/logger');
  */
 function DataSource(name, configs) {
     if (typeof configs !== 'object' ||
-            typeof configs.host !== 'string' ||
-            typeof configs.port !== 'string' ||
             typeof configs.type !== 'string') {
         throw new exceptions.IllegalArgument('Invalid DataSource configurations');
     }
     this.name = name;
+    // General
     this.host = configs.host;
     this.port = configs.port;
     this.type = configs.type;
+    // Couchbase specific
     this.index = configs.index;
+    // MySQL specific
+    this.user = configs.user;
+    this.password = configs.password;
 
     if (typeof this.index !== 'string') {
         this.index = 'default';
@@ -36,6 +39,7 @@ function DataSource(name, configs) {
         console.log(e);
         return;
     }
+    this.mysql = require('mysql');
 }
 
 // Log
@@ -55,6 +59,7 @@ DataSource.prototype.debug = function (msg) {
  */
 DataSource.prototype.connect = function (onSuccess, onError) {
     var $this = this;
+    var connection;
     if (typeof onSuccess !== 'function' ||
             typeof onError !== 'function') {
         throw new exceptions.IllegalArgument('DataSource.connect() onSuccess and onError must be functions');
@@ -64,17 +69,33 @@ DataSource.prototype.connect = function (onSuccess, onError) {
         onSuccess(this.connection);
         return;
     }
+    this.info('Connecting to ' + this.host + ':' + this.port);
     if (this.type === 'Couchbase') {
-        this.info('Connecting to ' + this.host + ':' + this.port);
-        var connection = new this.couchbase.Connection({
+        connection = new this.couchbase.Connection({
             'host' : this.host + ':' + this.port,
             'bucket' : this.index
         }, function (error) {
-            $this.connection = connection;
             if (error) {
                 $this.info('Connection error: ' + error);
                 onError(error);
             } else {
+                $this.connection = connection;
+                $this.info('Connection successful');
+                onSuccess(connection);
+            }
+        });
+    } else if (this.type === 'MySQL') {
+        connection = this.mysql.createConnection({
+            'host': this.host,
+            'user': this.user,
+            'password': this.password
+        });
+        connection.connect(function (error) {
+            if (error) {
+                $this.info('Connection error: ' + error);
+                onError(error);
+            } else {
+                $this.connection = connection;
                 $this.info('Connection successful');
                 onSuccess(connection);
             }
@@ -91,12 +112,14 @@ DataSource.prototype.connect = function (onSuccess, onError) {
  */
 DataSource.prototype.disconnect = function () {
     if (this.connection !== null) {
+        this.info('Disconnecting');
         if (this.type === 'Couchbase') {
-            this.info('Disconnecting');
             this.connection.shutdown();
-            this.info('Disconnected');
-            this.connection = null;
+        } else if (this.type === 'MySQL') {
+            this.connection.end();
         }
+        this.connection = null;
+        this.info('Disconnected');
     }
 };
 

@@ -54,6 +54,8 @@ function CouchbaseInterface(dataSource, configurations) {
         this.sm = new SchemaMatcher(this.schema);
     }
     this.validator = new Validator(this.validate);
+    // Methods that should be injected into the model (they are prefixed with $)
+    this.methods = ['find', 'findByKey', 'findById', 'findAll', 'save', 'removeById', 'getMulti'];
 }
 
 /*

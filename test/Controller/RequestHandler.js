@@ -2,12 +2,18 @@
 /*globals describe, it, beforeEach */
 'use strict';
 var RequestHandler = require('./../../src/Controller/RequestHandler.js');
+var Router = require('./../../src/Core/Router.js');
+var ModelFactory = require('./../../src/Model/ModelFactory.js');
+var ComponentFactory = require('./../../src/Component/ComponentFactory.js');
 var assert = require('assert');
 
-RequestHandler.prototype.info = function () { return; };
-RequestHandler.prototype.debug = function () { return; };
-
 describe('RequestHandler.js', function () {
+
+    RequestHandler.prototype.info = function () { return; };
+    RequestHandler.prototype.debug = function () { return; };
+    Router.prototype.info = function () { return; };
+    ModelFactory.prototype.info = function () { return; };
+    ComponentFactory.prototype.info = function () { return; };
 
     var controlVars = { };
 
@@ -159,11 +165,11 @@ describe('RequestHandler.js', function () {
         };
 
         var rh = new RequestHandler({
-            'urlFormat' : '/#service/#version/$application/$controller',
-            'requestTimeout' : 500
+            'urlFormat' : '/#service/#version/$application/$controller'
         }, {
             'app' : {
                 'core' : {
+                    'requestTimeout' : 1000,
                     'dataSources' : {
                         'default' : {
                             'type' : 'Mock',
@@ -367,12 +373,12 @@ describe('RequestHandler.js', function () {
                     MyController : function () {
                         this.post = function (callback) {
                             var model = this.model('MyModel');
-                            assert.equal('function', typeof model._find);
-                            assert.equal('function', typeof model._findById);
-                            assert.equal('function', typeof model._findByKey);
-                            assert.equal('function', typeof model._findAll);
-                            assert.equal('function', typeof model._save);
-                            assert.equal('function', typeof model._removeById);
+                            assert.equal('function', typeof model.$find);
+                            assert.equal('function', typeof model.$findById);
+                            assert.equal('function', typeof model.$findByKey);
+                            assert.equal('function', typeof model.$findAll);
+                            assert.equal('function', typeof model.$save);
+                            assert.equal('function', typeof model.$removeById);
                             model.method(callback);
                         };
                     }
@@ -476,7 +482,7 @@ describe('RequestHandler.js', function () {
                         };
                     }
                 });
-                rh.configs.requestTimeout = 10;
+                rh.applications[rh.appName].core.requestTimeout = 10;
                 rh.render = function () {
                     assert.equal('Timeout', controlVars.exception);
                     done();

@@ -17,6 +17,7 @@ describe('ModelFactory.js', function () {
             var loader = new ModelFactory({
                 'models' : {
                     'MyModel' : function () {
+                        this.uid = 'index';
                         return;
                     }
                 },
@@ -27,7 +28,7 @@ describe('ModelFactory.js', function () {
                 }
             }, {
                 'default' : {
-                    'type' : 'Mock'
+                    'type' : 'Couchbase'
                 }
             }, {
                 'create' : function () {
@@ -55,12 +56,12 @@ describe('ModelFactory.js', function () {
         it('should inject all ModelInterface methods inside the models retrieved by the model method', function () {
             var myModel = instance.model('MyModel');
 
-            assert.equal('function', typeof myModel._findAll);
-            assert.equal('function', typeof myModel._findByKey);
-            assert.equal('function', typeof myModel._findById);
-            assert.equal('function', typeof myModel._find);
-            assert.equal('function', typeof myModel._removeById);
-            assert.equal('function', typeof myModel._save);
+            assert.equal('function', typeof myModel.$findAll);
+            assert.equal('function', typeof myModel.$findByKey);
+            assert.equal('function', typeof myModel.$findById);
+            assert.equal('function', typeof myModel.$find);
+            assert.equal('function', typeof myModel.$removeById);
+            assert.equal('function', typeof myModel.$save);
         });
 
         it('should inject the method for retrieving models inside the models retrieved by the model method', function () {

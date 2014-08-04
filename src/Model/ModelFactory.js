@@ -22,7 +22,7 @@ ModelFactory.prototype.create = function (modelName) {
 
     function modelInterfaceDelegation(method) {
         return function () {
-            return modelInterface[method].apply(modelInterface, arguments);
+            return modelInterface._model[method].apply(modelInterface._model, arguments);
         };
     }
 
@@ -38,19 +38,12 @@ ModelFactory.prototype.create = function (modelName) {
         var dataSource = this.dataSources[modelDataSourceName];
         modelInstance.name = modelName;
         this.info('Creating ModelInterface');
-        modelInterface = new ModelInterface(dataSource, {
-            'uid' : modelInstance.uid,
-            'keys' : modelInstance.keys,
-            'locks' : modelInstance.locks,
-            'requires' : modelInstance.requires,
-            'validate' : modelInstance.validate,
-            'schema' : modelInstance.schema
-        });
+        modelInterface = new ModelInterface(dataSource, modelInstance);
 
         for (i in modelInterface.methods) {
             if (modelInterface.methods.hasOwnProperty(i)) {
                 modelInterfaceMethod = modelInterface.methods[i];
-                modelInstance['_' + modelInterfaceMethod] = modelInterfaceDelegation(modelInterfaceMethod);
+                modelInstance['$' + modelInterfaceMethod] = modelInterfaceDelegation(modelInterfaceMethod);
             }
         }
 
