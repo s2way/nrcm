@@ -66,6 +66,13 @@ describe('Testing', function () {
                     };
                 };
             }
+            if (path === 'app/src/Model/AnotherModel') {
+                // Model constructor
+                return function () {
+                    this.uid = 'something-else';
+                    return;
+                };
+            }
             if (path === 'app/src/Component/MyComponent') {
                 // Component constructor
                 return function () {
@@ -86,6 +93,18 @@ describe('Testing', function () {
 
         it('should return the instance of a model', function () {
             assert.equal('MyModel', testing.createModel('MyModel').name);
+        });
+
+        it('should return the model and then it should be possible to access MyComponent', function () {
+            var myModel = testing.createModel('MyModel');
+            testing.loadComponent('MyComponent');
+            assert.equal('MyComponent', myModel.component('MyComponent').name);
+        });
+
+        it('should return the model and then it should be possible to access AnotherModel', function () {
+            var myModel = testing.createModel('MyModel');
+            testing.loadModel('AnotherModel');
+            assert.equal('AnotherModel', myModel.model('AnotherModel').name);
         });
     });
 

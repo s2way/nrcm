@@ -7,10 +7,6 @@ var MySQLInterface = require('./../../src/Model/MySQLInterface');
 var DataSource = require('./../../src/Model/DataSource');
 
 describe('MySQLInterface.js', function () {
-    var blankFunction = function () { return; };
-
-    DataSource.prototype.info = blankFunction;
-    DataSource.prototype.debug = blankFunction;
 
     function mockMySQL(methods, connectionError) {
         return {
