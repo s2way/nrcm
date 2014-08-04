@@ -29,8 +29,13 @@ describe('MySQLInterface.js', function () {
         };
     }
 
+    var logger = {
+        'debug' : function () { return; },
+        'info' : function () { return; }
+    };
+
     function createDataSource(mysql) {
-        var ds = new DataSource('default', {
+        var ds = new DataSource(logger, 'default', {
             'type' : 'MySQL',
         });
         ds.log = function (msg) {

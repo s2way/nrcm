@@ -72,6 +72,12 @@ describe('Testing', function () {
                     return;
                 };
             }
+            if (path === 'app/src/Component/AnotherComponent') {
+                // Component constructor
+                return function () {
+                    return;
+                };
+            }
             return null;
         };
     });
@@ -87,6 +93,12 @@ describe('Testing', function () {
 
         it('should return the instance of a component', function () {
             assert.equal('MyComponent', testing.createComponent('MyComponent').name);
+        });
+
+        it('should return the component and then it should be possible to access AnotherComponent', function () {
+            var myComponent = testing.createComponent('MyComponent');
+            testing.loadComponent('AnotherComponent');
+            assert.equal('AnotherComponent', myComponent.component('AnotherComponent').name);
         });
     });
 

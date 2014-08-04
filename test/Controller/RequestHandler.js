@@ -165,6 +165,10 @@ describe('RequestHandler.js', function () {
         };
 
         var rh = new RequestHandler({
+            //Logger
+            'info' : function () { return; },
+            'debug' : function () { return; }
+        }, {
             'urlFormat' : '/#service/#version/$application/$controller'
         }, {
             'app' : {

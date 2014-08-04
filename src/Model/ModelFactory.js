@@ -2,17 +2,17 @@
 'use strict';
 
 var ModelInterface = require('./ModelInterface');
-var logger = require('./../Util/logger');
 
-function ModelFactory(application, dataSources, componentFactory) {
+function ModelFactory(logger, application, dataSources, componentFactory) {
     this.application = application;
     this.dataSources = dataSources;
     this.componentFactory = componentFactory;
+    this.logger = logger;
     this.info('ModelFactory created');
 }
 
 ModelFactory.prototype.info = function (msg) {
-    logger.info('[ModelFactory] ' + msg);
+    this.logger.info('[ModelFactory] ' + msg);
 };
 
 ModelFactory.prototype.create = function (modelName) {

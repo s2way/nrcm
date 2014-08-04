@@ -15,6 +15,9 @@ describe('ComponentFactory.js', function () {
 
         beforeEach(function () {
             var factory = new ComponentFactory({
+                'info' : function () { return; },
+                'debug' : function () { return; }
+            }, {
                 'components' : {
                     'MyComponent' : function () {
                         return;

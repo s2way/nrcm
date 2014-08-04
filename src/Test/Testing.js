@@ -17,14 +17,18 @@ function Testing(applicationPath, dataSourceConfigs) {
     this.controllers = { };
     this.components = { };
     this.models = { };
-
+    var logger = {
+        'info' : function () { return; },
+        'debug' : function () { return; }
+    };
     this.application = {
         'controllers' : this.controllers,
         'components' : this.components,
         'models' : this.models,
         'core' : {
             'dataSources' : dataSourceConfigs
-        }
+        },
+        'logger' : logger
     };
     this.mockedMethods = {
         'components' : { },
@@ -41,14 +45,14 @@ function Testing(applicationPath, dataSourceConfigs) {
     for (dataSourceName in dataSourceConfigs) {
         if (dataSourceConfigs.hasOwnProperty(dataSourceName)) {
             dataSourceConfig = dataSourceConfigs[dataSourceName];
-            dataSources[dataSourceName] = new DataSource(dataSourceName, dataSourceConfig);
+            dataSources[dataSourceName] = new DataSource(logger, dataSourceName, dataSourceConfig);
         }
     }
 
     // Necessary for testing Components and Models
     // When you are testing the Controllers, RequestHandler has its own ModelFactory and ComponentFactory
-    this.componentFactory = new ComponentFactory(this.application);
-    this.modelFactory = new ModelFactory(this.application, dataSources, this.componentFactory);
+    this.componentFactory = new ComponentFactory(logger, this.application);
+    this.modelFactory = new ModelFactory(logger, this.application, dataSources, this.componentFactory);
 }
 
 Testing.prototype._require = function (path) {
@@ -57,19 +61,25 @@ Testing.prototype._require = function (path) {
 
 
 Testing.prototype.createModel = function (modelName) {
+    var $this = this;
     this.loadModel(modelName);
     var instance = this.modelFactory.create(modelName);
-    instance.model = function () {
-        this._model();
+    instance.model = function (modelName) {
+        return $this._model(modelName);
     };
-    instance.component = this._component;
+    instance.component = function (componentName) {
+        return $this._component(componentName);
+    };
     return instance;
 };
 
 Testing.prototype.createComponent = function (componentName) {
+    var $this = this;
     this.loadComponent(componentName);
     var instance = this.componentFactory.create(componentName);
-    instance.component = this._component;
+    instance.component = function (componentName) {
+        return $this._component(componentName);
+    };
     return instance;
 };
 
@@ -92,6 +102,7 @@ Testing.prototype.mockComponent = function (componentName, methods) {
 };
 
 Testing.prototype._model = function (modelName) {
+    var $this = this;
     var modelInstance = this.modelFactory.create(modelName);
     var methods = this.mockedMethods.models[modelName];
     var methodName;
@@ -102,11 +113,14 @@ Testing.prototype._model = function (modelName) {
             }
         }
     }
-    modelInstance.model = this._model;
+    modelInstance.model = function (modelName) {
+        return $this._model(modelName);
+    };
     return modelInstance;
 };
 
 Testing.prototype._component = function (componentName) {
+    var $this = this;
     var componentInstance = this.componentFactory.create(componentName);
     var methods = this.mockedMethods.components[componentName];
     var methodName;
@@ -117,7 +131,9 @@ Testing.prototype._component = function (componentName) {
             }
         }
     }
-    componentInstance.component = this._component;
+    componentInstance.component = function (componentName) {
+        return $this._component(componentName);
+    };
     return componentInstance;
 };
 
@@ -127,7 +143,10 @@ Testing.prototype.callController = function (controllerName, httpMethod, options
     var responseStatusCode, responseContentType, responseHeaders = { }, instance;
 
     this.controllers[controllerName] = this._require(controllerPath);
-    var requestHandler = new RequestHandler(this.configs, this.applications, null);
+    var requestHandler = new RequestHandler({
+        'debug' : function () { return; },
+        'info' : function () { return; }
+    }, this.configs, this.applications, null);
 
     // Mock some RequestHandler methods
     requestHandler._endRequest = function (callback) {

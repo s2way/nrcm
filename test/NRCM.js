@@ -24,12 +24,17 @@ describe('NRCM.js', function () {
         fs.rmdirSync(path.join(dir, 'test', 'Model'));
         fs.rmdirSync(path.join(dir, 'test'));
 
+        fs.rmdirSync(path.join(dir, 'logs'));
+
         fs.unlinkSync('Exceptions.js');
         fs.rmdirSync(dir);
     }
 
     var nrcm = new NRCM();
-    nrcm.log = function () { return; };
+    nrcm.logger = {
+        'info' : function () { return; },
+        'debug' : function () { return; }
+    };
 
     describe('configure', function () {
 

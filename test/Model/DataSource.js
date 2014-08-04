@@ -51,11 +51,16 @@ describe('DataSource.js', function () {
         'password' : ''
     };
 
+    var logger = {
+        'info' : function () { return; },
+        'debug' : function () { return; }
+    };
+
     describe('DataSource', function () {
 
         it('should throw an IllegalArgument exception if one of the parameters is not a string', function () {
             try {
-                var ds = new DataSource('default');
+                var ds = new DataSource(logger, 'default');
                 assert(!ds);
                 assert.fail();
             } catch (e) {
@@ -69,7 +74,7 @@ describe('DataSource.js', function () {
 
         it('should throw an IllegalArgument exception if the parameters passed are not functions', function () {
             try {
-                var ds = new DataSource('default', couchbaseConfigs);
+                var ds = new DataSource(logger, 'default', couchbaseConfigs);
                 ds.connect(null, null);
             } catch (e) {
                 assert.equal('IllegalArgument', e.name);
@@ -77,7 +82,7 @@ describe('DataSource.js', function () {
         });
 
         it('should call onSuccess if the connection already exists', function (done) {
-            var ds = new DataSource('default', couchbaseConfigs);
+            var ds = new DataSource(logger, 'default', couchbaseConfigs);
             ds.connection = {};
             ds.connect(function () {
                 done();
@@ -89,7 +94,7 @@ describe('DataSource.js', function () {
         describe('MySQL', function () {
 
             it('should call MySQL connect if the type is MySQL', function (done) {
-                var ds = new DataSource('default', mySQLConfigs);
+                var ds = new DataSource(logger, 'default', mySQLConfigs);
                 ds.mysql = mockMySQL();
                 ds.connect(function () {
                     done();
@@ -99,7 +104,7 @@ describe('DataSource.js', function () {
             });
 
             it('should call onError if MySQL connection function returns an error', function (done) {
-                var ds = new DataSource('default', mySQLConfigs);
+                var ds = new DataSource(logger, 'default', mySQLConfigs);
                 var connectionError = { };
                 ds.mysql = mockMySQL(connectionError);
                 ds.connect(function () {
@@ -114,7 +119,7 @@ describe('DataSource.js', function () {
         describe('Couchbase', function () {
 
             it('should call couchbase connect if the type is Couchbase', function (done) {
-                var ds = new DataSource('default', couchbaseConfigs);
+                var ds = new DataSource(logger, 'default', couchbaseConfigs);
                 ds.couchbase = mockCouchbase();
                 ds.connect(function () {
                     done();
@@ -124,7 +129,7 @@ describe('DataSource.js', function () {
             });
 
             it('should call onError if Couchbase connect function returns an error', function (done) {
-                var ds = new DataSource('default', couchbaseConfigs);
+                var ds = new DataSource(logger, 'default', couchbaseConfigs);
                 var connectionError = { };
                 ds.couchbase = mockCouchbase(connectionError);
                 ds.connect(function () {
@@ -136,7 +141,7 @@ describe('DataSource.js', function () {
         });
 
         it('should call onError if the connection type is invalid', function (done) {
-            var ds = new DataSource('default', {
+            var ds = new DataSource(logger, 'default', {
                 'type' : 'invalid'
             });
             ds.connect(function () {
@@ -153,7 +158,7 @@ describe('DataSource.js', function () {
 
             it('should call Couchbase disconnect if the type is Couchbase and there is an active connection', function (done) {
 
-                var ds = new DataSource('default', couchbaseConfigs);
+                var ds = new DataSource(logger, 'default', couchbaseConfigs);
                 ds.couchbase = mockCouchbase();
                 ds.connect(function () {
                     ds.disconnect();
@@ -169,7 +174,7 @@ describe('DataSource.js', function () {
 
             it('should call MySQL disconnect if the type is MySQL and there is an active connection', function (done) {
 
-                var ds = new DataSource('default', mySQLConfigs);
+                var ds = new DataSource(logger, 'default', mySQLConfigs);
                 ds.couchbase = mockMySQL();
                 ds.connect(function () {
                     ds.disconnect();

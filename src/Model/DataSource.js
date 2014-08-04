@@ -1,7 +1,6 @@
 /*jslint devel: true, node: true, indent: 4, vars: true, maxlen: 256 */
 'use strict';
 var exceptions = require('./../exceptions');
-var logger = require('./../Util/logger');
 
 /**
  * DataSource object, the datasource is persistent and last the whole request
@@ -11,11 +10,12 @@ var logger = require('./../Util/logger');
  * @param {string} name ?
  * @param {json} configs The json with the database parameters
  */
-function DataSource(name, configs) {
+function DataSource(logger, name, configs) {
     if (typeof configs !== 'object' ||
             typeof configs.type !== 'string') {
         throw new exceptions.IllegalArgument('Invalid DataSource configurations');
     }
+    this.logger = logger;
     this.name = name;
     // General
     this.host = configs.host;
@@ -44,10 +44,10 @@ function DataSource(name, configs) {
 
 // Log
 DataSource.prototype.info = function (msg) {
-    logger.info('[DataSource] [' + this.name + '] ' + msg);
+    this.logger.info('[DataSource] [' + this.name + '] ' + msg);
 };
 DataSource.prototype.debug = function (msg) {
-    logger.info('[DataSource] [' + this.name + '] ' + msg);
+    this.logger.info('[DataSource] [' + this.name + '] ' + msg);
 };
 
 /**

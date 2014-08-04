@@ -5,8 +5,6 @@
 var assert = require('assert');
 var ModelFactory = require('../../src/Model/ModelFactory');
 
-ModelFactory.prototype.info = function () { return; };
-
 describe('ModelFactory.js', function () {
 
     describe('load', function () {
@@ -15,6 +13,9 @@ describe('ModelFactory.js', function () {
 
         beforeEach(function () {
             var loader = new ModelFactory({
+                'debug' : function () { return; },
+                'info' : function () { return; }
+            }, {
                 'models' : {
                     'MyModel' : function () {
                         this.uid = 'index';

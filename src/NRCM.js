@@ -6,7 +6,7 @@ var path = require('path');
 var http = require('http');
 var exceptions = require('./exceptions');
 var sync = require('./Util/sync');
-var logger = require('./Util/logger');
+var Logger = require('./Util/Logger');
 var RequestHandler = require('./Controller/RequestHandler');
 
 // Constructor
@@ -16,11 +16,14 @@ function NRCM() {
     this.configs = {
         'url' : '/$controller'
     };
+    // Create server log dir if it does not exists
+    sync.createDirIfNotExists('logs');
+    this.logger = new Logger('logs');
 }
 
 // Log
-NRCM.prototype.log = function (message) {
-    logger.info('[NRCM] ' + message);
+NRCM.prototype.info = function (message) {
+    this.logger.info('[NRCM] ' + message);
 };
 
 /**
@@ -36,6 +39,7 @@ NRCM.prototype.setUp = function (appName) {
     var app = {}, name;
     app.basePath = path.join(appName);
     app.srcPath = path.join(appName, 'src');
+    app.logsPath = path.join(appName, 'logs');
     app.controllersPath = path.join(app.srcPath, 'Controller');
     app.componentsPath = path.join(app.srcPath, 'Component');
     app.modelsPath = path.join(app.srcPath, 'Model');
@@ -60,6 +64,8 @@ NRCM.prototype.setUp = function (appName) {
     sync.createDirIfNotExists(app.controllersTestPath);
     sync.createDirIfNotExists(app.modelsTestPath);
     sync.createDirIfNotExists(app.componentsTestPath);
+    // logs directory creation
+    sync.createDirIfNotExists(app.logsPath);
 
     // Acl file creation
     sync.copyIfNotExists(path.join(__dirname, 'Copy', 'acl.json'), app.aclFileName);
@@ -82,6 +88,8 @@ NRCM.prototype.setUp = function (appName) {
         throw new exceptions.Fatal('The core configuration file is not a valid JSON', e);
     }
     this._validateCoreFile(app.core);
+    // Instantiate the application logger
+    app.logger = new Logger(app.logsPath);
 
     this.applications[appName] = app;
 
@@ -167,17 +175,18 @@ NRCM.prototype.configure = function (configJSONFile) {
  */
 NRCM.prototype.start = function (address, port) {
     var $this = this;
-    this.log('Starting...');
+    this.info('Starting...');
     http.createServer(function (request, response) {
         var requestHandler = new RequestHandler(
+            $this.logger,
             $this.configs,
             $this.applications,
             $this.ExceptionsController
         );
         requestHandler.process(request, response);
     }).listen(port, address);
-    this.log(address + ':' + port);
-    this.log('Started!');
+    this.info(address + ':' + port);
+    this.info('Started!');
 };
 
 // Testing tools

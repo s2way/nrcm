@@ -6,7 +6,6 @@ var SchemaMatcher = require('./SchemaMatcher.js');
 var utils = require('./utils.js');
 var util = require('util');
 var ModelTrigger = require('./ModelTrigger');
-var logger = require('../Util/logger');
 
 function MySQLInterface(dataSource, configurations) {
     if (dataSource === undefined) {
@@ -19,10 +18,6 @@ function MySQLInterface(dataSource, configurations) {
     // Methods that are going to be injected into the model (prefixed with $)
     this.methods = ['query', 'use'];
 }
-
-MySQLInterface.prototype.info = function (msg) {
-    logger.info('[MySQLInterface] ' + msg);
-};
 
 MySQLInterface.prototype.query = function (query, params, callback) {
     this.dataSource.connect(function (connection) {

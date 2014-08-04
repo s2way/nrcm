@@ -1,15 +1,14 @@
 /*jslint devel: true, node: true, indent: 4 */
 'use strict';
 
-var logger = require('./../Util/logger');
-
-function ComponentFactory(application) {
+function ComponentFactory(logger, application) {
     this.application = application;
+    this.logger = logger;
     this.info('ComponentFactory created');
 }
 
 ComponentFactory.prototype.info = function (msg) {
-    logger.info('[ComponentFactory] ' + msg);
+    this.logger.info('[ComponentFactory] ' + msg);
 };
 
 ComponentFactory.prototype.create = function (componentName) {

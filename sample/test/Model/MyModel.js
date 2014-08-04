@@ -6,7 +6,7 @@ describe('MyModel', function () {
 
     var testing = new Testing(path.join(__dirname, '../../../sample'), {
         'default' : {
-            'type' : 'Mock',
+            'type' : 'Couchbase',
             'host' : '0.0.0.0',
             'port' : '8091',
             'index' : 'index'

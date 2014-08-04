@@ -11,7 +11,6 @@ var applicationRegex = /\$application/;
 var controllerRegex = /\$controller/;
 var url = require('url');
 var path = require('path');
-var logger = require('./../Util/logger');
 
 /**
  * The router object
@@ -21,14 +20,15 @@ var logger = require('./../Util/logger');
  * @param {string} urlFormat The string that represents how you will send the urls to the server,
  * check the example above
  */
-function Router(urlFormat) {
+function Router(logger, urlFormat) {
+    this.logger = logger;
     this.urlFormat = urlFormat;
     this.urlFormatParts = urlFormat.split('/');
     this.info('Router created');
 }
 
 Router.prototype.info = function (msg) {
-    logger.info('[Router] ' + msg);
+    this.logger.info('[Router] ' + msg);
 };
 
 /**

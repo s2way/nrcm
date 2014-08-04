@@ -10,7 +10,6 @@ var Router = require('./../Core/Router');
 var ComponentFactory = require('./../Component/ComponentFactory');
 var ModelFactory = require('./../Model/ModelFactory');
 var DataSource = require('./../Model/DataSource');
-var logger = require('./../Util/logger');
 
 /**
  * The request handler object
@@ -21,13 +20,14 @@ var logger = require('./../Util/logger');
  * @param {json} applications
  * @param {object} ExceptionsController
  */
-function RequestHandler(configs, applications, ExceptionsController) {
-    this.info('RequestHandler created');
+function RequestHandler(serverLogger, configs, applications, ExceptionsController) {
     this.applications = applications;
     this.configs = configs;
     this.isAllowed = aclModule.isAllowed;
     this.ExceptionsController = ExceptionsController;
     this.start = new Date();
+    this.serverLogger = serverLogger;
+    this.info('RequestHandler created');
 }
 
 /**
@@ -50,7 +50,7 @@ RequestHandler.prototype.process = function (request, response) {
     this.info('---------------------------------------------------------------------------------------------------');
 
     try {
-        var router = new Router(this.configs.urlFormat);
+        var router = new Router(this.serverLogger, this.configs.urlFormat);
 
         // Verifica se a URL é válida
         if (!router.isValid(requestUrl)) {
@@ -116,14 +116,14 @@ RequestHandler.prototype.prepareController = function (controllerName) {
     for (dataSourceName in application.core.dataSources) {
         if (application.core.dataSources.hasOwnProperty(dataSourceName)) {
             dataSourceConfig = application.core.dataSources[dataSourceName];
-            dataSources[dataSourceName] = new DataSource(dataSourceName, dataSourceConfig);
+            dataSources[dataSourceName] = new DataSource(this.serverLogger, dataSourceName, dataSourceConfig);
         }
     }
     that.dataSources = dataSources;
 
     this.info('Creating factories');
-    this.componentFactory = new ComponentFactory(application);
-    this.modelFactory = new ModelFactory(application, this.dataSources, this.componentFactory);
+    this.componentFactory = new ComponentFactory(this.serverLogger, application);
+    this.modelFactory = new ModelFactory(this.serverLogger, application, this.dataSources, this.componentFactory);
 
     if (application.controllers[controllerName] === undefined) {
         that.debug('controller not found');
@@ -137,6 +137,7 @@ RequestHandler.prototype.prepareController = function (controllerName) {
 
     controllerInstance.name = controllerName;
     controllerInstance.application = that.appName;
+    controllerInstance.logger = application.logger;
 
     // Injects the method for retrieving components in the controller and inside each component
     controllerInstance.component = function (componentName) {
@@ -323,11 +324,11 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
 };
 
 RequestHandler.prototype.info = function (message) {
-    logger.info('[RequestHandler] ' + message);
+    this.serverLogger.info('[RequestHandler] ' + message);
 };
 
 RequestHandler.prototype.debug = function (message) {
-    logger.debug('[RequestHandler] ' + message);
+    this.serverLogger.debug('[RequestHandler] ' + message);
 };
 /**
  * It handles the exceptions

@@ -50,7 +50,10 @@ describe('CouchbaseInterface.js', function () {
     }
 
     function createDataSource(couchbase) {
-        var ds = new DataSource('default', {
+        var ds = new DataSource({
+            'info' : function () { return; },
+            'debug' : function () { return; }
+        }, 'default', {
             'index' : 'bucket',
             'type' : 'Couchbase',
             'host' : 'localhost',
