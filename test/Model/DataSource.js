@@ -172,10 +172,10 @@ describe('DataSource.js', function () {
 
         describe('MySQL', function () {
 
-            it('should call MySQL disconnect if the type is MySQL and there is an active connection', function (done) {
+            it('should call MySQL end if the type is MySQL and there is an active connection', function (done) {
 
                 var ds = new DataSource(logger, 'default', mySQLConfigs);
-                ds.couchbase = mockMySQL();
+                ds.mysql = mockMySQL();
                 ds.connect(function () {
                     ds.disconnect();
                     done();
