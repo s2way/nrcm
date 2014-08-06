@@ -159,4 +159,41 @@ describe('MySQLInterface.js', function () {
         });
 
     });
+
+    describe('call', function () {
+
+        it('should call the callback passing an error if an error occurs in the query function', function (done) {
+            var connectionError = { };
+            var modelInterface = createModelInterface(mockMySQL({}, connectionError));
+            modelInterface.call('some_procedure', [], function (err) {
+                assert(err);
+                done();
+            });
+        });
+
+        it('should issue a CALL procedure command', function (done) {
+            var procedureParams = [1, 'two'];
+            var modelInterface = createModelInterface(mockMySQL({
+                'query' : function (query, params, callback) {
+                    assert.equal('CALL some_procedure(?, ?)', query);
+                    assert.equal(procedureParams, params);
+                    callback(null);
+                }
+            }));
+            modelInterface.call('some_procedure', procedureParams, function (err) {
+                done();
+            });
+        });
+
+        it('should throw an IllegalArgument if the first parameter is not a string', function () {
+            var modelInterface = createModelInterface(mockMySQL({}));
+            try {
+                modelInterface.call();
+                assert.fail();
+            } catch (e) {
+                assert.equal('IllegalArgument', e.name);
+            }
+        });
+    });
+
 });

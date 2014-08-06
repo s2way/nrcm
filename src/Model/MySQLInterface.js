@@ -41,4 +41,24 @@ MySQLInterface.prototype.use = function (database, callback) {
     });
 };
 
+MySQLInterface.prototype.call = function (procedure, params, callback) {
+    if (typeof procedure !== 'string') {
+        throw new exceptions.IllegalArgument('The procedure parameter is mandatory');
+    }
+
+    this.dataSource.connect(function (connection) {
+        var paramsString = '';
+        var i;
+        for (i = 0; i < params.length; i += 1) {
+            if (paramsString !== '') {
+                paramsString += ', ';
+            }
+            paramsString += '?';
+        }
+        connection.query('CALL ' + connection.escapeId(procedure) + '(' + paramsString + ')', params, callback);
+    }, function (error) {
+        callback(error);
+    });
+};
+
 module.exports = MySQLInterface;
