@@ -84,20 +84,34 @@ All controllers must be located inside the application's Controller folder. They
 
 ```javascript
 function MyController() {
+    // Perform some initialization here
 }
 
 MyController.prototype.get = function (callback) {
-    
+    // Query string param
+    var says = this.query.says;
+
+    this.statusCode = 200; // Not required: defaults to 200
+    // Call the callback function passing the response JSON
     callback({
-        'hello_world' : 'NRCM says: Hi!'
+        'hello_world' : 'NRCM says: ' + says
     });
 
 };
 
+// You MUST export the controller constructor
 module.exports = MyController;
-
 ```
-
+You can test this example with CURL:
+```bash
+$ curl -X GET http://localhost:3333/app/my_controller?says=Hi
+```
+The following output is expected:
+```json
+{
+    "hello_world" : "NRCM says: Hi"
+}
+```
 
 ### Models
 
