@@ -11,6 +11,7 @@ It is an ultra lightweight implementation of a RESTful API that acts as a conten
 * Multi-application: several different applications can run inside the same NodeJS HTTP server;
 * Couchbase and MySQL data sources supported;
 * Assynchronous logging using winston;
+* Does **not read a single file from the disk** after startup;
 
 ## Setup & Run
 
@@ -46,24 +47,35 @@ Your server should be running now. NRCM will automatically create the folder str
 The line `instance.setUp('app')` will create the application folder structure if it does not exist. Your project should look something like this:
 
 ```
-├── config.json
+├── config.json            --> Server configuration file
 ├── app/
-│   ├── src/
-│   │   ├── Config/
-│   │   ├───├── core.json
-│   │   ├── Component/
-│   │   ├── Controller/
-│   │   ├── Model/
-│   ├── test/
-│   │   ├── Component/
-│   │   ├── Controller/
-│   │   ├── Model/
-├── index.js
+│   ├── src/               --> Application source code folder
+│   │   ├── Config/          --> Configuration folder
+│   │   ├───├── core.json    --> Application configuration file
+│   │   ├── Component/       --> Where your components should be placed
+│   │   ├── Controller/      --> All application controllers must go here
+│   │   ├── Model/           --> Your models that will access the data sources should go here
+│   ├── test/              --> Application tests folder
+│   │   ├── Component/       --> Component tests
+│   │   ├── Controller/      --> Controller tests
+│   │   ├── Model/           --> Model tests
+├── index.js               --> Application entry point
 ```
+
+If you're using a multi-application server, you can have call `instance.setUp()` several times providing different names. NRCM will load all JS files into memory when the server starts and will not check them anymore.
 
 ## Documentation
 
 ### Server Configuration
+
+The server configuration JSON file has the following properties:
+
+### urlFormat
+
+This is where you specify how your URLs will map to your applications and controllers. There are two placeholders available: $application and $controller. Let's say we have the following format:
+`/$application/$controller`
+The URL */app/my_controller* will map to the application **app** and to the **MyController.js** file that should be located inside *app/src/Controller/*. 
+
 
 ### Controllers
 
@@ -76,3 +88,10 @@ The line `instance.setUp('app')` will create the application folder structure if
 #### MySQL
 
 #### Couchbase
+
+## Conventions & Restrictions
+
+* All controllers, components, and models should be named in CamelCase;
+* All URLs are assumed to be lowercase and underscored. For example: `/my_application/my_controller`;
+* Extensions are not allowed at the end of URL. Something like `/my_application/my_controller.json` will be rejected by the server;
+* If the URL does not match the *urlFormat* specified in the **config.json**, the server will reject the request;
