@@ -59,12 +59,18 @@ The line `instance.setUp('app')` will create the application folder structure if
 │   │   ├── Component/       --> Component tests
 │   │   ├── Controller/      --> Controller tests
 │   │   ├── Model/           --> Model tests
+│   ├── logs/              --> Server logs folder
+│   │   ├── main.log         --> Main application logs
+│   │   ├── exceptions.log   --> Exceptions logs
+├── logs/                  --> Server logs
+│   ├── main.log             --> Server logs
+│   ├── exceptions.log       --> Server exception logs
 ├── index.js               --> Application entry point
 ```
 
 If you're using a multi-application server, you can have call `instance.setUp()` several times providing different names. NRCM will load all JS files into memory when the server starts and will not check them anymore.
 
-## Documentation
+## Coding
 
 ### Server Configuration
 
@@ -94,7 +100,6 @@ MyController.prototype.get = function (callback) {
     callback({
         'hello_world' : 'NRCM says: ' + says
     });
-
 };
 
 // You MUST export the controller constructor
@@ -121,11 +126,12 @@ function AnotherController() {
 AnotherController.prototype.post = function (callback) {
     // Call the callback function passing the response JSON
     this.headers['X-NRCM'] = 'This is a custom header';
+    // Use the function below for logging 
+    this.logger.info("Logging cool information"); 
     callback({
         'my_payload_is' : this.payload, // Access the payload as a JSON
         'my_query_string_is' : this.query // Access the query string as a JSON
     });
-
 };
 
 // You MUST export the controller constructor
@@ -135,17 +141,87 @@ NRCM supports key application/x-www-form-urlencoded and application/json payload
 
 ### Models
 
-### Logs
+Models obey exactly the same rules for the controllers. You should create them inside the Models/ folder and they must export a constructor function.
+
+```javascript
+function CoolModel() {
+    // Perform some initialization here
+}
+
+CoolModel.prototype.find = function (callback) {
+    // Perform an assynchronous database operation and them call the callback passing the result
+    ...
+    callback(err, result);
+};
+
+// You MUST export the model constructor
+module.exports = CoolModel;
+```
 
 ### Data Sources
 
+Depending on the data source you choose for your models, different methods will be available.
+
+#### Data Source Configuration
+
+All DataSource configuration is located within the **app/Config/core.json** file. It should look something like this:
+
+```json
+{
+    "requestTimeout" : 10000,
+    "dataSources" : {
+        "default" : {
+            "type" : "Couchbase",
+            "host" : "0.0.0.0",
+            "port" : "8091",
+            "index" : "index"
+        },
+        "mysql" : {
+            "type" : "MySQL",
+            "host" : "0.0.0.0",
+            "port" : "3306",
+            "user" : "root",
+            "password" : ""
+        }
+    }
+}
+```
+All models will use the **default** DataSource by default.
+
 #### MySQL
 
+```javascript
+function Order() {
+    this.dataSource = 'mysql'; 
+}
+
+Order.prototype.findAll = function (callback) {
+
+    $.use('my_database', function () {
+        $.query('SELECT * FROM order', [], function (err, rows, result) {
+            callback(err, rows);
+        });
+    });
+
+};
+```
+
 #### Couchbase
+
+### Components
+
+## Testing
+
+### Controllers
+
+### Models
+
+### Components
 
 ## Conventions & Restrictions
 
 * All controllers, components, and models should be named in CamelCase;
+* Plural names are prefered for controllers and singular ones for models;
 * All URLs are assumed to be lowercase and underscored. For example: `/my_application/my_controller`;
 * Extensions are not allowed at the end of URL. Something like `/my_application/my_controller.json` will be rejected by the server;
 * If the URL does not match the *urlFormat* specified in the **config.json**, the server will reject the request;
