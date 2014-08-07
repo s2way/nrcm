@@ -22,18 +22,20 @@ $ npm install nrcm
 2) Create your server configuration file and name it config.json:
 ```json
 {
-    urlFormat: "/$application/$controller"
+    "urlFormat": "/$application/$controller"
 }
 ```
 3) Create a file named index.js:
 ```javascript
 var NRCM = require('nrcm');
 var instance = new NRCM();
-instance.configure('config.json'); // Your server configuration JSON file
+// Your server configuration JSON file
+instance.configure('config.json'); 
 // The name of your application 
 // If you are not going to use the multi-app feature, name it "app".
 instance.setUp('app'); 
-instance.start('127.0.0.1', 3333); // Start your server
+// Start your server
+instance.start('127.0.0.1', 3333); 
 ```
 4) Start your server by typing: `node index.js`
 
@@ -67,3 +69,10 @@ The line `instance.setUp('app')` will create the application folder structure if
 
 ### Models
 
+### Logs
+
+### Data Sources
+
+#### MySQL
+
+#### Couchbase
