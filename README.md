@@ -263,7 +263,7 @@ MyModel.prototype.hashPassword = function (password) {
 
 NRCM provides tools for testing your controllers, models, and components. 
 
-Be sure to include the Testing class at the beginning of your test file. Instantiate the testing tools passing the URL of your application:
+Be sure to include the Testing class at the beginning of your test file. Instantiate the testing tools passing the path of your application:
 
 ```javascript
 var Testing = require('../../../src/NRCM').Testing;
