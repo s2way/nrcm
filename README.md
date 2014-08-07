@@ -119,6 +119,7 @@ The following output is expected:
 The method `MyController.get()` is called because we are issuing a HTTP GET. You can implement the other methods as well:
 
 ```javascript
+// The constructor cannot have any parameters
 function AnotherController() {
     // Perform some initialization here
 }
@@ -137,13 +138,14 @@ AnotherController.prototype.post = function (callback) {
 // You MUST export the controller constructor
 module.exports = AnotherController;
 ```
-NRCM supports key application/x-www-form-urlencoded and application/json payloads. Both are treated internally as JSONs;
+NRCM supports `application/x-www-form-urlencoded` and `application/json` payloads. Both are treated internally as JSONs;
 
 ### Models
 
 Models obey exactly the same rules for the controllers. You should create them inside the Models/ folder and they must export a constructor function.
 
 ```javascript
+// The constructor cannot have any parameters
 function CoolModel() {
     // Perform some initialization here
 }
@@ -191,7 +193,9 @@ All models will use the **default** DataSource by default.
 #### MySQL
 
 ```javascript
+// The constructor cannot have any parameters
 function Order() {
+    // This model is going to use the 'mysql' data source instead of 'default'
     this.dataSource = 'mysql'; 
 }
 
@@ -202,13 +206,63 @@ Order.prototype.findAll = function (callback) {
             callback(err, rows);
         });
     });
-
 };
+
+// You MUST export the model constructor
+module.exports = Order;
 ```
 
 #### Couchbase
 
+Coming soon...
+
 ### Components
+
+Wanna share information and routines between different models and/or controllers? Components can accomplish that.
+Again, component files should export be located inside `app/Component/` folder and must export a constructor function which will be instantiated by NRCM:
+
+A component named Util should be located inside `app/Component/Util.js` and contain something like this:
+
+```javascript
+// The constructor cannot have any parameters
+function Util() {
+    // Component initialization here
+}
+
+Util.prototype.md5 = function (value) {
+    // md5 function here
+    ...
+    return something;
+};
+// You MUST export the component constructor
+module.exports = Util;
+```
+
+If you want to load Util inside a model or component, just call the `component()` method passing its name.
+Inside a controller:
+```javascript
+...
+MyController.prototype.get = function (callback) {
+
+    var value = this.query.value;
+    var util = this.component('Util'); // Load the Util component
+    
+    callback({
+        'md5' : util.md5(value)
+    });
+};
+...
+
+```
+For loading it inside a model, do the same:
+```javascript
+...
+MyModel.prototype.hashPassword = function (password) {
+    var util = this.component('Util');
+    return util.md5(password);
+};
+...
+```
 
 ## Testing
 
