@@ -241,7 +241,6 @@ module.exports = Util;
 If you want to load Util inside a model or component, just call the `component()` method passing its name.
 Inside a controller:
 ```javascript
-...
 MyController.prototype.get = function (callback) {
 
     var value = this.query.value;
@@ -251,20 +250,18 @@ MyController.prototype.get = function (callback) {
         'md5' : util.md5(value)
     });
 };
-...
-
 ```
 For loading it inside a model, do the same:
 ```javascript
-...
 MyModel.prototype.hashPassword = function (password) {
     var util = this.component('Util');
     return util.md5(password);
 };
-...
 ```
 
 ## Testing
+
+NRCM provides tools for testing your controllers, models, and components.
 
 ### Controllers
 
