@@ -77,48 +77,32 @@ QueryBuilder.prototype.build = function () {
     return query;
 };
 
-// QueryBuilder.prototype._conditions = function (conditions, operation) {
-//     var query = '';
-//     var key;
-//     var orKeys = ['OR', 'or', '|', '||'];
-//     var andKeys = ['AND', 'and', '&', '&&'];
-//     var acceptedOperations = [
-//         'equal', 'eq', '=',
-//         'greater', 'gr',
-//         'less', 'ls',
-//         'greaterOrEqual', 'ge',
-//         'lessOrEqual', 'le'
-//     ];
+QueryBuilder.prototype._conditions = function (conditions, operation) {
+    var query = '';
+    var key;
 
-//     for (key in conditions) {
-//         if (typeof key !== 'string') {
-//             throw new exceptions.IllegalArgument('All condition keys must be strings');
-//         }
-//         if (query !== '') {
-//             query += operation + ' ';
-//         }
-//         var exp = conditions[key];
+    for (key in conditions) {
+        if (conditions.hasOwnProperty(key)) {
+            if (typeof key !== 'string') {
+                throw new exceptions.IllegalArgument('All condition keys must be strings');
+            }
+            if (query !== '') {
+                query += ' ' + operation + ' ';
+            }
+            query += conditions[key];
+        }
+    }
 
-//         if (orKeys.indexOf(key) !== -1 && typeof exp === 'object') {
-//             query += '(' + this._conditions(exp, 'OR') + ') ';
-//         } else if (andKeys.indexOf(key) !== -1 && typeof exp === 'object') {
-//             query += '(' + this._conditions(exp, 'AND') + ') ';
-//         } else {
-//             // Operations
-//             return;
-//         }
-//     }
+    return query.trim();
+};
 
-//     return query.trim();
-// };
-
-QueryBuilder.prototype.where = function (conditions) {
-    this.query += 'WHERE ' + this._conditions(conditions, 'AND') + ' ';
+QueryBuilder.prototype.where = function () {
+    this.query += 'WHERE ' + this._conditions(arguments, 'AND') + ' ';
     return this;
 };
 
-QueryBuilder.prototype.having = function (conditions) {
-    this.query += 'HAVING ' + this._conditions(conditions, 'AND') + ' ';
+QueryBuilder.prototype.having = function () {
+    this.query += 'HAVING ' + this._conditions(arguments, 'AND') + ' ';
     return this;
 };
 
@@ -132,11 +116,28 @@ QueryBuilder.prototype.equal = function (left, right) {
     return left + ' = ' + right;
 };
 
+QueryBuilder.prototype.notEqual = function (left, right) {
+    if (left === undefined || right === undefined) {
+        throw new exceptions.IllegalArgument();
+    }
+    if (right === null) {
+        return left + ' IS NOT NULL';
+    }
+    return left + ' <> ' + right;
+};
+
 QueryBuilder.prototype.less = function (left, right) {
     if (left === undefined || right === undefined) {
         throw new exceptions.IllegalArgument();
     }
     return left + ' < ' + right;
+};
+
+QueryBuilder.prototype.lessOrEqual = function (left, right) {
+    if (left === undefined || right === undefined) {
+        throw new exceptions.IllegalArgument();
+    }
+    return left + ' <= ' + right;
 };
 
 QueryBuilder.prototype.greater = function (left, right) {
@@ -145,5 +146,68 @@ QueryBuilder.prototype.greater = function (left, right) {
     }
     return left + ' > ' + right;
 };
+
+QueryBuilder.prototype.greaterOrEqual = function (left, right) {
+    if (left === undefined || right === undefined) {
+        throw new exceptions.IllegalArgument();
+    }
+    return left + ' >= ' + right;
+};
+
+QueryBuilder.prototype.between = function (value, comp1, comp2) {
+    if (value === undefined || comp1 === undefined || comp2 === undefined) {
+        throw new exceptions.IllegalArgument();
+    }
+    return value + ' BETWEEN ' + comp1 + ' AND ' + comp2;
+};
+
+QueryBuilder.prototype.and = function () {
+    if (arguments.length < 2) {
+        throw new exceptions.IllegalArgument();
+    }
+    var expression = '(';
+    var i;
+    for (i in arguments) {
+        if (arguments.hasOwnProperty(i)) {
+            if (expression !== '(') {
+                expression += ' AND ';
+            }
+            expression += arguments[i];
+        }
+    }
+    expression += ')';
+    return expression;
+};
+
+QueryBuilder.prototype.or = function () {
+    if (arguments.length < 2) {
+        throw new exceptions.IllegalArgument();
+    }
+    var expression = '(';
+    var i;
+    for (i in arguments) {
+        if (arguments.hasOwnProperty(i)) {
+            if (expression !== '(') {
+                expression += ' OR ';
+            }
+            expression += arguments[i];
+        }
+    }
+    expression += ')';
+    return expression;
+};
+
+// Aliases
+QueryBuilder.prototype['|'] = QueryBuilder.prototype.or;
+QueryBuilder.prototype['||'] = QueryBuilder.prototype.or;
+QueryBuilder.prototype['&'] = QueryBuilder.prototype.and;
+QueryBuilder.prototype['&&'] = QueryBuilder.prototype.and;
+QueryBuilder.prototype['='] = QueryBuilder.prototype.equal;
+QueryBuilder.prototype['<>'] = QueryBuilder.prototype.notEqual;
+QueryBuilder.prototype['!>'] = QueryBuilder.prototype.notEqual;
+QueryBuilder.prototype['>'] = QueryBuilder.prototype.greater;
+QueryBuilder.prototype['>='] = QueryBuilder.prototype.greaterOrEqual;
+QueryBuilder.prototype['<'] = QueryBuilder.prototype.less;
+QueryBuilder.prototype['<='] = QueryBuilder.prototype.lessOrEqual;
 
 module.exports = QueryBuilder;
