@@ -80,8 +80,6 @@ The URL */app/my_controller* will map to the application **app** and to the **My
 
 All controllers must be located inside the application's Controller folder. They must be declared as a constructor function and NRCM will try to instantiate them when a valid request is issued. 
 
-#### Controller Hello World:
-
 ```javascript
 function MyController() {
     // Perform some initialization here
@@ -102,7 +100,7 @@ MyController.prototype.get = function (callback) {
 // You MUST export the controller constructor
 module.exports = MyController;
 ```
-You can test this example with CURL:
+You can test this example with **curl**:
 ```bash
 $ curl -X GET http://localhost:3333/app/my_controller?says=Hi
 ```
@@ -112,6 +110,28 @@ The following output is expected:
     "hello_world" : "NRCM says: Hi"
 }
 ```
+
+The method `MyController.get()` is called because we are issuing a HTTP GET. You can implement the other methods as well:
+
+```javascript
+function AnotherController() {
+    // Perform some initialization here
+}
+
+AnotherController.prototype.post = function (callback) {
+    // Call the callback function passing the response JSON
+    this.headers['X-NRCM'] = 'This is a custom header';
+    callback({
+        'my_payload_is' : this.payload, // Access the payload as a JSON
+        'my_query_string_is' : this.query // Access the query string as a JSON
+    });
+
+};
+
+// You MUST export the controller constructor
+module.exports = AnotherController;
+```
+NRCM supports key application/x-www-form-urlencoded and application/json payloads. Both are treated internally as JSONs;
 
 ### Models
 
