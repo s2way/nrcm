@@ -261,11 +261,53 @@ MyModel.prototype.hashPassword = function (password) {
 
 ## Testing
 
-NRCM provides tools for testing your controllers, models, and components.
+NRCM provides tools for testing your controllers, models, and components. 
+
+Be sure to include the Testing class at the beginning of your test file. Instantiate the testing tools passing the URL of your application:
+
+```javascript
+var Testing = require('../../../src/NRCM').Testing;
+...
+var testing = new Testing(path.join(__dirname, '../../../sample'));
+```
 
 ### Controllers
 
+When you test controllers, all models and components should be mocked. For doing that, call the `mockModel()` and `mockComponent()` passing the name of the model/component and a JSON containing the properties that should be injected. For example, if you have `MyModel.find()`, you can mock it this way:
+
+```javascript
+testing.mockModel('MyModel', {
+    'find' : function () {
+        // Mocked find implementation
+    }
+});
+```
+For simulating a controller request, you can use the `callController` method:
+```javascript
+testing.callController('MyController', 'post', {
+    'payload' : {
+        'this' : 'is',
+        'the' : 'pay',
+        'load' : 'in',
+        'json' : 'format' 
+    }, 'query' : {
+        'this' : 'is',
+        'the' : 'query',
+        'string' : 'in',
+        'json' : 'format'
+    }
+}, function (response, info) {
+    assert.equal('{}', JSON.stringify(response));
+    assert.equal(200, info.statusCode);
+    assert.equal('is', info.payload['this']);
+    assert.equal('the', info.query['query']);
+});
+```
+
 ### Models
+```javascript
+
+```
 
 ### Components
 
