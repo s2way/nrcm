@@ -80,7 +80,7 @@ The server configuration JSON file has the following properties:
 
 This is where you specify how your URLs will map to your applications and controllers. There are two placeholders available: $application and $controller. Let's say we have the following format:
 `/$application/$controller`. 
-The URL */app/my_controller* will map to the application **app** and to the **MyController.js** file that should be located inside *app/src/Controller/*. 
+The URL `/app/my_controller` will map to the application `app` and to the `MyController.js` file that should be located inside `app/src/Controller/`. 
 
 ### Controllers
 
@@ -105,7 +105,7 @@ MyController.prototype.get = function (callback) {
 // You MUST export the controller constructor
 module.exports = MyController;
 ```
-You can test this example with **curl**:
+You can test this example with `curl`:
 ```bash
 $ curl -X GET http://localhost:3333/app/my_controller?says=Hi
 ```
@@ -128,7 +128,7 @@ AnotherController.prototype.post = function (callback) {
     // Call the callback function passing the response JSON
     this.headers['X-NRCM'] = 'This is a custom header';
     // Use the function below for logging 
-    this.logger.info("Logging cool information"); 
+    this.logger.info('Logging cool information'); 
     callback({
         'my_payload_is' : this.payload, // Access the payload as a JSON
         'my_query_string_is' : this.query // Access the query string as a JSON
@@ -166,7 +166,7 @@ Depending on the data source you choose for your models, different methods will 
 
 #### Data Source Configuration
 
-All DataSource configuration is located within the **app/Config/core.json** file. It should look something like this:
+All DataSource configuration is located within the `app/Config/core.json` file. It should look something like this:
 
 ```json
 {
@@ -188,7 +188,7 @@ All DataSource configuration is located within the **app/Config/core.json** file
     }
 }
 ```
-All models will use the **default** DataSource by default.
+All models will use the `default` DataSource by default.
 
 #### MySQL
 
@@ -278,4 +278,4 @@ MyModel.prototype.hashPassword = function (password) {
 * Plural names are prefered for controllers and singular ones for models;
 * All URLs are assumed to be lowercase and underscored. For example: `/my_application/my_controller`;
 * Extensions are not allowed at the end of URL. Something like `/my_application/my_controller.json` will be rejected by the server;
-* If the URL does not match the *urlFormat* specified in the **config.json**, the server will reject the request;
+* If the URL does not match the `urlFormat` specified in the `config.json`, the server will reject the request;
