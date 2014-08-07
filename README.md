@@ -305,11 +305,24 @@ testing.callController('MyController', 'post', {
 ```
 
 ### Models
-```javascript
 
+When you test models, be sure to mock all component dependencies.
+For creating a model and then testings its methods, use the `createModel()` method:
+
+```javascript
+var myModel = testing.createModel('MyModel');
+myModel.find(function (result) {
+    assert.equal('{}', JSON.stringify(result));
+});
 ```
 
 ### Components
+
+Similar to models, you can test components by calling `createComponent()`:
+```javascript
+var util = testing.createComponent('Util');
+assert.equal('e10adc3949ba59abbe56e057f20f883e', util.md5('123456'));
+```
 
 ## Conventions & Restrictions
 
