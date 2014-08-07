@@ -8,10 +8,6 @@ function Logger(logsPath) {
             new (winston.transports.Console)({ json: false, timestamp: true, level: 'debug' }),
             new winston.transports.File({ filename: path.join(logsPath, 'main.log'), json: false }),
         ],
-        exceptionHandlers: [
-            new (winston.transports.Console)({ json: false, timestamp: true }),
-            new winston.transports.File({ filename: path.join(logsPath, 'exceptions.log'), json: false })
-        ],
         exitOnError: false
     });
 }
