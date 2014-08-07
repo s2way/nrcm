@@ -73,11 +73,31 @@ The server configuration JSON file has the following properties:
 ### urlFormat
 
 This is where you specify how your URLs will map to your applications and controllers. There are two placeholders available: $application and $controller. Let's say we have the following format:
-`/$application/$controller`
+`/$application/$controller`. 
 The URL */app/my_controller* will map to the application **app** and to the **MyController.js** file that should be located inside *app/src/Controller/*. 
 
-
 ### Controllers
+
+All controllers must be located inside the application's Controller folder. They must be declared as a constructor function and NRCM will try to instantiate them when a valid request is issued. 
+
+#### Controller Hello World:
+
+```javascript
+function MyController() {
+}
+
+MyController.prototype.get = function (callback) {
+    
+    callback({
+        'hello_world' : 'NRCM says: Hi!'
+    });
+
+};
+
+module.exports = MyController;
+
+```
+
 
 ### Models
 
