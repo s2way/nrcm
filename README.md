@@ -321,7 +321,7 @@ If you are dealing with a MySQL data source, you may want to use the QueryBuilde
 ```javascript
 // Model constructor
 function MyModel() {
-};
+}
 
 MyModel.prototype.findAll = function () {
     var $ = this.$builder(); // Get an instance of the query builder
