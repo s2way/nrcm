@@ -136,6 +136,30 @@ QueryBuilder.prototype.where = function () {
     return this;
 };
 
+QueryBuilder.prototype.on = function () {
+    if (arguments.length === 0) {
+        throw new exceptions.IllegalArgument();
+    }
+    this.query += 'ON ' + this._conditions(arguments, 'AND') + ' ';
+    return this;
+};
+
+QueryBuilder.prototype.join = function (table) {
+    if (typeof table !== 'string') {
+        throw new exceptions.IllegalArgument();
+    }
+    this.query += 'JOIN ' + table + ' ';
+    return this;
+};
+
+QueryBuilder.prototype.innerJoin = function (table) {
+    if (typeof table !== 'string') {
+        throw new exceptions.IllegalArgument();
+    }
+    this.query += 'INNER JOIN ' + table + ' ';
+    return this;
+};
+
 QueryBuilder.prototype.having = function () {
     this.query += 'HAVING ' + this._conditions(arguments, 'AND') + ' ';
     return this;

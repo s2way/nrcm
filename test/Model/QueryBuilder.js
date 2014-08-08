@@ -91,19 +91,52 @@ describe('QueryBuilder.js', function () {
 
     describe('join', function () {
 
-        it('should output a JOIN + table name');
+        it('should output a JOIN + table name', function () {
+            assert.equal('JOIN sky', $.join('sky').build());
+        });
+
+        it('should throw an exception if no parameters are passed', function () {
+            try {
+                $.join();
+                assert.fail();
+            } catch (e) {
+                assert.equal('IllegalArgument', e.name);
+            }
+        });
 
     });
 
     describe('innerJoin', function () {
 
-        it('should output an INNER JOIN + table name');
+        it('should output an INNER JOIN + table name', function () {
+            assert.equal('INNER JOIN sky', $.innerJoin('sky').build());
+        });
+
+        it('should throw an exception if no parameters are passed', function () {
+            try {
+                $.innerJoin();
+                assert.fail();
+            } catch (e) {
+                assert.equal('IllegalArgument', e.name);
+            }
+        });
 
     });
 
     describe('on', function () {
 
-        it('should output an ON + conditions');
+        it('should output an ON + conditions', function () {
+            assert.equal('ON a = b AND c = d', $.on('a = b', 'c = d').build());
+        });
+
+        it('should throw an exception if no parameters are passed', function () {
+            try {
+                $.on();
+                assert.fail();
+            } catch (e) {
+                assert.equal('IllegalArgument', e.name);
+            }
+        });
 
     });
 
@@ -111,6 +144,15 @@ describe('QueryBuilder.js', function () {
 
         it('should output an UPDATE + table name', function () {
             assert.equal('UPDATE sky', $.update('sky').build());
+        });
+
+        it('should throw an exception if no parameters are passed', function () {
+            try {
+                $.update();
+                assert.fail();
+            } catch (e) {
+                assert.equal('IllegalArgument', e.name);
+            }
         });
 
     });
@@ -125,12 +167,30 @@ describe('QueryBuilder.js', function () {
             }).build());
         });
 
+        it('should throw an exception if no parameters are passed', function () {
+            try {
+                $.set();
+                assert.fail();
+            } catch (e) {
+                assert.equal('IllegalArgument', e.name);
+            }
+        });
+
     });
 
     describe('insertInto', function () {
 
         it('should output an INSERT INTO + table name', function () {
             assert.equal('INSERT INTO sky', $.insertInto('sky').build());
+        });
+
+        it('should throw an exception if no parameters are passed', function () {
+            try {
+                $.insertInto();
+                assert.fail();
+            } catch (e) {
+                assert.equal('IllegalArgument', e.name);
+            }
         });
 
     });
@@ -412,6 +472,17 @@ describe('QueryBuilder.js', function () {
                     'message' : $.value('This is a message')
                 }).build();
             var expected = 'INSERT INTO log SET message = \'This is a message\'';
+            assert.equal(expected, sql);
+        });
+
+        it('should output: SELECT * FROM sky INNER JOIN heaven ON heaven.jesus = sky.jesus', function () {
+            var sql = $
+                .selectStarFrom('sky')
+                .innerJoin('heaven')
+                .on(
+                    $.equal('heaven.jesus', 'sky.jesus')
+                ).build();
+            var expected = 'SELECT * FROM sky INNER JOIN heaven ON heaven.jesus = sky.jesus';
             assert.equal(expected, sql);
         });
 
