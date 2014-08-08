@@ -35,18 +35,23 @@ ModelFactory.prototype.create = function (modelName) {
             modelDataSourceName = 'default';
         }
 
-        var dataSource = this.dataSources[modelDataSourceName];
         modelInstance.name = modelName;
         // Make the application logger available to the models
         modelInstance.logger = this.application.logger;
 
         this.info('Creating ModelInterface');
-        modelInterface = new ModelInterface(dataSource, modelInstance);
+        var dataSource = this.dataSources[modelDataSourceName];
+        // If the DataSource is not specified or not found, do not inject any interface methods
+        if (!dataSource) {
+            this.info('DataSource not found: ' + modelDataSourceName);
+        } else {
+            modelInterface = new ModelInterface(dataSource, modelInstance);
 
-        for (i in modelInterface.methods) {
-            if (modelInterface.methods.hasOwnProperty(i)) {
-                modelInterfaceMethod = modelInterface.methods[i];
-                modelInstance['$' + modelInterfaceMethod] = modelInterfaceDelegation(modelInterfaceMethod);
+            for (i in modelInterface.methods) {
+                if (modelInterface.methods.hasOwnProperty(i)) {
+                    modelInterfaceMethod = modelInterface.methods[i];
+                    modelInstance['$' + modelInterfaceMethod] = modelInterfaceDelegation(modelInterfaceMethod);
+                }
             }
         }
 

@@ -18,8 +18,6 @@ MyController.prototype.post = function (callback) {
     });
 };
 
-MyController.prototype.
-
 MyController.prototype.delete = function (callback) {
     this.model('MyModel').test(callback);
 };

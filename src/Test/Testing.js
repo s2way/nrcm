@@ -7,6 +7,12 @@ var ModelFactory = require('../Model/ModelFactory');
 var DataSource = require('../Model/DataSource');
 var RequestHandler = require('../Controller/RequestHandler');
 
+/**
+ * Testing tool constructor
+ * @constructor
+ * @param {string} applicationPath
+ * @param {json} dataSourceConfigs
+ */
 function Testing(applicationPath, dataSourceConfigs) {
     var dataSources, dataSourceName, dataSourceConfig;
 
