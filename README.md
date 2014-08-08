@@ -315,6 +315,21 @@ myModel.find(function (result) {
     assert.equal('{}', JSON.stringify(result));
 });
 ```
+#### QueryBuilder
+
+If you are dealing with a MySQL data source, you may want to use the QueryBuilder. You can access it inside your models:
+```javascript
+// Model constructor
+function MyModel() {
+};
+
+MyModel.prototype.findAll = function () {
+    var $ = this.$builder(); // Get an instance of the query builder
+    var sqlQuery = $.selectStarFrom('my_model').where(
+        $.eq('color', $.value('white')) // $.value() escapes the string
+    );
+};
+```
 
 ### Components
 
