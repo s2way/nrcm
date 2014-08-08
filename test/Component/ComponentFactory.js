@@ -22,13 +22,18 @@ describe('ComponentFactory.js', function () {
                     'MyComponent' : function () {
                         return;
                     }
-                }
+                },
+                'logger' : { }
             });
             instance = factory.create('MyComponent');
         });
 
         it('should create the component and inject the name property', function () {
             assert.equal('MyComponent', instance.name);
+        });
+
+        it('should create the model and inject the application logger object', function () {
+            assert.equal('object', typeof instance.logger);
         });
 
         it('should inject the method for retrieving components', function () {

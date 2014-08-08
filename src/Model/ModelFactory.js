@@ -37,6 +37,9 @@ ModelFactory.prototype.create = function (modelName) {
 
         var dataSource = this.dataSources[modelDataSourceName];
         modelInstance.name = modelName;
+        // Make the application logger available to the models
+        modelInstance.logger = this.application.logger;
+
         this.info('Creating ModelInterface');
         modelInterface = new ModelInterface(dataSource, modelInstance);
 

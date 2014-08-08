@@ -7,7 +7,7 @@ var ModelFactory = require('../../src/Model/ModelFactory');
 
 describe('ModelFactory.js', function () {
 
-    describe('load', function () {
+    describe('create', function () {
 
         var instance;
 
@@ -26,7 +26,8 @@ describe('ModelFactory.js', function () {
                     'MyComponent' : function () {
                         return;
                     }
-                }
+                },
+                'logger' : { }
             }, {
                 'default' : {
                     'type' : 'Couchbase'
@@ -39,8 +40,12 @@ describe('ModelFactory.js', function () {
             instance = loader.create('MyModel');
         });
 
-        it('should load the model and inject the name property', function () {
+        it('should create the model and inject the name property', function () {
             assert.equal('MyModel', instance.name);
+        });
+
+        it('should create the model and inject the application logger object', function () {
+            assert.equal('object', typeof instance.logger);
         });
 
         it('should inject the method for retrieving components', function () {

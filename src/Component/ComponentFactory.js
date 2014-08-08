@@ -23,6 +23,8 @@ ComponentFactory.prototype.create = function (componentName) {
         }
         componentInstance = new ComponentConstructor();
         componentInstance.name = componentName;
+        // Inject the application logger into the component
+        componentInstance.logger = this.application.logger;
         componentInstance.component = function (componentName) {
             return that.create(componentName);
         };
