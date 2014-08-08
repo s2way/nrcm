@@ -241,7 +241,6 @@ module.exports = Util;
 If you want to load Util inside a model or component, just call the `component()` method passing its name.
 Inside a controller:
 ```javascript
-...
 MyController.prototype.get = function (callback) {
 
     var value = this.query.value;
@@ -251,26 +250,79 @@ MyController.prototype.get = function (callback) {
         'md5' : util.md5(value)
     });
 };
-...
-
 ```
 For loading it inside a model, do the same:
 ```javascript
-...
 MyModel.prototype.hashPassword = function (password) {
     var util = this.component('Util');
     return util.md5(password);
 };
-...
 ```
 
 ## Testing
 
+NRCM provides tools for testing your controllers, models, and components. 
+
+Be sure to include the Testing class at the beginning of your test file. Instantiate the testing tools passing the path of your application:
+
+```javascript
+var Testing = require('../../../src/NRCM').Testing;
+...
+var testing = new Testing(path.join(__dirname, '../../../sample'));
+```
+
 ### Controllers
+
+When you test controllers, all models and components should be mocked. For doing that, call the `mockModel()` and `mockComponent()` passing the name of the model/component and a JSON containing the properties that should be injected. For example, if you have `MyModel.find()`, you can mock it this way:
+
+```javascript
+testing.mockModel('MyModel', {
+    'find' : function () {
+        // Mocked find implementation
+    }
+});
+```
+For simulating a controller request, you can use the `callController` method:
+```javascript
+testing.callController('MyController', 'post', {
+    'payload' : {
+        'this' : 'is',
+        'the' : 'pay',
+        'load' : 'in',
+        'json' : 'format' 
+    }, 'query' : {
+        'this' : 'is',
+        'the' : 'query',
+        'string' : 'in',
+        'json' : 'format'
+    }
+}, function (response, info) {
+    assert.equal('{}', JSON.stringify(response));
+    assert.equal(200, info.statusCode);
+    assert.equal('is', info.payload['this']);
+    assert.equal('the', info.query['query']);
+});
+```
 
 ### Models
 
+When you test models, be sure to mock all component dependencies.
+For creating a model and then testings its methods, use the `createModel()` method:
+
+```javascript
+var myModel = testing.createModel('MyModel');
+myModel.find(function (result) {
+    assert.equal('{}', JSON.stringify(result));
+});
+```
+
 ### Components
+
+Similar to models, you can test components by calling `createComponent()`:
+```javascript
+var util = testing.createComponent('Util');
+assert.equal('e10adc3949ba59abbe56e057f20f883e', util.md5('123456'));
+```
 
 ## Conventions & Restrictions
 
