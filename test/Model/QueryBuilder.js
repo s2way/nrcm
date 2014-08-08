@@ -90,23 +90,49 @@ describe('QueryBuilder.js', function () {
     });
 
     describe('join', function () {
-        return;
+
+        it('should output a JOIN + table name');
+
     });
 
     describe('innerJoin', function () {
-        return;
+
+        it('should output an INNER JOIN + table name');
+
+    });
+
+    describe('on', function () {
+
+        it('should output an ON + conditions');
+
     });
 
     describe('update', function () {
-        return;
+
+        it('should output an UPDATE + table name', function () {
+            assert.equal('UPDATE sky', $.update('sky').build());
+        });
+
     });
 
     describe('set', function () {
-        return;
+
+        it('should output a SET + fields and values', function () {
+            assert.equal("SET one = 1, two = 2, three = 'three'", $.set({
+                'one' : $.value(1),
+                'two' : $.value(2),
+                'three' : $.value('three')
+            }).build());
+        });
+
     });
 
-    describe('insert', function () {
-        return;
+    describe('insertInto', function () {
+
+        it('should output an INSERT INTO + table name', function () {
+            assert.equal('INSERT INTO sky', $.insertInto('sky').build());
+        });
+
     });
 
     describe('groupBy', function () {
@@ -325,16 +351,16 @@ describe('QueryBuilder.js', function () {
                 .select('c1', 'c2', 'c3')
                 .from('sky')
                 .where(
-                    $['=']('y', ':y'),
-                    $['<']('z', ':z'),
+                    $.equal('y', ':y'),
+                    $.less('z', ':z'),
                     $.between('x', 'NOW()', 'AAAA'),
-                    $['|'](
-                        $.equal('y', 10),
-                        $.greater('z', 20),
-                        $.between('x', 10, 200)
+                    $.or(
+                        $.equal('y', $.value(10)),
+                        $.greater('z', $.value(20)),
+                        $.between('x', $.value(10), $.value(200))
                     )
                 ).build();
-            var expected = 'SELECT c1, c2, c3 FROM sky WHERE y = :y AND z < :z AND x BETWEEN NOW() AND AAAA AND (y = 10 OR z > 20 OR x BETWEEN 10 AND 200)';
+            var expected = "SELECT c1, c2, c3 FROM sky WHERE y = :y AND z < :z AND x BETWEEN NOW() AND AAAA AND (y = 10 OR z > 20 OR x BETWEEN 10 AND 200)";
             assert.equal(expected, sql);
         });
 
@@ -359,6 +385,33 @@ describe('QueryBuilder.js', function () {
                     $.equal('x', 'y')
                 ).build();
             var expected = 'DELETE FROM sky WHERE x = y';
+            assert.equal(expected, sql);
+        });
+
+        it('should output: UPDATE sky SET one = 1, two = 2', function () {
+            var sql = $
+                .update('sky')
+                .set({
+                    'one' : 1,
+                    'two' : 2
+                })
+                .where(
+                    $.or(
+                        $.greater('id', 0),
+                        $.less('id', 1000)
+                    )
+                ).build();
+            var expected = 'UPDATE sky SET one = 1, two = 2 WHERE (id > 0 OR id < 1000)';
+            assert.equal(expected, sql);
+        });
+
+        it('should output: INSERT INTO log SET message = \'This is a message\'', function () {
+            var sql = $
+                .insertInto('log')
+                .set({
+                    'message' : $.value('This is a message')
+                }).build();
+            var expected = 'INSERT INTO log SET message = \'This is a message\'';
             assert.equal(expected, sql);
         });
 

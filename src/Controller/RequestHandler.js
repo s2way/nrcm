@@ -71,6 +71,7 @@ RequestHandler.prototype.process = function (request, response) {
         this.acl = this.applications[this.appName].acl;
         this.query = decomposedURL.query;
         this.prefixes = decomposedURL.prefixes;
+        this.segments = decomposedURL.segments;
         var controller = decomposedURL.controller;
 
         this.info('Application: ' + this.appName);
@@ -78,6 +79,7 @@ RequestHandler.prototype.process = function (request, response) {
         this.info('Method: ' + method);
         this.info('Prefixes: ' + JSON.stringify(this.prefixes));
         this.info('Query: ' + JSON.stringify(this.query));
+        this.info('Segments: ' + JSON.stringify(this.segments));
 
         var rule = this.isAllowed(this.acl, 'admin', controller, method);
         this.rule = rule;
@@ -217,6 +219,7 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
         } catch (e) {
             controllerInstance.payload = querystring.parse(that.payload);
         }
+        controllerInstance.segments = that.segments;
         controllerInstance.query = that.query;
         controllerInstance.prefixes = that.prefixes;
         controllerInstance.readonly = {

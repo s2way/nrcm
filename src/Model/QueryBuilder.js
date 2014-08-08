@@ -51,6 +51,41 @@ QueryBuilder.prototype.from = function (table) {
     return this;
 };
 
+QueryBuilder.prototype.update = function (table) {
+    if (typeof table !== 'string') {
+        throw new exceptions.IllegalArgument();
+    }
+    this.query += 'UPDATE ' + table + ' ';
+    return this;
+};
+
+QueryBuilder.prototype.insertInto = function (table) {
+    if (typeof table !== 'string') {
+        throw new exceptions.IllegalArgument();
+    }
+    this.query += 'INSERT INTO ' + table + ' ';
+    return this;
+};
+
+QueryBuilder.prototype.set = function (fields) {
+    if (typeof fields !== 'object') {
+        throw new exceptions.IllegalArgument();
+    }
+    var fieldList = '';
+    var name, value;
+    for (name in fields) {
+        if (fields.hasOwnProperty(name)) {
+            if (fieldList !== '') {
+                fieldList += ', ';
+            }
+            value = fields[name];
+            fieldList += name + ' = ' + value;
+        }
+    }
+    this.query += 'SET ' + fieldList + ' ';
+    return this;
+};
+
 QueryBuilder.prototype.groupBy = function () {
     if (arguments.length === 0) {
         throw new exceptions.IllegalArgument();
@@ -197,7 +232,16 @@ QueryBuilder.prototype.or = function () {
     return expression;
 };
 
+QueryBuilder.prototype.escape = function (value) {
+    if (typeof value !== 'number') {
+        return "'" + value + "'";
+    }
+    return value;
+};
+
+
 // Aliases
+QueryBuilder.prototype.value = QueryBuilder.prototype.escape;
 QueryBuilder.prototype['|'] = QueryBuilder.prototype.or;
 QueryBuilder.prototype['||'] = QueryBuilder.prototype.or;
 QueryBuilder.prototype['&'] = QueryBuilder.prototype.and;

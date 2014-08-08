@@ -14,9 +14,12 @@ describe('Router.js', function () {
     describe('isValid', function () {
         var router = new Router(logger, '/#prefix1/#prefix2/$application/$controller');
 
-        it('should return false when the number of parts of the URL differ from the number of parts specified in the format', function () {
-            assert.equal(false, router.isValid('/1/2/3/4/5'));
+        it('should return false when the URL contains less parts then the number of parts specified in the format', function () {
             assert.equal(false, router.isValid('/1/2/3'));
+        });
+
+        it('should return true when the URL contains more parts then the number of parts specified in the format', function () {
+            assert.equal(true, router.isValid('/1/2/3/4/5/6/7'));
         });
 
         it('should return false if the url does not start with /', function () {
@@ -35,7 +38,7 @@ describe('Router.js', function () {
 
     describe('decompose', function () {
         var router = new Router(logger, '/#locale/#service/$application/$controller');
-        var url = 'http://localhost:3232/locale/service/application/controller?x=1&y=2&z=3';
+        var url = 'http://localhost:3232/locale/service/application/controller/action/subaction?x=1&y=2&z=3';
         it('should decompose the URL and return the parts', function () {
             var expected = {
                 'controller' : 'controller',
@@ -48,7 +51,11 @@ describe('Router.js', function () {
                     'x' : '1',
                     'y' : '2',
                     'z' : '3'
-                }
+                },
+                'segments' : [
+                    'action',
+                    'subaction'
+                ]
             };
             assert.equal(JSON.stringify(expected), JSON.stringify(router.decompose(url)));
         });

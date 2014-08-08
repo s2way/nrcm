@@ -13,9 +13,12 @@ MyController.prototype.after = function (callback) {
 MyController.prototype.post = function (callback) {
 	callback({
         'payload' : this.payload,
-        'query' : this.query
+        'query' : this.query,
+        'segments' : this.segments
     });
 };
+
+MyController.prototype.
 
 MyController.prototype.delete = function (callback) {
     this.model('MyModel').test(callback);

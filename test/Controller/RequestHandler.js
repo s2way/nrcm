@@ -433,6 +433,7 @@ describe('RequestHandler.js', function () {
                             assert.equal(true, this.readonly.response !== undefined);
                             assert.equal(true, this.query !== undefined);
                             assert.equal(true, this.payload !== undefined);
+                            assert.equal(true, this.segments !== undefined);
                             assert.equal(true, this.name !== undefined);
                             assert.equal(true, typeof this.component === 'function');
                             assert.equal(JSON.stringify(expectedResponseAndRequestHeaders), JSON.stringify(this.requestHeaders));

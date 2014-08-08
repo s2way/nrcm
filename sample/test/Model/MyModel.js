@@ -1,5 +1,6 @@
 var assert = require('assert');
 var path = require('path');
+
 var Testing = require('../../../src/NRCM').Testing;
 
 describe('MyModel', function () {
@@ -14,7 +15,17 @@ describe('MyModel', function () {
     });
 
     testing.loadComponent('MyComponent');
-    testing.loadModel('MyModel');
+    //testing.loadModel('MyModel');
+    testing.mockModel('AnotherModel', {
+        'find' : function (callback) {
+            callback({});
+        },
+    });
+    testing.mockComponent('Component', {
+        'method' : function () {
+            return;
+        }
+    });
 
     describe('find', function () {
 

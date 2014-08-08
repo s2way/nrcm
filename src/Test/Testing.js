@@ -147,6 +147,8 @@ Testing.prototype.callController = function (controllerName, httpMethod, options
         'debug' : function () { return; },
         'info' : function () { return; }
     }, this.configs, this.applications, null);
+    // Inject the URL segments
+    requestHandler.segments = options.segments;
 
     // Mock some RequestHandler methods
     requestHandler._endRequest = function (callback) {

@@ -23,6 +23,7 @@ describe('Testing', function () {
         'this' : 'is',
         'a' : 'query string'
     };
+    var segments = ['action', 'subaction'];
 
     beforeEach(function () {
         testing = new Testing('app', {
@@ -40,7 +41,8 @@ describe('Testing', function () {
                     this.post = function (callback) {
                         callback({
                             'payload' : this.payload,
-                            'query' : this.query
+                            'query' : this.query,
+                            'segments' : this.segments
                         });
                     };
                     this.put = function (callback) {
@@ -157,6 +159,17 @@ describe('Testing', function () {
             }, function (response) {
                 assert.equal(JSON.stringify(payload), JSON.stringify(response.payload));
                 assert.equal(JSON.stringify(query), JSON.stringify(response.query));
+                done();
+            });
+
+        });
+
+        it('should call the controller method passing the URL segments', function (done) {
+
+            testing.callController('MyController', 'post', {
+                'segments' : segments,
+            }, function (response) {
+                assert.equal(JSON.stringify(segments), JSON.stringify(response.segments));
                 done();
             });
 

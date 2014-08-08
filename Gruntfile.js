@@ -19,11 +19,11 @@ module.exports = function (grunt) {
         // Watches files for changes and runs tasks based on the changed files
         watch: {
             src: {
-                files: ['test/**/*.js'],
+                files: ['src/**/*.js'],
                 tasks: ['test']
             },
             test: {
-                files: ['src/**/*.js'],
+                files: ['test/**/*.js'],
                 tasks: ['test']
             },
             gruntfile: {

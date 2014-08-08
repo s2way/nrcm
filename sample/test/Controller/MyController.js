@@ -20,6 +20,11 @@ describe('MyController', function () {
                     'query' : 'string'
                 }
             };
+            testing.mockModel('Ticket', {
+                'find' : function () {
+
+                }
+            });
             testing.callController('MyController', 'post', options, function (response) {
                 assert.equal(JSON.stringify(options.payload), JSON.stringify(response.payload));
                 assert.equal(JSON.stringify(options.query), JSON.stringify(response.query));

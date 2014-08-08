@@ -23,7 +23,7 @@ var path = require('path');
 function Router(logger, urlFormat) {
     this.logger = logger;
     this.urlFormat = urlFormat;
-    this.urlFormatParts = urlFormat.split('/');
+    this.urlFormatParts = urlFormat.substring(1).split('/');
     this.info('Router created');
 }
 
@@ -54,9 +54,9 @@ Router.prototype.isValid = function (requestUrl) {
         this.info('URL does not start with /');
         return false;
     }
-    var parts = parsedUrl.split('/');
-    // The number of parameters must be the same of the format
-    if (parts.length !== this.urlFormatParts.length) {
+    var parts = parsedUrl.substring(1).split('/');
+    // The number of parameters must be equal or greater than specified in the format
+    if (parts.length < this.urlFormatParts.length) {
         this.info('URL parts do not match the specified format');
         return false;
     }
@@ -74,32 +74,40 @@ Router.prototype.decompose = function (requestUrl) {
     this.info('Decomposing URL');
     var parsedUrl = url.parse(requestUrl, true);
     var path = parsedUrl.pathname;
-    var parts = path.split('/');
-    var i = 0;
+    var parts = path.substring(1).split('/');
+    var i;
     var prefixes = {};
     var controller = '';
     var application = 'app';
-    var that = this;
-    parts.forEach(function (part) {
-        if (part && i > 0) {
-            var urlFormatPart = that.urlFormatParts[i];
-            var formatPartFirstChar = urlFormatPart.charAt(0);
-            if (formatPartFirstChar === '#') {
-                prefixes[urlFormatPart.substring(1)] = part;
-            } else if (urlFormatPart === '$controller') {
-                controller = part;
-            } else if (urlFormatPart === '$application') {
-                application = part;
+    var segments = [];
+    var part, urlFormatPart, formatPartFirstChar;
+    for (i in parts) {
+        if (parts.hasOwnProperty(i)) {
+            part = parts[i];
+            if (part) {
+                urlFormatPart = this.urlFormatParts[i];
+                if (urlFormatPart !== undefined) {
+                    formatPartFirstChar = urlFormatPart.charAt(0);
+                    if (formatPartFirstChar === '#') {
+                        prefixes[urlFormatPart.substring(1)] = part;
+                    } else if (urlFormatPart === '$controller') {
+                        controller = part;
+                    } else if (urlFormatPart === '$application') {
+                        application = part;
+                    }
+                } else {
+                    segments.push(part);
+                }
             }
         }
-        i += 1;
-    });
+    }
     this.info('URL decomposed');
     return {
         'controller' : controller,
         'application' : application,
         'prefixes' : prefixes,
-        'query' : parsedUrl.query
+        'query' : parsedUrl.query,
+        'segments' : segments
     };
 };
 
