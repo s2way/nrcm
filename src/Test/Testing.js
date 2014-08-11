@@ -11,15 +11,15 @@ var RequestHandler = require('../Controller/RequestHandler');
  * Testing tool constructor
  * @constructor
  * @param {string} applicationPath
- * @param {json} dataSourceConfigs
+ * @param {json} core
  */
-function Testing(applicationPath, dataSourceConfigs) {
+function Testing(applicationPath, core) {
     var dataSources, dataSourceName, dataSourceConfig;
+    this.core = core || {};
+    this.core.requestTimeout = this.core.requestTimeout || 1000;
+    this.core.dataSources = this.core.dataSources || {};
 
     this.applicationPath = applicationPath;
-    this.configs = {
-        'requestTimeout' : 10000
-    };
     this.controllers = { };
     this.components = { };
     this.models = { };
@@ -31,9 +31,7 @@ function Testing(applicationPath, dataSourceConfigs) {
         'controllers' : this.controllers,
         'components' : this.components,
         'models' : this.models,
-        'core' : {
-            'dataSources' : dataSourceConfigs
-        },
+        'core' : this.core,
         'logger' : logger
     };
     this.mockedMethods = {
@@ -48,9 +46,9 @@ function Testing(applicationPath, dataSourceConfigs) {
     };
 
     // Instantiate all DataSources
-    for (dataSourceName in dataSourceConfigs) {
-        if (dataSourceConfigs.hasOwnProperty(dataSourceName)) {
-            dataSourceConfig = dataSourceConfigs[dataSourceName];
+    for (dataSourceName in this.core.dataSources) {
+        if (this.core.dataSources.hasOwnProperty(dataSourceName)) {
+            dataSourceConfig = this.core.dataSources[dataSourceName];
             dataSources[dataSourceName] = new DataSource(logger, dataSourceName, dataSourceConfig);
         }
     }
@@ -152,7 +150,7 @@ Testing.prototype.callController = function (controllerName, httpMethod, options
     var requestHandler = new RequestHandler({
         'debug' : function () { return; },
         'info' : function () { return; }
-    }, this.configs, this.applications, null);
+    }, this.core, this.applications, null);
     // Inject the URL segments
     requestHandler.segments = options.segments;
 

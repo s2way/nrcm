@@ -26,14 +26,7 @@ describe('Testing', function () {
     var segments = ['action', 'subaction'];
 
     beforeEach(function () {
-        testing = new Testing('app', {
-            'default' : {
-                'type' : 'Couchbase',
-                'host' : '0.0.0.0',
-                'port' : '8091',
-                'index' : 'index'
-            }
-        });
+        testing = new Testing('app');
         testing._require = function (path) {
             if (path === 'app/src/Controller/MyController') {
                 // Controller constructor
