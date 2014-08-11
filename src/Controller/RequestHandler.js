@@ -140,6 +140,8 @@ RequestHandler.prototype.prepareController = function (controllerName) {
     controllerInstance.name = controllerName;
     controllerInstance.application = that.appName;
     controllerInstance.logger = application.logger;
+    // Injects the application core JSON Properties
+    controllerInstance.core = application.core;
 
     // Injects the method for retrieving components in the controller and inside each component
     controllerInstance.component = function (componentName) {

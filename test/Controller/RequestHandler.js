@@ -306,6 +306,10 @@ describe('RequestHandler.js', function () {
                 assert.equal('app', instance.application);
             });
 
+            it('should inject the core property', function () {
+                assert.equal('object', typeof instance.core);
+            });
+
             it('should throw a ControllerNotFound exception if the controller does not exist', function () {
                 try {
                     requestHandler.prepareController('InvalidController');
