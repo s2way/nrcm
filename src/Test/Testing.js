@@ -150,8 +150,8 @@ Testing.prototype.callController = function (controllerName, httpMethod, options
 
     this.controllers[controllerName] = this._require(controllerPath);
     var requestHandler = new RequestHandler({
-        'debug' : function (msg) { return; },
-        'info' : function (msg) { return; }
+        'debug' : function () { return; },
+        'info' : function () { return; }
     }, this.configs, this.applications, null);
     // Inject the URL segments
     requestHandler.segments = options.segments;
