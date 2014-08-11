@@ -362,6 +362,9 @@ RequestHandler.prototype.handleRequestException = function (e) {
             instance.onGeneral(callback, e);
         } else {
             console.log(e);
+            if (e.stack !== undefined) {
+                console.log(e.stack);
+            }
             return;
         }
         this.info('Exception ' + e.name + ' handled');
