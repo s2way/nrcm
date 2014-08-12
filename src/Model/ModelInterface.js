@@ -18,6 +18,7 @@ function ModelInterface(dataSource, configurations) {
         throw new exceptions.IllegalArgument('Invalid DataSource type: ' + dataSource.type);
     }
     this.methods = this._model.methods;
+    this.mockMethods = this._model.mockMethods;
 }
 
 module.exports = ModelInterface;

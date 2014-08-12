@@ -56,6 +56,8 @@ function CouchbaseInterface(dataSource, configurations) {
     this.validator = new Validator(this.validate);
     // Methods that should be injected into the model (they are prefixed with $)
     this.methods = ['find', 'findByKey', 'findById', 'findAll', 'save', 'removeById', 'getMulti'];
+    // Methods that should be mocked
+    this.mockMethods = this.methods;
 }
 
 /*

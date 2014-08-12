@@ -76,5 +76,9 @@ module.exports = {
     InvalidSchema : function (message) {
         this.message = message;
         this.name = 'InvalidSchema';
+    },
+    NotMocked : function (message) {
+        this.message = message;
+        this.name = 'NotMocked';
     }
 };

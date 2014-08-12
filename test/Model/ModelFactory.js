@@ -9,34 +9,38 @@ describe('ModelFactory.js', function () {
 
     describe('create', function () {
 
-        var instance;
+        var instance, loader;
+        var application = {
+            'models' : {
+                'MyModel' : function () {
+                    this.uid = 'index';
+                    return;
+                }
+            },
+            'components' : {
+                'MyComponent' : function () {
+                    return;
+                }
+            },
+            'logger' : { }
+        };
+        var componentFactory = {
+            'create' : function () {
+                return null;
+            }
+        };
+        var logger = {
+            'debug' : function () { return; },
+            'info' : function () { return; }
+        };
+        var dataSources = {
+            'default' : {
+                'type' : 'Couchbase'
+            }
+        };
 
         beforeEach(function () {
-            var loader = new ModelFactory({
-                'debug' : function () { return; },
-                'info' : function () { return; }
-            }, {
-                'models' : {
-                    'MyModel' : function () {
-                        this.uid = 'index';
-                        return;
-                    }
-                },
-                'components' : {
-                    'MyComponent' : function () {
-                        return;
-                    }
-                },
-                'logger' : { }
-            }, {
-                'default' : {
-                    'type' : 'Couchbase'
-                }
-            }, {
-                'create' : function () {
-                    return null;
-                }
-            });
+            loader = new ModelFactory(logger, application, dataSources, componentFactory);
             instance = loader.create('MyModel');
         });
 
@@ -68,6 +72,42 @@ describe('ModelFactory.js', function () {
             assert.equal('function', typeof myModel.$find);
             assert.equal('function', typeof myModel.$removeById);
             assert.equal('function', typeof myModel.$save);
+        });
+
+        it('should inject all ModelInterface and they should throw a NotMocked if the DataSource mock parameter is true', function () {
+            loader = new ModelFactory(logger, application, {
+                'default' : {
+                    'type' : 'MySQL',
+                    'mock' : true
+                }
+            }, componentFactory);
+            instance = loader.create('MyModel');
+            var myModel = instance.model('MyModel');
+            var methods = ['$query', '$use'];
+            var i, method;
+            for (i in methods) {
+                if (methods.hasOwnProperty(i)) {
+                    method = methods[i];
+                    try {
+                        myModel[method]();
+                        assert.fail();
+                    } catch (e) {
+                        assert.equal('NotMocked', e.name);
+                    }
+                }
+            }
+        });
+
+        it('should inject the $builder property normally even if the mock parameter is true', function () {
+            loader = new ModelFactory(logger, application, {
+                'default' : {
+                    'type' : 'MySQL',
+                    'mock' : true
+                }
+            }, componentFactory);
+            instance = loader.create('MyModel');
+            var myModel = instance.model('MyModel');
+            assert.equal('function', typeof myModel.$builder);
         });
 
         it('should inject the method for retrieving models inside the models retrieved by the model method', function () {

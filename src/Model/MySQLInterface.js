@@ -18,6 +18,8 @@ function MySQLInterface(dataSource, configurations) {
     this.dataSource = dataSource;
     // Methods that are going to be injected into the model (prefixed with $)
     this.methods = ['query', 'use', 'call', 'builder'];
+    // Methods that should be mocked
+    this.mockMethods = ['query', 'use', 'call'];
 }
 
 MySQLInterface.prototype.builder = function () {

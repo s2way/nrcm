@@ -2,6 +2,7 @@
 'use strict';
 
 var ModelInterface = require('./ModelInterface');
+var exceptions = require('./../exceptions');
 
 function ModelFactory(logger, application, dataSources, componentFactory) {
     this.application = application;
@@ -24,6 +25,10 @@ ModelFactory.prototype.create = function (modelName) {
         return function () {
             return modelInterface._model[method].apply(modelInterface._model, arguments);
         };
+    }
+
+    function notMocked() {
+        throw new exceptions.NotMocked('You must mock this method in your tests');
     }
 
     if (this.application.models[modelName] !== undefined) {
@@ -51,6 +56,16 @@ ModelFactory.prototype.create = function (modelName) {
                 if (modelInterface.methods.hasOwnProperty(i)) {
                     modelInterfaceMethod = modelInterface.methods[i];
                     modelInstance['$' + modelInterfaceMethod] = modelInterfaceDelegation(modelInterfaceMethod);
+                }
+            }
+
+            // Overwrite methods that should be mocked if the mock property is set to true
+            if (dataSource.mock) {
+                for (i in modelInterface.mockMethods) {
+                    if (modelInterface.mockMethods.hasOwnProperty(i)) {
+                        modelInterfaceMethod = modelInterface.mockMethods[i];
+                        modelInstance['$' + modelInterfaceMethod] = notMocked;
+                    }
                 }
             }
         }
