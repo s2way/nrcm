@@ -30,6 +30,8 @@ describe('MySQLInterface.js', function () {
         'info' : function () { return; }
     };
 
+    var configurations = {'uid': 'pessoa'};
+
     function createDataSource(mysql) {
         var ds = new DataSource(logger, 'default', {
             'type' : 'MySQL',
@@ -48,7 +50,7 @@ describe('MySQLInterface.js', function () {
         if (mysql === undefined) {
             mysql = mockMySQL();
         }
-        var modelInterface = new MySQLInterface(createDataSource(mysql), {'uid': 'pessoa'});
+        var modelInterface = new MySQLInterface(createDataSource(mysql), configurations);
         return modelInterface;
     }
 
@@ -101,6 +103,42 @@ describe('MySQLInterface.js', function () {
                 assert(!err);
                 assert.equal(myResult, rows);
                 assert.equal(myFields, fields);
+                done();
+            });
+        });
+
+        it('should call the use command before query if the database configuration is specified', function (done) {
+            var modelInterface = new MySQLInterface(createDataSource(mockMySQL({
+                'query' : function (query, params, callback) {
+                    setImmediate(function () {
+                        callback();
+                    });
+                }
+            })), {
+                'database' : 'my_database'
+            });
+            modelInterface.use = function (database, callback) {
+                assert.equal('my_database', database);
+                callback();
+            };
+            modelInterface.query('SELECT * FROM sky', [], function () {
+                done();
+            });
+        });
+
+        it('should call the callback passing an error if uses fails', function (done) {
+            var modelInterface = new MySQLInterface(createDataSource(mockMySQL({
+                'query' : function (query, params, callback) {
+                    assert.fail();
+                }
+            })), {
+                'database' : 'my_database'
+            });
+            modelInterface.use = function (database, callback) {
+                callback({});
+            };
+            modelInterface.query('SELECT * FROM sky', [], function (err) {
+                assert(err);
                 done();
             });
         });

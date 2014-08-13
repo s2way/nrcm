@@ -20,6 +20,10 @@ function MySQLInterface(dataSource, configurations) {
     this.methods = ['query', 'use', 'call', 'builder'];
     // Methods that should be mocked
     this.mockMethods = ['query', 'use', 'call'];
+    // Database name
+    this.database = configurations.database;
+    // Database selected
+    this.databaseSelected = false;
 }
 
 MySQLInterface.prototype.builder = function () {
@@ -30,8 +34,20 @@ MySQLInterface.prototype.builder = function () {
 };
 
 MySQLInterface.prototype.query = function (query, params, callback) {
+    var $this = this;
     this.dataSource.connect(function (connection) {
-        connection.query(query, params, callback);
+        if (!$this.databaseSelected && $this.database !== undefined) {
+            $this.use($this.database, function (error) {
+                if (error) {
+                    callback(error);
+                } else {
+                    $this.databaseSelected = true;
+                    connection.query(query, params, callback);
+                }
+            });
+        } else {
+            connection.query(query, params, callback);
+        }
     }, function (error) {
         callback(error);
     });
