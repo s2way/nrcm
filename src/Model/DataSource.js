@@ -17,15 +17,13 @@ function DataSource(logger, name, configs) {
     }
     this.logger = logger;
     this.name = name;
-    // General
-    this.host = configs.host;
-    this.port = configs.port;
-    this.type = configs.type;
-    // Couchbase specific
-    this.index = configs.index;
-    // MySQL specific
-    this.user = configs.user;
-    this.password = configs.password;
+    // Copy the DataSource configs
+    var configProp;
+    for (configProp in configs) {
+        if (configs.hasOwnProperty(configProp)) {
+            this[configProp] = configs[configProp];
+        }
+    }
 
     if (typeof this.index !== 'string') {
         this.index = 'default';
