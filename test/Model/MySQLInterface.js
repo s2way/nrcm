@@ -32,10 +32,11 @@ describe('MySQLInterface.js', function () {
 
     var configurations = {'uid': 'pessoa'};
 
-    function createDataSource(mysql) {
-        var ds = new DataSource(logger, 'default', {
-            'type' : 'MySQL',
-        });
+    function createDataSource(mysql, dataSourceConfigs) {
+        dataSourceConfigs = dataSourceConfigs || {
+            'type' : 'MySQL'
+        };
+        var ds = new DataSource(logger, 'default', dataSourceConfigs);
         ds.log = function (msg) {
             this.msg = msg;
         };
@@ -117,6 +118,26 @@ describe('MySQLInterface.js', function () {
             })), {
                 'database' : 'my_database'
             });
+            modelInterface.use = function (database, callback) {
+                assert.equal('my_database', database);
+                callback();
+            };
+            modelInterface.query('SELECT * FROM sky', [], function () {
+                done();
+            });
+        });
+
+        it('should call the use command before executing the query if the database is specified in the DataSource configurations', function (done) {
+            var modelInterface = new MySQLInterface(createDataSource(mockMySQL({
+                'query' : function (query, params, callback) {
+                    setImmediate(function () {
+                        callback();
+                    });
+                }
+            }), {
+                'type' : 'MySQL',
+                'database' : 'my_database'
+            }), { });
             modelInterface.use = function (database, callback) {
                 assert.equal('my_database', database);
                 callback();

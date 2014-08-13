@@ -21,7 +21,7 @@ function MySQLInterface(dataSource, configurations) {
     // Methods that should be mocked
     this.mockMethods = ['query', 'use', 'call'];
     // Database name
-    this.database = configurations.database;
+    this.database = configurations.database || dataSource.database;
     // Database selected
     this.databaseSelected = false;
 }
