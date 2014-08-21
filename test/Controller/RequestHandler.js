@@ -69,17 +69,17 @@ describe('RequestHandler.js', function () {
 
     function mockResponse() {
         return {
-            setHeader : function () {
+            'setHeader' : function () {
                 controlVars.headersSet = true;
             },
-            writeHead : function (code, type) {
+            'writeHead' : function (code, type) {
                 controlVars.code = code;
                 controlVars.contentType = type['Content-Type'];
             },
-            write : function () {
+            'write' : function () {
                 controlVars.writeCalled = true;
             },
-            end : function () {
+            'end' : function () {
                 controlVars.endCalled = true;
             }
         };
@@ -165,7 +165,6 @@ describe('RequestHandler.js', function () {
         };
 
         var rh = new RequestHandler({
-            //Logger
             'info' : function () { return; },
             'debug' : function () { return; }
         }, {
@@ -173,6 +172,7 @@ describe('RequestHandler.js', function () {
         }, {
             'app' : {
                 'core' : {
+                    'version' : '1.0.0',
                     'requestTimeout' : 1000,
                     'dataSources' : {
                         'default' : {
@@ -187,7 +187,7 @@ describe('RequestHandler.js', function () {
                 'components' : components,
                 'models' : models
             }
-        }, MockExceptionsController);
+        }, MockExceptionsController, '0.0.1');
         rh.appName = 'app';
 
         rh.isAllowed = function () {
@@ -325,6 +325,23 @@ describe('RequestHandler.js', function () {
                 controlVars = {};
             });
 
+            it('should render a JSON with the application version when the application root is queried', function () {
+                var rh = mockRequestHandler();
+                rh.process(mockRequest('/p1/p2/app', 'get'), mockResponse());
+                rh.render = function (output) {
+                    assert.equal('1.0.0', output.version);
+                    assert.equal('app', output.application);
+                };
+            });
+
+            it('should render a JSON with the NRCM version when the root is queried', function () {
+                var rh = mockRequestHandler();
+                rh.process(mockRequest('/p1/p2', 'get'), mockResponse());
+                rh.render = function (output) {
+                    assert.equal('0.0.1', output.version);
+                };
+            });
+
             it('should handle the InvalidUrl exception and render something', function () {
                 var rh = mockRequestHandler();
                 rh.isAllowed = function () { return '**'; };
@@ -345,13 +362,11 @@ describe('RequestHandler.js', function () {
                         this.post = function (callback) {
                             var myComponent = this.component('MyComponent');
                             myComponent.method(callback);
-                            // The component must be able to retrieve other components and itself!
                             assert(myComponent.component('MyComponent') !== undefined);
 
                         };
                     }
                 });
-                // Finaliza o teste após renderizar a resposta
                 rh.render = function () {
                     done();
                 };
@@ -369,7 +384,6 @@ describe('RequestHandler.js', function () {
                         };
                     }
                 });
-                // Finaliza o teste após renderizar a resposta
                 rh.render = function () {
                     done();
                 };
@@ -391,7 +405,6 @@ describe('RequestHandler.js', function () {
                         };
                     }
                 });
-                // Finaliza o teste após renderizar a resposta
                 rh.render = function () {
                     done();
                 };
@@ -415,7 +428,6 @@ describe('RequestHandler.js', function () {
                         };
                     }
                 });
-                // Finaliza o teste após renderizar a resposta
                 rh.render = function () {
                     done();
                 };
@@ -423,7 +435,11 @@ describe('RequestHandler.js', function () {
             });
 
             it('should invoke the controller and render if the url is valid', function (done) {
-                var expectedResponseAndRequestHeaders = {
+                var expectedRequestHeaders = {
+                    'header' : 'value'
+                };
+                var expectedResponseHeaders = {
+                    'X-Powered-By' : 'NRCM',
                     'header' : 'value'
                 };
                 var rh = mockRequestHandler({
@@ -440,8 +456,8 @@ describe('RequestHandler.js', function () {
                             assert.equal(true, this.segments !== undefined);
                             assert.equal(true, this.name !== undefined);
                             assert.equal(true, typeof this.component === 'function');
-                            assert.equal(JSON.stringify(expectedResponseAndRequestHeaders), JSON.stringify(this.requestHeaders));
-                            assert.equal(JSON.stringify(expectedResponseAndRequestHeaders), JSON.stringify(this.responseHeaders));
+                            assert.equal(JSON.stringify(expectedRequestHeaders), JSON.stringify(this.requestHeaders));
+                            assert.equal(JSON.stringify(expectedResponseHeaders), JSON.stringify(this.responseHeaders));
                             assert.equal('service', this.prefixes.service);
                             assert.equal('version', this.prefixes.version);
                             assert.equal('app', this.application);
@@ -449,11 +465,9 @@ describe('RequestHandler.js', function () {
                         };
                     }
                 });
-                // Finaliza o teste após a execução do método render()
                 rh.render = function (output, statusCode) {
                     assert(statusCode === 200);
                     assert(output !== null);
-                    // Certifica-se que os headers foram setados
                     assert(controlVars.headersSet);
                     done();
                 };
@@ -486,7 +500,7 @@ describe('RequestHandler.js', function () {
                     MyController : function () {
                         this.post = function (callback) {
                             // Callback not called
-                            // Timeout            
+                            // Timeout
                             assert(callback);
                         };
                     }

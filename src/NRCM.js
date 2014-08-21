@@ -1,4 +1,4 @@
-/*
+/**
     Copyright 2014 Versul Tecnologias
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,9 +15,9 @@
 */
 
 /*jslint devel: true, node: true, indent: 4, vars: true, maxlen: 256 */
+/*globals __dirname*/
 'use strict';
 // Dependencies
-var fs = require('fs');
 var path = require('path');
 var http = require('http');
 var exceptions = require('./exceptions');
@@ -25,8 +25,8 @@ var sync = require('./Util/sync');
 var Logger = require('./Util/Logger');
 var RequestHandler = require('./Controller/RequestHandler');
 
-// Constructor
 function NRCM() {
+    this.version = require('./../package.json').version;
     this.applications = {};
     // Default configurations
     this.configs = {
@@ -37,7 +37,6 @@ function NRCM() {
     this.logger = new Logger('logs');
 }
 
-// Log
 NRCM.prototype.info = function (message) {
     this.logger.info('[NRCM] ' + message);
 };
@@ -168,7 +167,7 @@ NRCM.prototype._validateCoreFile = function (core) {
  * data sources, etc...
  *
  * @method configure
- * @param {json} configJSONFile The file name that contains your configuration object
+ * @param {string} configJSONFile The file name that contains your configuration object
  */
 NRCM.prototype.configure = function (configJSONFile) {
     try {
@@ -183,11 +182,11 @@ NRCM.prototype.configure = function (configJSONFile) {
 };
 
 /**
- * Starts the nodejs server for all your applications
+ * Starts the NodeJS server for all your applications
  *
  * @method start
- * @param {string} address The listening address of nodejs http.createServer function
- * @param {number} port The listening port of nodejs http.createServer function
+ * @param {string} address The listening address of NodeJS http.createServer function
+ * @param {number} port The listening port of NodeJS http.createServer function
  */
 NRCM.prototype.start = function (address, port) {
     var $this = this;
@@ -197,7 +196,8 @@ NRCM.prototype.start = function (address, port) {
             $this.logger,
             $this.configs,
             $this.applications,
-            $this.ExceptionsController
+            $this.ExceptionsController,
+            $this.version
         );
         requestHandler.process(request, response);
     }).listen(port, address);

@@ -28,7 +28,7 @@ module.exports = function (grunt) {
             },
             gruntfile: {
                 files: ['Gruntfile.js']
-            },
+            }
         }
     });
 

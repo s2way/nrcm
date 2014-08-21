@@ -3,7 +3,6 @@
 'use strict';
 var NRCM = require('./../src/NRCM');
 var assert = require('assert');
-var fs = require('fs');
 var path = require('path');
 var sync = require('./../src/Util/sync');
 var fs = require('fs');

@@ -31,6 +31,9 @@
     "grunt-exec": "^0.4.6",
     "grunt-mocha-test": "^0.11.0",
     "jslint": "^0.5.2",
+    "karma": "^0.12.21",
+    "karma-coverage": "^0.2.6",
+    "karma-mocha": "^0.1.7",
     "load-grunt-tasks": "^0.6.0",
     "mocha": "1.13.0",
     "travis-cov": "^0.2.5"

@@ -20,13 +20,14 @@ var DataSource = require('./../Model/DataSource');
  * @param {json} applications
  * @param {object} ExceptionsController
  */
-function RequestHandler(serverLogger, configs, applications, ExceptionsController) {
+function RequestHandler(serverLogger, configs, applications, ExceptionsController, version) {
     this.applications = applications;
     this.configs = configs;
     this.isAllowed = aclModule.isAllowed;
     this.ExceptionsController = ExceptionsController;
     this.start = new Date();
     this.serverLogger = serverLogger;
+    this.version = version;
     this.info('RequestHandler created');
 }
 
@@ -38,6 +39,7 @@ function RequestHandler(serverLogger, configs, applications, ExceptionsControlle
  * @param {object} response The nodejs response object
  */
 RequestHandler.prototype.process = function (request, response) {
+    var $this = this;
     this.request = request;
     this.response = response;
     this.extension = '.json';
@@ -52,23 +54,23 @@ RequestHandler.prototype.process = function (request, response) {
     try {
         var router = new Router(this.serverLogger, this.configs.urlFormat);
 
-        // Verifica se a URL é válida
         if (!router.isValid(requestUrl)) {
             throw new exceptions.InvalidUrl();
         }
 
-        // Utiliza o Router para decompor a URL
         var decomposedURL = router.decompose(requestUrl);
+        var type = decomposedURL.type;
         var method = this.request.method.toLowerCase();
-
         this.appName = decomposedURL.application;
 
-        // Verifica se a aplicação existe
-        if (this.applications[this.appName] === undefined) {
-            throw new exceptions.ApplicationNotFound(this.appName);
+        if (type !== 'root') {
+            this.application = this.appName ? this.applications[this.appName] : null;
+            if (this.applications[this.appName] === undefined) {
+                throw new exceptions.ApplicationNotFound(this.appName);
+            }
+            this.acl = this.application.acl;
         }
 
-        this.acl = this.applications[this.appName].acl;
         this.query = decomposedURL.query;
         this.prefixes = decomposedURL.prefixes;
         this.segments = decomposedURL.segments;
@@ -77,30 +79,48 @@ RequestHandler.prototype.process = function (request, response) {
         this.info('Application: ' + this.appName);
         this.info('Controller: ' + controller);
         this.info('Method: ' + method);
+        this.info('URL type: ' + type);
         this.info('Prefixes: ' + JSON.stringify(this.prefixes));
         this.info('Query: ' + JSON.stringify(this.query));
         this.info('Segments: ' + JSON.stringify(this.segments));
 
-        var rule = this.isAllowed(this.acl, 'admin', controller, method);
-        this.rule = rule;
+        if (type === 'controller') {
+            var rule = this.isAllowed(this.acl, 'admin', controller, method);
+            this.rule = rule;
 
-        this.info('Rule: ' + rule);
+            this.info('Rule: ' + rule);
 
-        if (rule === false) {
-            throw new exceptions.Forbidden();
+            if (rule === false) {
+                throw new exceptions.Forbidden();
+            }
+
+            var controllerNameCamelCase = stringUtils.lowerCaseUnderscoredToCamelCase(decomposedURL.controller);
+            var controllerInstance = this.prepareController(controllerNameCamelCase);
+            this.invokeController(controllerInstance, method);
+
+        } else if (type === 'appRoot') {
+            this._receivePayload();
+            this._endRequest(function () {
+                $this.render({
+                    'application' : $this.appName,
+                    'version' : $this.application.core.version
+                }, 200);
+            });
+        } else if (type === 'root') {
+            this._receivePayload();
+            this._endRequest(function () {
+                $this.render({
+                    'version' : $this.version
+                }, 200);
+            });
         }
-
-        var controllerNameCamelCase = stringUtils.lowerCaseUnderscoredToCamelCase(decomposedURL.controller);
-
-        var controllerInstance = this.prepareController(controllerNameCamelCase);
-        this.invokeController(controllerInstance, method);
 
     } catch (e) {
         this.handleRequestException(e);
     }
 };
 
-/** 
+/**
  * Prepares the controller to be invoked
  * Controller dependency injection happens here
  * @return The controller instance that should be passed to invokeController
@@ -229,7 +249,9 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
             'response' : that.response
         };
         controllerInstance.requestHeaders = that._headers();
-        controllerInstance.responseHeaders = {};
+        controllerInstance.responseHeaders = {
+            'X-Powered-By' : 'NRCM'
+        };
 
         var timer;
 
@@ -319,7 +341,7 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
         });
 
         that.info('Timeout timer started');
-        // Timer that checks if the 
+        // Timer that checks if the
         timer = setTimeout(function () {
             that.debug('Request timeout!');
             clearImmediate(controllerMethodImmediate);
@@ -382,7 +404,7 @@ RequestHandler.prototype.handleRequestException = function (e) {
  * The callback function that sends the response back to the client
  *
  * @method render
- * @param {json} output The body/payload data
+ * @param {object} output The body/payload data
  * @param {number} statusCode The status code for http response
  * @param {string} contentType The text for the Content-Type http header
  */

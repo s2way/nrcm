@@ -6,9 +6,6 @@
  *
  * Format example: /#prefix1/#prefix2/$application/$controller
  */
-var prefixRegex = /\#[a-z0-9]*/;
-var applicationRegex = /\$application/;
-var controllerRegex = /\$controller/;
 var url = require('url');
 var path = require('path');
 
@@ -32,7 +29,7 @@ Router.prototype.info = function (msg) {
 };
 
 /**
- * It checks if the url received by the server was formated according to the configuration
+ * It checks if the url received by the server was formatted according to the configuration
  *
  * @method isValid
  * @param {string} requestUrl The requested url received by the server
@@ -40,23 +37,33 @@ Router.prototype.info = function (msg) {
  */
 Router.prototype.isValid = function (requestUrl) {
     var parsedUrl = url.parse(requestUrl, true).pathname;
-    // This version does not allow extension at this moment
-    if (path.extname(parsedUrl) !== '') {
+    var startsWithSlash = parsedUrl.charAt(0) !== '/';
+    var endsWithSlash = parsedUrl.charAt(parsedUrl.length - 1) === '/';
+    var noExtension = path.extname(parsedUrl) !== '';
+    var formatContainsApplication = this.urlFormat.indexOf('$application') !== -1;
+    var formatContainsController = this.urlFormat.indexOf('$controller') !== -1;
+
+    if (noExtension) {
         this.info('Extension is not allowed');
         return false;
     }
-    // Remove / at the end of the URL
-    if (parsedUrl.charAt(parsedUrl.length - 1) === '/') {
+    if (endsWithSlash) {
         parsedUrl = parsedUrl.substring(0, parsedUrl.length - 1);
     }
-    // Must start with /
-    if (parsedUrl.charAt(0) !== '/') {
+    if (startsWithSlash) {
         this.info('URL does not start with /');
         return false;
     }
-    var parts = parsedUrl.substring(1).split('/');
-    // The number of parameters must be equal or greater than specified in the format
-    if (parts.length < this.urlFormatParts.length) {
+    var urlNumParts = parsedUrl.substring(1).split('/').length;
+
+    var requiredParts = this.urlFormatParts.length;
+    if (formatContainsApplication) {
+        requiredParts -= 1;
+    }
+    if (formatContainsController) {
+        requiredParts -= 1;
+    }
+    if (urlNumParts < requiredParts) {
         this.info('URL parts do not match the specified format');
         return false;
     }
@@ -81,6 +88,7 @@ Router.prototype.decompose = function (requestUrl) {
     var application = 'app';
     var segments = [];
     var part, urlFormatPart, formatPartFirstChar;
+    var type = 'root';
     for (i in parts) {
         if (parts.hasOwnProperty(i)) {
             part = parts[i];
@@ -91,8 +99,12 @@ Router.prototype.decompose = function (requestUrl) {
                     if (formatPartFirstChar === '#') {
                         prefixes[urlFormatPart.substring(1)] = part;
                     } else if (urlFormatPart === '$controller') {
+                        type = 'controller';
                         controller = part;
                     } else if (urlFormatPart === '$application') {
+                        if (type === 'root') {
+                            type = 'appRoot';
+                        }
                         application = part;
                     }
                 } else {
@@ -103,6 +115,7 @@ Router.prototype.decompose = function (requestUrl) {
     }
     this.info('URL decomposed');
     return {
+        'type' : type,
         'controller' : controller,
         'application' : application,
         'prefixes' : prefixes,
