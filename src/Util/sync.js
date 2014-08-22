@@ -36,33 +36,28 @@ var sync = {
         return true;
     },
     /**
-     * Load files within directory into an array
+     * Load all files specified in a Array
      *
      * @method loadNodeFilesIntoArray
-     * @param {array} files An array of files
+     * @param {object} files A key-value JSON with the target key and the complete file name
      */
     loadNodeFilesIntoArray : function (files) {
         var jsonFiles = {};
-        if (!util.isArray(files)) {
+        if (typeof files !== 'object') {
             throw new exceptions.Fatal();
         }
-        var name, i, file, extension;
-        for (i = 0; i < files.length; i += 1) {
-            name = files[i];
-            file = files[i];
-            extension = path.extname(file);
-
-            if (extension !== '') { // if there is an extension remove it
-                name = path.basename(file, extension);
-            } else {
-                name = path.basename(file);
+        var filePath, fileId;
+        for (fileId in files) {
+            if (files.hasOwnProperty(fileId)) {
+                filePath = files[fileId];
+                jsonFiles[fileId] = require(fs.realpathSync(filePath));
             }
-            jsonFiles[name] = require(fs.realpathSync(file));
         }
         return jsonFiles;
     },
+
     /**
-     * Check if the directory exists, if doesn`t try to create
+     * Check if the directory exists, if doesn't try to create
      *
      * @method createDirIfNotExists
      * @param {string} dir The dir that needs to be created
@@ -89,7 +84,7 @@ var sync = {
         return JSON.parse(fs.readFileSync(file, "utf8"));
     },
     /**
-     * Check if the file exists, if doesn`t try to create
+     * Check if the file exists, if doesn't try to create
      *
      * @method createFileIfNotExists
      * @param {string} filePath The file path that needs to be created
@@ -107,11 +102,11 @@ var sync = {
         }
     },
     /**
-     * Return a list of files inside a given folder
+     * Return a list of files inside a given folder (recursive)
      *
      * @method listFilesFromDir
      * @param {string} path Path to be searched
-     * @return {array} Returns a list of files
+     * @return {Array} Returns a list of files
      */
     listFilesFromDir : function (dir) {
         var files = fs.readdirSync(dir);
@@ -120,14 +115,13 @@ var sync = {
             files.forEach(function (file) {
                 var fullFilePath = path.join(dir, file);
                 var stats = fs.lstatSync(fullFilePath);
+                if (stats.isSymbolicLink()) {
+                    stats = fs.lstatSync(fs.realpathSync(fullFilePath));
+                }
                 if (stats.isFile()) {
                     result.push(fullFilePath);
-                }
-                if (stats.isSymbolicLink()) { // resolve symlinks
-                    stats = fs.lstatSync(fs.realpathSync(fullFilePath));
-                    if (stats.isFile()) {
-                        result.push(fullFilePath);
-                    }
+                } else if (stats.isDirectory()) {
+                    result = result.concat(sync.listFilesFromDir(fullFilePath));
                 }
             });
         }

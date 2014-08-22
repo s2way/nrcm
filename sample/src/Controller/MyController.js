@@ -1,17 +1,18 @@
+'use strict';
 function MyController() {
-
+    return;
 }
 
 MyController.prototype.before = function (callback) {
-	callback(true);
+    callback(true);
 };
 
 MyController.prototype.after = function (callback) {
-	callback();
+    callback();
 };
 
 MyController.prototype.post = function (callback) {
-	callback({
+    callback({
         'payload' : this.payload,
         'query' : this.query,
         'segments' : this.segments
@@ -23,13 +24,13 @@ MyController.prototype.delete = function (callback) {
 };
 
 MyController.prototype.put = function (callback) {
-	var myComponent = this.component('MyComponent');
-	callback(myComponent.method());
+    var myComponent = this.component('MyComponent');
+    callback(myComponent.method());
 };
 
 MyController.prototype.get = function (callback) {
-	var myModel = this.model('MyModel');
-	myModel.find(callback);
+    var myModel = this.model('MyModel');
+    myModel.find(callback);
 };
 
 module.exports = MyController;

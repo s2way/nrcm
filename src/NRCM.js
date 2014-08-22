@@ -13,11 +13,9 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-
 /*jslint devel: true, node: true, indent: 4, vars: true, maxlen: 256 */
 /*globals __dirname*/
 'use strict';
-// Dependencies
 var path = require('path');
 var http = require('http');
 var exceptions = require('./exceptions');
@@ -28,11 +26,9 @@ var RequestHandler = require('./Controller/RequestHandler');
 function NRCM() {
     this.version = require('./../package.json').version;
     this.applications = {};
-    // Default configurations
     this.configs = {
         'url' : '/$controller'
     };
-    // Create server log dir if it does not exists
     sync.createDirIfNotExists('logs');
     this.logger = new Logger('logs');
 }
@@ -67,49 +63,36 @@ NRCM.prototype.setUp = function (appName) {
     app.componentsTestPath = path.join(app.testPath, 'Component');
     app.modelsTestPath = path.join(app.testPath, 'Model');
 
-    // src directory creation
     sync.createDirIfNotExists(app.basePath);
     sync.createDirIfNotExists(app.srcPath);
     sync.createDirIfNotExists(app.controllersPath);
     sync.createDirIfNotExists(app.componentsPath);
     sync.createDirIfNotExists(app.modelsPath);
     sync.createDirIfNotExists(app.configPath);
-    // test directory creation
     sync.createDirIfNotExists(app.testPath);
     sync.createDirIfNotExists(app.controllersTestPath);
     sync.createDirIfNotExists(app.modelsTestPath);
     sync.createDirIfNotExists(app.componentsTestPath);
-    // logs directory creation
     sync.createDirIfNotExists(app.logsPath);
 
-    // Acl file creation
     sync.copyIfNotExists(path.join(__dirname, 'Copy', 'acl.json'), app.aclFileName);
-    // Core file creation
     sync.copyIfNotExists(path.join(__dirname, 'Copy', 'core.json'), app.coreFileName);
-    // ExceptionsController creation
     sync.copyIfNotExists(path.join(__dirname, 'Controller', 'Exceptions.js'), path.join('Exceptions.js'));
-    // Controller load
-    app.controllers = sync.loadNodeFilesIntoArray(sync.listFilesFromDir(app.controllersPath));
-    // Components load
-    app.components = sync.loadNodeFilesIntoArray(sync.listFilesFromDir(app.componentsPath));
-    // Models Load
-    app.models = sync.loadNodeFilesIntoArray(sync.listFilesFromDir(app.modelsPath));
-    // Loads acl file
+    app.controllers = this._loadElements(app.controllersPath);
+    app.components = this._loadElements(app.componentsPath);
+    app.models = this._loadElements(app.modelsPath);
     app.acl = sync.fileToJSON(app.aclFileName);
-    // Load the core configuration file of the application
     try {
         app.core = sync.fileToJSON(app.coreFileName);
     } catch (e) {
         throw new exceptions.Fatal('The core configuration file is not a valid JSON', e);
     }
     this._validateCoreFile(app.core);
-    // Instantiate the application logger
     app.logger = new Logger(app.logsPath);
 
     this.applications[appName] = app;
 
     this.ExceptionsController = require('./Controller/Exceptions.js');
-    // Validate the controllers format
     var Controller, instance, methodsLength, methodName, j;
     var methods = ['before', 'after', 'put', 'delete', 'get', 'post', 'options', 'head', 'path'];
 
@@ -153,6 +136,19 @@ NRCM.prototype.setUp = function (appName) {
     }
 };
 
+NRCM.prototype._loadElements = function (dirPath) {
+    var elementNames = [];
+    var files = sync.listFilesFromDir(dirPath);
+    files.forEach(function (file) {
+        var relative = file.substring(dirPath.length + 1);
+        var extensionIndex = relative.lastIndexOf('.');
+        var relativeWithoutExt = relative.substring(0, extensionIndex);
+        var elementName = relativeWithoutExt.replace(/\//g, '.');
+        elementNames[elementName] = file;
+    });
+    return sync.loadNodeFilesIntoArray(elementNames);
+};
+
 NRCM.prototype._validateCoreFile = function (core) {
     if (core.requestTimeout === undefined) {
         throw new exceptions.Fatal('The requestTimeout configuration is not defined');
@@ -175,7 +171,6 @@ NRCM.prototype.configure = function (configJSONFile) {
     } catch (e) {
         throw new exceptions.Fatal('Configuration file is not a valid JSON', e);
     }
-    // Validate the json object within configuration's file
     if ((typeof this.configs.urlFormat) !== 'string') {
         throw new exceptions.Fatal('urlFormat has not been specified or it is not a string');
     }
@@ -205,7 +200,6 @@ NRCM.prototype.start = function (address, port) {
     this.info('Started!');
 };
 
-// Testing tools
 NRCM.Testing = require('./Test/Testing');
 
 module.exports = NRCM;

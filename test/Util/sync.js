@@ -46,33 +46,41 @@ describe('sync.js', function () {
     describe('loadNodeFilesIntoArray', function () {
         it('should throw a Fatal exception if the param is not an array', function () {
             try {
-                sync.loadNodeFilesIntoArray(null);
+                sync.loadNodeFilesIntoArray();
                 assert.fail();
             } catch (e) {
                 assert.equal('Fatal', e.name);
             }
         });
         it('should the node files into an array', function () {
-            var files = ['file0', 'file1', 'file2'];
-            var filesWithExtension = ['file0.js', 'file1.js', 'file2.js'];
+            var files = {
+                'file0' : 'file0.js',
+                'file1' : 'file1.js',
+                'file2' : 'file2.js'
+            };
 
-            var i, file, fileName;
-            for (i = 0; i < files.length; i += 1) {
-                file = files[i];
-                fileName = files[i] + '.js';
-                sync.createFileIfNotExists(fileName, 'module.exports = ' + JSON.stringify({ i : i }));
+            var file, fileName, filesJSON;
+            try {
+                for (file in files) {
+                    if (files.hasOwnProperty(file)) {
+                        fileName = files[file];
+                        sync.createFileIfNotExists(fileName, 'module.exports = { };');
+                    }
+                }
+                filesJSON = sync.loadNodeFilesIntoArray(files);
+            } finally {
+                for (file in files) {
+                    if (files.hasOwnProperty(file)) {
+                        fileName = files[file];
+                        fs.unlinkSync(fileName);
+                    }
+                }
             }
-
-            var filesJSON = sync.loadNodeFilesIntoArray(filesWithExtension);
-
-            for (i = 0; i < files.length; i += 1) {
-                file = files[i];
-                fs.unlinkSync(files[i] + '.js');
-            }
-
-            for (i = 0; i < files.length; i += 1) {
-                file = files[i];
-                assert.equal(JSON.stringify({ i : i }), JSON.stringify(filesJSON[file]));
+            var fileId;
+            for (fileId in filesJSON) {
+                if (filesJSON.hasOwnProperty(fileId)) {
+                    assert.equal(JSON.stringify({}), JSON.stringify(filesJSON[fileId]));
+                }
             }
         });
     });
@@ -132,13 +140,16 @@ describe('sync.js', function () {
             assert.fail();
         });
     });
-    describe('listFilesFromDir', function () {
-        it('should return a list of files when the dir is valid and there are files', function () {
+
+    describe('listFilesFromDirRecursive', function () {
+        it('should return a list of files separated by / when the dir is valid and there are files and folders', function () {
             fs.mkdirSync('dir', parseInt('0777', 8));
+            fs.mkdirSync('dir/sub', parseInt('0777', 8));
             var files = [
                 path.join('dir', '1.txt'),
                 path.join('dir', '2.txt'),
-                path.join('dir', '3.txt')
+                path.join('dir', '3.txt'),
+                path.join('dir', 'sub', '4.txt')
             ];
             var i, list;
 
@@ -151,11 +162,12 @@ describe('sync.js', function () {
                 for (i = 0; i < files.length; i += 1) {
                     fs.unlinkSync(files[i]);
                 }
+                fs.rmdirSync(path.join('dir', 'sub'));
                 fs.rmdirSync('dir');
             }
             assert.equal(JSON.stringify(files), JSON.stringify(list));
-
         });
+
         it('should return an empty list when the dir is empty', function () {
             var dir = 'dir';
             try {

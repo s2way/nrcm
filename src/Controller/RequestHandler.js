@@ -1,6 +1,5 @@
 /*jslint devel: true, node: true, indent: 4, vars: true, maxlen: 256 */
 'use strict';
-// Dependencies
 var querystring = require('querystring');
 var util = require('util');
 var aclModule = require('./../Core/acl');
@@ -35,8 +34,8 @@ function RequestHandler(serverLogger, configs, applications, ExceptionsControlle
  * It processes every request received
  *
  * @method process
- * @param {object} request The nodejs request object
- * @param {object} response The nodejs response object
+ * @param {object} request The NodeJS request object
+ * @param {object} response The NodeJS response object
  */
 RequestHandler.prototype.process = function (request, response) {
     var $this = this;
@@ -126,10 +125,10 @@ RequestHandler.prototype.process = function (request, response) {
  * @return The controller instance that should be passed to invokeController
  */
 RequestHandler.prototype.prepareController = function (controllerName) {
-    var that = this;
+    var $this = this;
     this.debug('prepareController()');
 
-    var application = that.applications[that.appName];
+    var application = $this.applications[$this.appName];
     var dataSourceName, dataSourceConfig;
     var dataSources = [];
 
@@ -141,14 +140,14 @@ RequestHandler.prototype.prepareController = function (controllerName) {
             dataSources[dataSourceName] = new DataSource(this.serverLogger, dataSourceName, dataSourceConfig);
         }
     }
-    that.dataSources = dataSources;
+    $this.dataSources = dataSources;
 
     this.info('Creating factories');
     this.componentFactory = new ComponentFactory(this.serverLogger, application);
     this.modelFactory = new ModelFactory(this.serverLogger, application, this.dataSources, this.componentFactory);
 
     if (application.controllers[controllerName] === undefined) {
-        that.debug('controller not found');
+        $this.debug('controller not found');
         throw new exceptions.ControllerNotFound();
     }
 
@@ -158,29 +157,29 @@ RequestHandler.prototype.prepareController = function (controllerName) {
     var controllerInstance = new ControllerConstructor();
 
     controllerInstance.name = controllerName;
-    controllerInstance.application = that.appName;
+    controllerInstance.application = $this.appName;
     controllerInstance.logger = application.logger;
     // Injects the application core JSON Properties
     controllerInstance.core = application.core;
 
     // Injects the method for retrieving components in the controller and inside each component
     controllerInstance.component = function (componentName) {
-        return that.componentFactory.create(componentName);
+        return $this.componentFactory.create(componentName);
     };
 
     // Injects the method for retrieving models
     controllerInstance.model = function (modelName) {
-        return that.modelFactory.create(modelName);
+        return $this.modelFactory.create(modelName);
     };
 
     return controllerInstance;
 };
 
 RequestHandler.prototype._receivePayload = function () {
-    var that = this;
+    var $this = this;
     this.request.on('data', function (data) {
-        that.debug('on data');
-        that.payload += data;
+        $this.debug('on data');
+        $this.payload += data;
     });
 };
 
@@ -218,37 +217,37 @@ RequestHandler.prototype._sendResponse = function () {
  * @param {string} method The controller`s method that should be invoked
  */
 RequestHandler.prototype.invokeController = function (controllerInstance, httpMethod, done) {
-    var that = this;
-    that.info('Invoking controller');
+    var $this = this;
+    $this.info('Invoking controller');
 
     var savedOutput = null;
-    var application = that.applications[that.appName];
+    var application = $this.applications[$this.appName];
 
     if (controllerInstance[httpMethod] === undefined) {
-        that.debug('http method not found');
+        $this.debug('http method not found');
         throw new exceptions.MethodNotFound();
     }
 
     // Receiving data
-    that.info('Receiving payload');
+    $this.info('Receiving payload');
     this._receivePayload();
 
     // All data received
     this._endRequest(function () {
-        that.info('All data received');
+        $this.info('All data received');
         try {
-            controllerInstance.payload = JSON.parse(that.payload);
+            controllerInstance.payload = JSON.parse($this.payload);
         } catch (e) {
-            controllerInstance.payload = querystring.parse(that.payload);
+            controllerInstance.payload = querystring.parse($this.payload);
         }
-        controllerInstance.segments = that.segments;
-        controllerInstance.query = that.query;
-        controllerInstance.prefixes = that.prefixes;
+        controllerInstance.segments = $this.segments;
+        controllerInstance.query = $this.query;
+        controllerInstance.prefixes = $this.prefixes;
         controllerInstance.readonly = {
-            'request' : that.request,
-            'response' : that.response
+            'request' : $this.request,
+            'response' : $this.response
         };
-        controllerInstance.requestHeaders = that._headers();
+        controllerInstance.requestHeaders = $this._headers();
         controllerInstance.responseHeaders = {
             'X-Powered-By' : 'NRCM'
         };
@@ -256,7 +255,7 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
         var timer;
 
         var afterCallback = function () {
-            that.debug('afterCallback()');
+            $this.debug('afterCallback()');
             // Done, clear the timeout
             clearTimeout(timer);
 
@@ -270,19 +269,19 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
                     for (name in controllerInstance.responseHeaders) {
                         if (controllerInstance.responseHeaders.hasOwnProperty(name)) {
                             value = controllerInstance.responseHeaders[name];
-                            that._setHeader(name, value);
+                            $this._setHeader(name, value);
                         }
                     }
                 }
-                that.info('Shutting down connections');
+                $this.info('Shutting down connections');
                 // Shutdown all connections
-                for (dataSourceNameAC in that.dataSources) {
-                    if (that.dataSources.hasOwnProperty(dataSourceNameAC)) {
-                        dataSourceAC = that.dataSources[dataSourceNameAC];
+                for (dataSourceNameAC in $this.dataSources) {
+                    if ($this.dataSources.hasOwnProperty(dataSourceNameAC)) {
+                        dataSourceAC = $this.dataSources[dataSourceNameAC];
                         dataSourceAC.disconnect();
                     }
                 }
-                that.render(
+                $this.render(
                     savedOutput,
                     controllerInstance.statusCode
                 );
@@ -290,16 +289,16 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
                     done();
                 }
             } catch (e) {
-                that.handleRequestException(e);
+                $this.handleRequestException(e);
             }
         };
         var controllerMethodCallback = function (output) {
-            that.debug('controllerMethodCallback()');
+            $this.debug('controllerMethodCallback()');
             savedOutput = output;
             try {
                 // If after() is defined, call it
                 if (controllerInstance.after !== undefined) {
-                    that.debug('controllerInstance.after()');
+                    $this.debug('controllerInstance.after()');
                     controllerInstance.after(afterCallback);
                 } else {
                     afterCallback();
@@ -307,28 +306,28 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
             } catch (e) {
                 // Clear the timer if an exception occurs because handleRequestException will respond
                 clearTimeout(timer);
-                that.handleRequestException(e);
+                $this.handleRequestException(e);
             }
         };
         var beforeCallback = function () {
-            that.debug('beforeCallback()');
+            $this.debug('beforeCallback()');
             try {
                 // Call the controller method (put, get, delete, post, etc)
                 savedOutput = controllerInstance[httpMethod](controllerMethodCallback);
             } catch (e) {
                 // Clear the timer if an exception occurs because handleRequestException will respond
                 clearTimeout(timer);
-                that.handleRequestException(e);
+                $this.handleRequestException(e);
             }
         };
 
         // Encapsulate the method in a immediate so it can be killed
         var controllerMethodImmediate = setImmediate(function () {
-            that.debug('controllerMethodImmediate()');
+            $this.debug('controllerMethodImmediate()');
             try {
                 // If before() is defined, call it
                 if (controllerInstance.before !== undefined) {
-                    that.debug('controllerInstance.before()');
+                    $this.debug('controllerInstance.before()');
                     controllerInstance.before(beforeCallback);
                 } else {
                     beforeCallback();
@@ -336,16 +335,16 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
             } catch (e) {
                 // Catch exceptions that may occur in the controller before method
                 clearTimeout(timer);
-                that.handleRequestException(e);
+                $this.handleRequestException(e);
             }
         });
 
-        that.info('Timeout timer started');
+        $this.info('Timeout timer started');
         // Timer that checks if the
         timer = setTimeout(function () {
-            that.debug('Request timeout!');
+            $this.debug('Request timeout!');
             clearImmediate(controllerMethodImmediate);
-            that.handleRequestException(new exceptions.Timeout());
+            $this.handleRequestException(new exceptions.Timeout());
         }, application.core.requestTimeout);
     });
 };
@@ -409,6 +408,7 @@ RequestHandler.prototype.handleRequestException = function (e) {
  * @param {string} contentType The text for the Content-Type http header
  */
 RequestHandler.prototype.render = function (output, statusCode, contentType) {
+    output = output || '{}';
     if (this.stringOutput === undefined) {
         this.info('Rendering');
         var extensionsMapToContentType = {
