@@ -40,7 +40,6 @@ RequestHandler.prototype.process = function (request, response) {
     var $this = this;
     this.request = request;
     this.response = response;
-    this.extension = '.json';
     this.payload = '';
 
     var requestUrl = this.request.url;
@@ -55,7 +54,7 @@ RequestHandler.prototype.process = function (request, response) {
 
         var decomposedURL = router.decompose(requestUrl);
         var type = decomposedURL.type;
-        var method = this.request.method.toLowerCase();
+        this.method = this.request.method.toLowerCase();
         this.appName = decomposedURL.application;
 
         if (type !== 'root') {
@@ -72,7 +71,7 @@ RequestHandler.prototype.process = function (request, response) {
 
         this.info('Application: ' + this.appName);
         this.info('Controller: ' + controller);
-        this.info('Method: ' + method);
+        this.info('Method: ' + this.method);
         this.info('URL type: ' + type);
         this.info('Prefixes: ' + JSON.stringify(this.prefixes));
         this.info('Query: ' + JSON.stringify(this.query));
@@ -81,7 +80,7 @@ RequestHandler.prototype.process = function (request, response) {
         if (type === 'controller') {
             var controllerNameCamelCase = stringUtils.lowerCaseUnderscoredToCamelCase(decomposedURL.controller);
             var controllerInstance = this.prepareController(controllerNameCamelCase);
-            this.invokeController(controllerInstance, method);
+            this.invokeController(controllerInstance, this.method);
 
         } else if (type === 'appRoot') {
             this._receivePayload();
@@ -160,11 +159,14 @@ RequestHandler.prototype.prepareController = function (controllerName) {
             callback('');
         };
         var automaticOptionsImplementation = function (callback) {
-            var methods = ['get', 'post', 'put', 'delete'];
-            var allowString = 'CONNECT,TRACE,OPTIONS';
+            var methods = ['head', 'trace', 'options', 'get', 'post', 'put', 'delete'];
+            var allowString = '';
             methods.forEach(function (method) {
                 if (controllerInstance[method] !== undefined) {
-                    allowString += ',' + method.toUpperCase();
+                    if (allowString !== '') {
+                        allowString += ',';
+                    }
+                    allowString += method.toUpperCase();
                 }
             });
             controllerInstance.responseHeaders.Allow = allowString;
@@ -172,6 +174,7 @@ RequestHandler.prototype.prepareController = function (controllerName) {
             callback('');
         };
 
+        controllerInstance.responseHeaders = { };
         controllerInstance.name = controllerName;
         controllerInstance.application = $this.appName;
         controllerInstance.logger = application.logger;
@@ -180,7 +183,7 @@ RequestHandler.prototype.prepareController = function (controllerName) {
         controllerInstance.model = retrieveModelMethod;
         controllerInstance.trace = automaticTraceImplementation;
         controllerInstance.options = automaticOptionsImplementation;
-        controllerInstance.responseHeaders = { };
+        controllerInstance.head = controllerInstance.get;
     }());
 
     return controllerInstance;
@@ -198,12 +201,23 @@ RequestHandler.prototype._endRequest = function (callback) {
     this.request.on('end', callback);
 };
 
-// Return the request headers
+/**
+ * Return the request headers
+ * This method is mocked in tests
+ * @returns {object}
+ * @private
+ */
 RequestHandler.prototype._headers = function () {
     return this.request.headers;
 };
 
-// Set the response headers
+/**
+ * Set a response header
+ * @param {string} name Header name
+ * This method is mocked in tests
+ * @param {string} value Header value
+ * @private
+ */
 RequestHandler.prototype._setHeader = function (name, value) {
     this.response.setHeader(name, value);
 };
@@ -243,11 +257,9 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
         throw new exceptions.MethodNotFound();
     }
 
-    // Receiving data
     $this.info('Receiving payload');
     this._receivePayload();
 
-    // All data received
     this._endRequest(function () {
         $this.info('All data received');
         try {
@@ -378,6 +390,7 @@ RequestHandler.prototype.info = function (message) {
 RequestHandler.prototype.debug = function (message) {
     this.serverLogger.debug('[RequestHandler] ' + message);
 };
+
 /**
  * It handles the exceptions
  *
@@ -426,7 +439,7 @@ RequestHandler.prototype.handleRequestException = function (e) {
  * @method render
  * @param {object=} output The body/payload data
  * @param {number=} statusCode The status code for http response
- * @param {string=} contentType The text for the Content-Type http header
+ * @param {string|boolean=} contentType The text for the Content-Type http header
  */
 RequestHandler.prototype.render = function (output, statusCode, contentType) {
     if (output !== '') {
@@ -434,6 +447,11 @@ RequestHandler.prototype.render = function (output, statusCode, contentType) {
     }
     if (contentType !== false) {
         contentType = contentType || 'application/json';
+    }
+
+    if (this.method === 'head') {
+        output = '';
+        contentType = false;
     }
 
     if (this.stringOutput === undefined) {

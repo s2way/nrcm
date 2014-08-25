@@ -312,6 +312,21 @@ describe('RequestHandler.js', function () {
                 });
             });
 
+            it('should inject the automatic head method implementation', function () {
+                var headerKey = 'X-My-Header';
+                var headerValue = 'My Value';
+                instance.get = function (callback) {
+                    this.responseHeaders[headerKey] = headerValue;
+                    callback({
+                        'a' : 'response'
+                    });
+                };
+                assert.equal('function', typeof instance.head);
+                instance.head(function () {
+                    assert.equal(headerValue, instance.responseHeaders[headerKey]);
+                });
+            });
+
             it('should inject the name property', function () {
                 assert.equal('MyController', instance.name);
             });
@@ -346,6 +361,15 @@ describe('RequestHandler.js', function () {
                     assert.equal('1.0.0', output.version);
                     assert.equal('app', output.application);
                 };
+            });
+
+            it('should render an empty response if the HEAD method is issued', function (done) {
+                var rh = mockRequestHandler();
+                rh._writeResponse = function (output) {
+                    assert.equal('', output);
+                    done();
+                };
+                rh.process(mockRequest('/p1/p2/app', 'head'), mockResponse());
             });
 
             it('should render a JSON with the NRCM version when the root is queried', function () {
