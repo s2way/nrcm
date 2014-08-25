@@ -8,6 +8,7 @@
  */
 var url = require('url');
 var path = require('path');
+var stringUtils = require('./../Util/stringUtils');
 
 /**
  * The router object
@@ -71,56 +72,94 @@ Router.prototype.isValid = function (requestUrl) {
 };
 
 /**
+ * Try to find a matching controller for the given decomposed url in the controllers list
+ * @param {object} controllers List of controllers loaded by the application
+ * @param {object} decomposedUrl Decomposed URL returned by Router.decompose()
+ * @return {string|boolean} The matching controller and its segments or false if none is found
+ */
+Router.prototype.findController = function (controllers, decomposedUrl) {
+    var i;
+    var controllerName;
+    var controllersArrayReverted;
+    var controllersArray = [];
+    var controllerNameCamelCase;
+
+    for (controllerName in decomposedUrl.controllers) {
+        if (decomposedUrl.controllers.hasOwnProperty(controllerName)) {
+            controllersArray.push(controllerName);
+        }
+    }
+    controllersArrayReverted = controllersArray.reverse();
+    for (i in controllersArrayReverted) {
+        if (controllersArrayReverted.hasOwnProperty(i)) {
+            controllerName = controllersArrayReverted[i];
+            controllerNameCamelCase = stringUtils.lowerCaseUnderscoredToCamelCase(controllerName.replace(/\//g, '.'));
+            if (controllers[controllerNameCamelCase] !== undefined) {
+                return {
+                    'controller' : controllerNameCamelCase,
+                    'segments' : decomposedUrl.controllers[controllerName].segments
+                };
+            }
+        }
+    }
+    return false;
+};
+
+/**
  * It decomposes the url
  *
  * @method decompose
  * @param {string} requestUrl The requested url received by the server
- * @return {object} Returns a splited json object of the url
+ * @return {object} Returns a splitted json object of the url
  */
 Router.prototype.decompose = function (requestUrl) {
     this.info('Decomposing URL');
     var parsedUrl = url.parse(requestUrl, true);
     var path = parsedUrl.pathname;
     var parts = path.substring(1).split('/');
-    var i;
     var prefixes = {};
-    var controller = '';
+    var controllers = {};
+    var controllerAppended = '';
     var application = 'app';
-    var segments = [];
-    var part, urlFormatPart, formatPartFirstChar;
+    var urlFormatPart, formatPartFirstChar;
     var type = 'root';
-    for (i in parts) {
-        if (parts.hasOwnProperty(i)) {
-            part = parts[i];
-            if (part) {
-                urlFormatPart = this.urlFormatParts[i];
-                if (urlFormatPart !== undefined) {
-                    formatPartFirstChar = urlFormatPart.charAt(0);
-                    if (formatPartFirstChar === '#') {
-                        prefixes[urlFormatPart.substring(1)] = part;
-                    } else if (urlFormatPart === '$controller') {
-                        type = 'controller';
-                        controller = part;
-                    } else if (urlFormatPart === '$application') {
-                        if (type === 'root') {
-                            type = 'appRoot';
-                        }
-                        application = part;
+    var i = 0;
+    var $this = this;
+    parts.forEach(function (part) {
+        if (part) {
+            urlFormatPart = $this.urlFormatParts[i];
+            if (urlFormatPart !== undefined) {
+                formatPartFirstChar = urlFormatPart.charAt(0);
+                if (formatPartFirstChar === '#') {
+                    prefixes[urlFormatPart.substring(1)] = part;
+                } else if (urlFormatPart === '$controller') {
+                    type = 'controller';
+                    controllers[part] = {
+                        'segments' : parts.slice(i + 1)
+                    };
+                    controllerAppended = part;
+                } else if (urlFormatPart === '$application') {
+                    if (type === 'root') {
+                        type = 'appRoot';
                     }
-                } else {
-                    segments.push(part);
+                    application = part;
                 }
+            } else {
+                controllerAppended += '/' + part;
+                controllers[controllerAppended] = {
+                    'segments' : parts.slice(i + 1)
+                };
             }
         }
-    }
+        i += 1;
+    });
     this.info('URL decomposed');
     return {
         'type' : type,
-        'controller' : controller,
+        'controllers' : controllers,
         'application' : application,
         'prefixes' : prefixes,
-        'query' : parsedUrl.query,
-        'segments' : segments
+        'query' : parsedUrl.query
     };
 };
 

@@ -18,13 +18,13 @@ describe('stringUtils.js', function () {
 
     describe('lowerCaseUnderscoredToCamelCase', function () {
         it('should convert lowercase underscored strings to camelcase', function () {
-            assert.equal('CamelCase', stringUtils.lowerCaseUnderscoredToCamelCase('camel_case'));
+            assert.equal('CamelCase.CamelCase', stringUtils.lowerCaseUnderscoredToCamelCase('camel_case.camel_case'));
         });
     });
 
     describe('camelCaseToLowerCaseUnderscored', function () {
         it('should convert camelcase strings to lowercase underscored', function () {
-            assert.equal('camel_case', stringUtils.camelCaseToLowerCaseUnderscored('CamelCase'));
+            assert.equal('camel_case.camel_case', stringUtils.camelCaseToLowerCaseUnderscored('CamelCase.CamelCase'));
         });
     });
 });

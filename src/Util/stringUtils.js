@@ -15,14 +15,13 @@ var stringUtils = {
         return str;
     },
     /**
-    * Transform a string this_example into thisExample
     *
     * @method lowerCaseUnderscoredToCamelCase
     * @param {string} lowerCaseUnderscored The string that will be converted
     * @return {string} Returns the formated string
     */
     lowerCaseUnderscoredToCamelCase : function (lowerCaseUnderscored) {
-        var parts = lowerCaseUnderscored.split('_');
+        var parts = lowerCaseUnderscored.replace(/\./g, '._').split('_');
         var camelCase = '';
         var i, part;
         for (i = 0; i < parts.length; i += 1) {
@@ -34,24 +33,23 @@ var stringUtils = {
         return camelCase;
     },
     /**
-    * Transform a string thisExample into this_example
     *
     * @method camelCaseToLowerCaseUnderscored
     * @param {string} camelCase The string that will be converted
-    * @return {string} Returns the formated string
+    * @return {string} Returns the formatted string
     */
     camelCaseToLowerCaseUnderscored : function (camelCase) {
         var lowerCaseUnderscored = '';
         var length = camelCase.length;
         var upperCaseRegex = /[A-Z]/;
-        var ch, i;
+        var ch, i, previousCh;
         for (i = 0; i < length; i += 1) {
             ch = camelCase.charAt(i);
-            // is upper case
-            if (i > 0 && upperCaseRegex.test(ch)) {
+            if (i > 0 && upperCaseRegex.test(ch) && previousCh !== '.') {
                 lowerCaseUnderscored += '_';
             }
             lowerCaseUnderscored += ch.toLowerCase();
+            previousCh = ch;
         }
         return lowerCaseUnderscored;
     }

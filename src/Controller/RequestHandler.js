@@ -3,7 +3,6 @@
 var querystring = require('querystring');
 var util = require('util');
 var exceptions = require('./../exceptions');
-var stringUtils = require('./../Util/stringUtils');
 var Router = require('./../Core/Router');
 var ComponentFactory = require('./../Component/ComponentFactory');
 var ModelFactory = require('./../Model/ModelFactory');
@@ -63,25 +62,26 @@ RequestHandler.prototype.process = function (request, response) {
                 throw new exceptions.ApplicationNotFound(this.appName);
             }
         }
-
         this.query = decomposedURL.query;
         this.prefixes = decomposedURL.prefixes;
         this.segments = decomposedURL.segments;
-        var controller = decomposedURL.controller;
 
         this.info('Application: ' + this.appName);
-        this.info('Controller: ' + controller);
         this.info('Method: ' + this.method);
         this.info('URL type: ' + type);
         this.info('Prefixes: ' + JSON.stringify(this.prefixes));
         this.info('Query: ' + JSON.stringify(this.query));
-        this.info('Segments: ' + JSON.stringify(this.segments));
 
         if (type === 'controller') {
-            var controllerNameCamelCase = stringUtils.lowerCaseUnderscoredToCamelCase(decomposedURL.controller);
+            var controllerInfo = router.findController(this.application.controllers, decomposedURL);
+            var controllerNameCamelCase = controllerInfo.controller;
+            this.segments = controllerInfo.segments;
+
+            this.info('Segments: ' + JSON.stringify(this.segments));
+            this.info('Controller: ' + controllerNameCamelCase);
+
             var controllerInstance = this.prepareController(controllerNameCamelCase);
             this.invokeController(controllerInstance, this.method);
-
         } else if (type === 'appRoot') {
             this._receivePayload();
             this._endRequest(function () {
@@ -107,13 +107,18 @@ RequestHandler.prototype.process = function (request, response) {
 /**
  * Prepares the controller to be invoked
  * Controller dependency injection happens here
- * @return {object} The controller instance that should be passed to invokeController
+ * @return {object|boolean} The controller instance that should be passed to invokeController
  */
 RequestHandler.prototype.prepareController = function (controllerName) {
-    var $this = this;
     this.debug('prepareController()');
 
-    var application = $this.applications[$this.appName];
+    var $this = this;
+    var application = this.applications[this.appName];
+
+    if (controllerName === false || application.controllers[controllerName] === undefined) {
+        $this.debug('controller not found');
+        throw new exceptions.ControllerNotFound();
+    }
 
     (function instantiateDataSources() {
         var dataSources = [];
@@ -131,11 +136,6 @@ RequestHandler.prototype.prepareController = function (controllerName) {
     this.info('Creating factories');
     this.componentFactory = new ComponentFactory(this.serverLogger, application);
     this.modelFactory = new ModelFactory(this.serverLogger, application, this.dataSources, this.componentFactory);
-
-    if (application.controllers[controllerName] === undefined) {
-        $this.debug('controller not found');
-        throw new exceptions.ControllerNotFound();
-    }
 
     this.info('Creating controller');
     var ControllerConstructor = application.controllers[controllerName];
@@ -250,7 +250,7 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
     $this.info('Invoking controller');
 
     var savedOutput = null;
-    var application = $this.applications[$this.appName];
+    var application = this.applications[this.appName];
 
     if (controllerInstance[httpMethod] === undefined) {
         $this.debug('http method not found');
