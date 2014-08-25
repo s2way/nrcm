@@ -108,6 +108,12 @@ describe('RequestHandler.js', function () {
                 MyController : function () {
                     this.models = ['MyModel'];
                     var that = this;
+                    this.get = function (callback) {
+                        this.responseHeaders['X-My-Header'] = 'My Value';
+                        callback({
+                            'a' : 'response'
+                        });
+                    };
                     this.before = function (callback) {
                         controlVars.beforeCalled = true;
                         callback();
@@ -294,11 +300,18 @@ describe('RequestHandler.js', function () {
                 instance = requestHandler.prepareController('MyController');
             });
 
-            it('should inject the automatic trace method implementation', function () {
+            it('should inject the automatic trace method implementation', function (done) {
                 assert.equal('function', typeof instance.trace);
+                instance.requestHeaders = {
+                    'header' : 'value'
+                };
+                instance.trace(function () {
+                    assert.equal('value', instance.responseHeaders.header);
+                    done();
+                });
             });
 
-            it('should inject the automatic options method implementation', function () {
+            it('should inject the automatic options method implementation', function (done) {
                 var options = instance.options;
                 instance.post = function (callback) {
                     callback({});
@@ -308,22 +321,15 @@ describe('RequestHandler.js', function () {
                 };
                 assert.equal('function', typeof options);
                 instance.options(function () {
-                    assert.equal('CONNECT,TRACE,OPTIONS,GET,POST', instance.responseHeaders.Allow);
+                    assert.equal('HEAD,TRACE,OPTIONS,GET,POST', instance.responseHeaders.Allow);
+                    done();
                 });
             });
 
             it('should inject the automatic head method implementation', function () {
-                var headerKey = 'X-My-Header';
-                var headerValue = 'My Value';
-                instance.get = function (callback) {
-                    this.responseHeaders[headerKey] = headerValue;
-                    callback({
-                        'a' : 'response'
-                    });
-                };
                 assert.equal('function', typeof instance.head);
                 instance.head(function () {
-                    assert.equal(headerValue, instance.responseHeaders[headerKey]);
+                    assert.equal('My Value', instance.responseHeaders['X-My-Header']);
                 });
             });
 
@@ -535,8 +541,6 @@ describe('RequestHandler.js', function () {
                 var rh = mockRequestHandler({
                     MyController : function () {
                         this.post = function (callback) {
-                            // Callback not called
-                            // Timeout
                             assert(callback);
                         };
                     }
