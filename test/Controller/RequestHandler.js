@@ -62,7 +62,7 @@ describe('RequestHandler.js', function () {
             }
             callback({
                 'name' : 'General',
-                'cause' : exception,
+                'cause' : exception
             });
         };
     }
@@ -189,10 +189,6 @@ describe('RequestHandler.js', function () {
             }
         }, MockExceptionsController, '0.0.1');
         rh.appName = 'app';
-
-        rh.isAllowed = function () {
-            return '**';
-        };
         return rh;
     }
 
@@ -298,6 +294,24 @@ describe('RequestHandler.js', function () {
                 instance = requestHandler.prepareController('MyController');
             });
 
+            it('should inject the automatic trace method implementation', function () {
+                assert.equal('function', typeof instance.trace);
+            });
+
+            it('should inject the automatic options method implementation', function () {
+                var options = instance.options;
+                instance.post = function (callback) {
+                    callback({});
+                };
+                instance.get = function (callback) {
+                    callback({});
+                };
+                assert.equal('function', typeof options);
+                instance.options(function () {
+                    assert.equal('CONNECT,TRACE,OPTIONS,GET,POST', instance.responseHeaders.Allow);
+                });
+            });
+
             it('should inject the name property', function () {
                 assert.equal('MyController', instance.name);
             });
@@ -344,14 +358,12 @@ describe('RequestHandler.js', function () {
 
             it('should handle the InvalidUrl exception and render something', function () {
                 var rh = mockRequestHandler();
-                rh.isAllowed = function () { return '**'; };
                 rh.process(mockRequest('/', 'get'), mockResponse());
                 assert.equal('InvalidUrl', controlVars.exception);
             });
 
             it('should handle the ApplicationNotFound exception and render something', function () {
                 var rh = mockRequestHandler();
-                rh.isAllowed = function () { return '**'; };
                 rh.process(mockRequest('/service/version/invalid_app/controller', method), mockResponse());
                 assert.equal('ApplicationNotFound', controlVars.exception);
             });
@@ -439,7 +451,7 @@ describe('RequestHandler.js', function () {
                     'header' : 'value'
                 };
                 var expectedResponseHeaders = {
-                    'X-Powered-By' : 'NRCM',
+                    'Server' : 'NRCM/0.0.1',
                     'header' : 'value'
                 };
                 var rh = mockRequestHandler({
@@ -513,23 +525,14 @@ describe('RequestHandler.js', function () {
                 rh.process(mockRequest(url, method), mockResponse());
             });
 
-            it('should handle the exception if the resource is forbidden', function () {
-                var rh = mockRequestHandler();
-                rh.isAllowed = function () { return false; };
-                rh.process(mockRequest(url, method), mockResponse());
-                assert.equal('Forbidden', controlVars.exception);
-            });
-
             it('should handle the ControllerNotFound exception and render something', function () {
                 var rh = mockRequestHandler();
-                rh.isAllowed = function () { return '**'; };
                 rh.process(mockRequest('/service/version/app/invalid_controller', method), mockResponse());
                 assert.equal('ControllerNotFound', controlVars.exception);
             });
 
             it('should handle the MethodNotFound exception and render something', function () {
                 var rh = mockRequestHandler();
-                rh.isAllowed = function () { return '**'; };
                 rh.process(mockRequest('/service/version/app/my_controller', 'PUT'), mockResponse());
                 assert.equal('MethodNotFound', controlVars.exception);
             });

@@ -2,7 +2,6 @@
 'use strict';
 var querystring = require('querystring');
 var util = require('util');
-var aclModule = require('./../Core/acl');
 var exceptions = require('./../exceptions');
 var stringUtils = require('./../Util/stringUtils');
 var Router = require('./../Core/Router');
@@ -23,7 +22,6 @@ var chalk = require('chalk');
 function RequestHandler(serverLogger, configs, applications, ExceptionsController, version) {
     this.applications = applications;
     this.configs = configs;
-    this.isAllowed = aclModule.isAllowed;
     this.ExceptionsController = ExceptionsController;
     this.start = new Date();
     this.serverLogger = serverLogger;
@@ -43,7 +41,6 @@ RequestHandler.prototype.process = function (request, response) {
     this.request = request;
     this.response = response;
     this.extension = '.json';
-    this.rule = null;
     this.payload = '';
 
     var requestUrl = this.request.url;
@@ -66,7 +63,6 @@ RequestHandler.prototype.process = function (request, response) {
             if (this.applications[this.appName] === undefined) {
                 throw new exceptions.ApplicationNotFound(this.appName);
             }
-            this.acl = this.application.acl;
         }
 
         this.query = decomposedURL.query;
@@ -83,15 +79,6 @@ RequestHandler.prototype.process = function (request, response) {
         this.info('Segments: ' + JSON.stringify(this.segments));
 
         if (type === 'controller') {
-            var rule = this.isAllowed(this.acl, 'admin', controller, method);
-            this.rule = rule;
-
-            this.info('Rule: ' + rule);
-
-            if (rule === false) {
-                throw new exceptions.Forbidden();
-            }
-
             var controllerNameCamelCase = stringUtils.lowerCaseUnderscoredToCamelCase(decomposedURL.controller);
             var controllerInstance = this.prepareController(controllerNameCamelCase);
             this.invokeController(controllerInstance, method);
@@ -128,18 +115,19 @@ RequestHandler.prototype.prepareController = function (controllerName) {
     this.debug('prepareController()');
 
     var application = $this.applications[$this.appName];
-    var dataSourceName, dataSourceConfig;
-    var dataSources = [];
 
-    // Instantiate all DataSources
-    this.info('Creating DataSources');
-    for (dataSourceName in application.core.dataSources) {
-        if (application.core.dataSources.hasOwnProperty(dataSourceName)) {
-            dataSourceConfig = application.core.dataSources[dataSourceName];
-            dataSources[dataSourceName] = new DataSource(this.serverLogger, dataSourceName, dataSourceConfig);
+    (function instantiateDataSources() {
+        var dataSources = [];
+        var dataSourceName, dataSourceConfig;
+        $this.info('Creating DataSources');
+        for (dataSourceName in application.core.dataSources) {
+            if (application.core.dataSources.hasOwnProperty(dataSourceName)) {
+                dataSourceConfig = application.core.dataSources[dataSourceName];
+                dataSources[dataSourceName] = new DataSource($this.serverLogger, dataSourceName, dataSourceConfig);
+            }
         }
-    }
-    $this.dataSources = dataSources;
+        $this.dataSources = dataSources;
+    }());
 
     this.info('Creating factories');
     this.componentFactory = new ComponentFactory(this.serverLogger, application);
@@ -150,26 +138,51 @@ RequestHandler.prototype.prepareController = function (controllerName) {
         throw new exceptions.ControllerNotFound();
     }
 
-    var ControllerConstructor = application.controllers[controllerName];
-    // Instantiate the controller
     this.info('Creating controller');
+    var ControllerConstructor = application.controllers[controllerName];
     var controllerInstance = new ControllerConstructor();
 
-    controllerInstance.name = controllerName;
-    controllerInstance.application = $this.appName;
-    controllerInstance.logger = application.logger;
-    // Injects the application core JSON Properties
-    controllerInstance.core = application.core;
+    (function injectProperties() {
+        var retrieveComponentMethod = function (componentName) {
+            return $this.componentFactory.create(componentName);
+        };
+        var retrieveModelMethod = function (modelName) {
+            return $this.modelFactory.create(modelName);
+        };
+        var automaticTraceImplementation = function (callback) {
+            controllerInstance.contentType = false;
+            var headerName;
+            for (headerName in controllerInstance.requestHeaders) {
+                if (controllerInstance.requestHeaders.hasOwnProperty(headerName)) {
+                    controllerInstance.responseHeaders[headerName] = controllerInstance.requestHeaders[headerName];
+                }
+            }
+            callback('');
+        };
+        var automaticOptionsImplementation = function (callback) {
+            var methods = ['get', 'post', 'put', 'delete'];
+            var allowString = 'CONNECT,TRACE,OPTIONS';
+            methods.forEach(function (method) {
+                if (controllerInstance[method] !== undefined) {
+                    allowString += ',' + method.toUpperCase();
+                }
+            });
+            controllerInstance.responseHeaders.Allow = allowString;
+            controllerInstance.contentType = false;
+            callback('');
+        };
 
-    // Injects the method for retrieving components in the controller and inside each component
-    controllerInstance.component = function (componentName) {
-        return $this.componentFactory.create(componentName);
-    };
-
-    // Injects the method for retrieving models
-    controllerInstance.model = function (modelName) {
-        return $this.modelFactory.create(modelName);
-    };
+        controllerInstance.name = controllerName;
+        controllerInstance.application = $this.appName;
+        controllerInstance.logger = application.logger;
+        controllerInstance.core = application.core;
+        controllerInstance.component = retrieveComponentMethod;
+        controllerInstance.model = retrieveModelMethod;
+        controllerInstance.connect = automaticConnectImplementation;
+        controllerInstance.trace = automaticTraceImplementation;
+        controllerInstance.options = automaticOptionsImplementation;
+        controllerInstance.responseHeaders = { };
+    }());
 
     return controllerInstance;
 };
@@ -197,7 +210,11 @@ RequestHandler.prototype._setHeader = function (name, value) {
 };
 
 RequestHandler.prototype._writeHead = function (statusCode, contentType) {
-    this.response.writeHead(statusCode, { 'Content-Type' : contentType });
+    var headers = { };
+    if (contentType) {
+        headers['Content-Type'] = contentType;
+    }
+    this.response.writeHead(statusCode, headers);
 };
 
 RequestHandler.prototype._writeResponse = function (output) {
@@ -248,7 +265,7 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
         };
         controllerInstance.requestHeaders = $this._headers();
         controllerInstance.responseHeaders = {
-            'X-Powered-By' : 'NRCM'
+            'Server' : 'NRCM/' + $this.version
         };
 
         var timer;
@@ -286,7 +303,8 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
                 }());
                 $this.render(
                     savedOutput,
-                    controllerInstance.statusCode
+                    controllerInstance.statusCode,
+                    controllerInstance.contentType
                 );
                 if (typeof done === 'function') {
                     done();
@@ -412,8 +430,12 @@ RequestHandler.prototype.handleRequestException = function (e) {
  * @param {string=} contentType The text for the Content-Type http header
  */
 RequestHandler.prototype.render = function (output, statusCode, contentType) {
-    output = output || '{}';
-    contentType = contentType || 'application/json';
+    if (output !== '') {
+        output = output || '{}';
+    }
+    if (contentType !== false) {
+        contentType = contentType || 'application/json';
+    }
 
     if (this.stringOutput === undefined) {
         this.info('Rendering');
