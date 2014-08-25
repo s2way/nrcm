@@ -178,7 +178,6 @@ RequestHandler.prototype.prepareController = function (controllerName) {
         controllerInstance.core = application.core;
         controllerInstance.component = retrieveComponentMethod;
         controllerInstance.model = retrieveModelMethod;
-        controllerInstance.connect = automaticConnectImplementation;
         controllerInstance.trace = automaticTraceImplementation;
         controllerInstance.options = automaticOptionsImplementation;
         controllerInstance.responseHeaders = { };
