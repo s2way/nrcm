@@ -255,14 +255,4 @@ describe('MySQLInterface.js', function () {
         });
     });
 
-    describe('builder', function () {
-
-        it('should return an instance of the QueryBuilder', function () {
-            var modelInterface = createModelInterface(mockMySQL());
-            var $ = modelInterface.builder();
-            assert.equal('SELECT * FROM sky', $.selectStarFrom('sky').build());
-        });
-
-    });
-
 });

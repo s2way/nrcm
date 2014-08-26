@@ -6,7 +6,6 @@ var SchemaMatcher = require('./SchemaMatcher.js');
 var utils = require('./utils.js');
 var util = require('util');
 var ModelTrigger = require('./ModelTrigger');
-var QueryBuilder = require('./QueryBuilder');
 
 function MySQLInterface(dataSource, configurations) {
     if (dataSource === undefined) {
@@ -25,13 +24,6 @@ function MySQLInterface(dataSource, configurations) {
     // Database selected
     this.databaseSelected = false;
 }
-
-MySQLInterface.prototype.builder = function () {
-    if (this.queryBuilder === undefined) {
-        this.queryBuilder = new QueryBuilder();
-    }
-    return this.queryBuilder;
-};
 
 MySQLInterface.prototype.query = function (query, params, callback) {
     var $this = this;

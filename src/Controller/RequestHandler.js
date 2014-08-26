@@ -98,7 +98,6 @@ RequestHandler.prototype.process = function (request, response) {
                 }, 200);
             });
         }
-
     } catch (e) {
         this.handleRequestException(e);
     }

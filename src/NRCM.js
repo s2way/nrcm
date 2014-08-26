@@ -79,7 +79,7 @@ NRCM.prototype.setUp = function (appName) {
     sync.copyIfNotExists(path.join(__dirname, 'Copy', 'core.json'), app.coreFileName);
     sync.copyIfNotExists(path.join(__dirname, 'Controller', 'Exceptions.js'), path.join('Exceptions.js'));
     app.controllers = this._loadElements(app.controllersPath);
-    app.components = this._loadElements(app.componentsPath);
+    app.components = this._loadComponents(app.componentsPath);
     app.models = this._loadElements(app.modelsPath);
     app.acl = sync.fileToJSON(app.aclFileName);
     try {
@@ -134,6 +134,24 @@ NRCM.prototype.setUp = function (appName) {
             }
         }
     }
+};
+
+/**
+ * Load builtin and application components
+ * @param {string} componentsPath Path to the application components
+ * @returns {object} Components
+ * @private
+ */
+NRCM.prototype._loadComponents = function (componentsPath) {
+    var components = this._loadElements(path.join(__dirname, 'Component', 'Builtin'));
+    var appComponents = this._loadElements(componentsPath);
+    var componentName;
+    for (componentName in appComponents) {
+        if (appComponents.hasOwnProperty(componentName)) {
+            components[componentName] = appComponents[componentName];
+        }
+    }
+    return components;
 };
 
 NRCM.prototype._loadElements = function (dirPath) {

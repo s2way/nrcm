@@ -4,7 +4,7 @@
 var assert = require('assert');
 var util = require('util');
 
-var QueryBuilder = require('./../../src/Model/QueryBuilder');
+var QueryBuilder = require('./../../../src/Component/Builtin/QueryBuilder');
 
 describe('QueryBuilder.js', function () {
 

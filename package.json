@@ -48,9 +48,9 @@
   "version": "0.4.0",
   "scripts": {
     "preinstall": "npm install -g grunt-cli jslint mocha blanket",
-    "pretest": "jslint --node --vars --devel --nomen --stupid --indent 4 --maxlen 2048 src/*.js test/*.js src/**/*.js test/**/*.js",
-    "test": "mocha test/** -R spec && mocha test/** -r blanket -R html-cov > report.html",
-    "posttest": "mocha test/** -r blanket -R travis-cov"
+    "pretest": "jslint --node --vars --devel --nomen --stupid --indent 4 --maxlen 2048 `find src test  *.js | grep -P '.*\\.js$' | tr '\\n' ' '`",
+    "test": "mocha test --recursive -R spec && mocha test --recursive -r blanket -R html-cov > report.html",
+    "posttest": "mocha test --recursive -r blanket -R travis-cov"
   },
   "contributors": [
     {

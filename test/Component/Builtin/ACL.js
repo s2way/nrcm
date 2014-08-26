@@ -1,17 +1,17 @@
 /*jslint devel: true, node: true, indent: 4 */
 /*globals describe, it */
 'use strict';
-var acl = require('./../../src/Core/acl');
+var ACL = require('./../../../src/Component/Builtin/ACL');
 var assert = require('assert');
 
-describe('acl.js', function () {
+describe('ACL.js', function () {
     describe('isAllowed', function () {
         describe('complex rules', function () {
             it('should return ga when there is a valid rule and a more restrictive rule after', function () {
                 var aclJSON = {
                     'url': [ {
-                        'controller' : 'somecontroller',
-                        'group' : 'somegroup',
+                        'controller' : 'some_controller',
+                        'group' : 'some_group',
                         'rule' : [1, 1, 1, 1]
                     }, {
                         'controller' : '*',
@@ -19,7 +19,8 @@ describe('acl.js', function () {
                         'rule': [0, 0, 0, 0]
                     } ]
                 };
-                assert.equal('ga', acl.isAllowed(aclJSON, 'somegroup', 'somecontroller', 'put'));
+                var acl = new ACL(aclJSON);
+                assert.equal('ga', acl.isAllowed('some_group', 'some_controller', 'put'));
             });
             it('should return ga when there restrictive rule and a valid rule after', function () {
                 var aclJSON = {
@@ -28,12 +29,13 @@ describe('acl.js', function () {
                         'group' : '*',
                         'rule': [0, 0, 0, 0]
                     }, {
-                        'controller' : 'somecontroller',
-                        'group' : 'somegroup',
+                        'controller' : 'some_controller',
+                        'group' : 'some_group',
                         'rule' : [1, 1, 1, 1]
                     } ]
                 };
-                assert.equal('ga', acl.isAllowed(aclJSON, 'somegroup', 'somecontroller', 'put'));
+                var acl = new ACL(aclJSON);
+                assert.equal('ga', acl.isAllowed('some_group', 'some_controller', 'put'));
             });
         });
         describe('simple rules', function () {
@@ -46,7 +48,8 @@ describe('acl.js', function () {
                     }]
                 };
                 try {
-                    acl.isAllowed(aclJSON, 'somegroup', 'somecontroller', 'somemethod');
+                    var acl = new ACL(aclJSON);
+                    acl.isAllowed('some_group', 'some_controller', 'somemethod');
                     assert.fail();
                 } catch (e) {
                     assert.equal('InvalidMethod', e.name);
@@ -60,7 +63,8 @@ describe('acl.js', function () {
                         'rule': [1, 1, 1, 1]
                     }]
                 };
-                assert.equal('**', acl.isAllowed(aclJSON, 'somegroup', 'somecontroller', 'put'));
+                var acl = new ACL(aclJSON);
+                assert.equal('**', acl.isAllowed('some_group', 'some_controller', 'put'));
             });
             it('should return false when everything is allowed except the method', function () {
                 var aclJSON = {
@@ -70,39 +74,43 @@ describe('acl.js', function () {
                         'rule': [0, 0, 0, 0]
                     }]
                 };
-                assert.equal(false, acl.isAllowed(aclJSON, 'somegroup', 'somecontroller', 'put'));
+                var acl = new ACL(aclJSON);
+                assert.equal(false, acl.isAllowed('some_group', 'some_controller', 'put'));
             });
             it('should return ga when controller, group, and method match', function () {
                 var aclJSON = {
                     'url': [{
-                        'controller' : 'somecontroller',
-                        'group' : 'somegroup',
+                        'controller' : 'some_controller',
+                        'group' : 'some_group',
                         'rule': [1, 1, 1, 1]
                     }]
                 };
-                assert.equal('ga', acl.isAllowed(aclJSON, 'somegroup', 'somecontroller', 'put'));
+                var acl = new ACL(aclJSON);
+                assert.equal('ga', acl.isAllowed('some_group', 'some_controller', 'put'));
             });
 
             it('should return *A when controller, group (any), and method match', function () {
                 var aclJSON = {
                     'url': [{
-                        'controller' : 'somecontroller',
+                        'controller' : 'some_controller',
                         'group' : '*',
                         'rule': [1, 1, 1, 1]
                     }]
                 };
-                assert.equal('*A', acl.isAllowed(aclJSON, 'somegroup', 'somecontroller', 'put'));
+                var acl = new ACL(aclJSON);
+                assert.equal('*A', acl.isAllowed('some_group', 'some_controller', 'put'));
             });
 
             it('should return G* when group, controller (any), and method match', function () {
                 var aclJSON = {
                     'url': [{
                         'controller' : '*',
-                        'group' : 'somegroup',
+                        'group' : 'some_group',
                         'rule': [1, 1, 1, 1]
                     }]
                 };
-                assert.equal('G*', acl.isAllowed(aclJSON, 'somegroup', 'somecontroller', 'put'));
+                var acl = new ACL(aclJSON);
+                assert.equal('G*', acl.isAllowed('some_group', 'some_controller', 'put'));
             });
         });
     });

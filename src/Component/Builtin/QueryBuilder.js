@@ -1,5 +1,5 @@
 'use strict';
-var exceptions = require('./../../src/exceptions');
+var exceptions = require('./../../exceptions');
 
 function QueryBuilder() {
     this.query = '';
@@ -264,7 +264,6 @@ QueryBuilder.prototype.escape = function (value) {
 };
 
 
-// Aliases
 QueryBuilder.prototype.value = QueryBuilder.prototype.escape;
 QueryBuilder.prototype['|'] = QueryBuilder.prototype.or;
 QueryBuilder.prototype['||'] = QueryBuilder.prototype.or;
