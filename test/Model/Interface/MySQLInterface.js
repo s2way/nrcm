@@ -3,8 +3,8 @@
 'use strict';
 var assert = require('assert');
 var util = require('util');
-var MySQLInterface = require('./../../src/Model/MySQLInterface');
-var DataSource = require('./../../src/Model/DataSource');
+var MySQLInterface = require('./../../../src/Model/MySQLInterface');
+var DataSource = require('./../../../src/Model/DataSource');
 
 describe('MySQLInterface.js', function () {
 

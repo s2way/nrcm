@@ -2,7 +2,7 @@
 /*globals describe, it */
 'use strict';
 var assert = require('assert');
-var Validator = require('./../../src/Model/Validator');
+var Validator = require('./../../../src/Component/Builtin/Validator');
 
 describe('Validator.js', function () {
     describe('isValid', function () {

@@ -3,8 +3,8 @@
 'use strict';
 var assert = require('assert');
 var util = require('util');
-var CouchbaseInterface = require('./../../src/Model/CouchbaseInterface');
-var DataSource = require('./../../src/Model/DataSource');
+var CouchbaseInterface = require('./../../../src/Model/CouchbaseInterface');
+var DataSource = require('./../../../src/Model/DataSource');
 
 describe('CouchbaseInterface.js', function () {
 

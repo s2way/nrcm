@@ -1,11 +1,11 @@
 /*jslint devel: true, node: true, indent: 4, vars: true, maxlen: 256, nomen: true */
 'use strict';
-var exceptions = require('./../exceptions.js');
-var Validator = require('./Validator.js');
-var SchemaMatcher = require('./SchemaMatcher.js');
-var utils = require('./utils.js');
+var exceptions = require('./../../exceptions.js');
+var Validator = require('./../Validator.js');
+var SchemaMatcher = require('./../SchemaMatcher.js');
+var utils = require('./../utils.js');
 var util = require('util');
-var ModelTrigger = require('./ModelTrigger');
+var ModelTrigger = require('./../ModelTrigger');
 /**
  * CouchBaseInterface object
  *
