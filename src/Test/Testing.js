@@ -2,6 +2,7 @@
 'use strict';
 
 var path = require('path');
+var fs = require('fs');
 var ComponentFactory = require('../Component/ComponentFactory');
 var ModelFactory = require('../Model/ModelFactory');
 var DataSource = require('../Model/DataSource');
@@ -63,6 +64,10 @@ Testing.prototype._require = function (path) {
     return require(path);
 };
 
+Testing.prototype._exists = function (path) {
+    return fs.existsSync(path);
+};
+
 
 Testing.prototype.createModel = function (modelName) {
     var $this = this;
@@ -91,8 +96,24 @@ Testing.prototype.loadModel = function (modelName) {
     this.models[modelName] = this._require(path.join(this.applicationPath, 'src', 'Model', modelName));
 };
 
+/**
+ *
+ * @param componentName
+ */
 Testing.prototype.loadComponent = function (componentName) {
-    this.components[componentName] = this._require(path.join(this.applicationPath, 'src', 'Component', componentName));
+    var applicationComponentPath = path.join(this.applicationPath, 'src', 'Component', componentName);
+    var builtinComponentPath = path.join('..', '..', 'src', 'Component', 'Builtin', componentName);
+
+    if (this._exists(applicationComponentPath)) {
+        this.components[componentName] = this._require(applicationComponentPath);
+    } else if (this._exists(builtinComponentPath)) {
+        this.components[componentName] = this._require(builtinComponentPath);
+    } else {
+        throw {
+            'name' : 'ComponentNotFound',
+            'component' : componentName
+        };
+    }
 };
 
 Testing.prototype.mockModel = function (modelName, methods) {

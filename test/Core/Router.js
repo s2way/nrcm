@@ -2,7 +2,6 @@
 /*globals describe, it */
 'use strict';
 var expect = require('expect.js');
-var should = require('should');
 var Router = require('./../../src/Core/Router');
 
 describe('Router.js', function () {

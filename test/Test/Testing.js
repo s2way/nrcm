@@ -7,6 +7,7 @@ var Testing = require('../../src/Test/Testing');
 var ModelFactory = require('../../src/Model/ModelFactory');
 var ComponentFactory = require('../../src/Component/ComponentFactory');
 var RequestHandler = require('../../src/Controller/RequestHandler');
+var expect = require('expect.js');
 
 describe('Testing', function () {
 
@@ -27,6 +28,9 @@ describe('Testing', function () {
 
     beforeEach(function () {
         testing = new Testing('app');
+        testing._exists = function (path) {
+            return path.indexOf('InvalidComponent') === -1;
+        };
         testing._require = function (path) {
             if (path === 'app/src/Controller/MyController') {
                 // Controller constructor
@@ -116,6 +120,31 @@ describe('Testing', function () {
         });
     });
 
+    describe('loadComponent', function () {
+        it('should throw an exception if the component cannot be found', function () {
+            try {
+                testing._exists = function () { return false; };
+                testing.loadComponent('InvalidComponent');
+                expect.fail();
+            } catch (e) {
+                expect(e.name).to.be.equal('ComponentNotFound');
+            }
+        });
+
+        it('should be able to retrieve builtin components, like QueryBuilder', function () {
+            testing._exists = function (path) {
+                return path === '../../src/Component/Builtin/QueryBuilder';
+            };
+            testing._require = function (path) {
+                return require(path);
+            };
+            var name = 'QueryBuilder';
+            testing.loadComponent(name);
+            var queryBuilder = testing.components[name];
+            expect(queryBuilder).to.be.a('function');
+        });
+    });
+
     describe('callController', function () {
 
         it('should mock the Model methods passed to mockModel when callController is called', function (done) {
@@ -160,7 +189,7 @@ describe('Testing', function () {
         it('should call the controller method passing the URL segments', function (done) {
 
             testing.callController('MyController', 'post', {
-                'segments' : segments,
+                'segments' : segments
             }, function (response) {
                 assert.equal(JSON.stringify(segments), JSON.stringify(response.segments));
                 done();
