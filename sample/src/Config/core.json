@@ -3,17 +3,11 @@
     "requestTimeout" : 10000,
     "dataSources" : {
         "default" : {
-            "type" : "Couchbase",
-            "host" : "0.0.0.0",
-            "port" : "8091",
-            "index" : "index"
-        },
-        "mysql" : {
-            "type" : "MySQL",
-            "host" : "192.168.2.121",
-            "port" : "3306",
-            "user" : "root",
-            "password" : "master_2013"
+            "type" : "couchbase",
+            "host" : "localhost",
+            "port" : "9200",
+            "index" : "kitchen"
         }
+
     }
 }

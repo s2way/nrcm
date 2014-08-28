@@ -1,8 +1,8 @@
 /*jslint devel: true, node: true, indent: 4, vars: true, maxlen: 256, nomen: true */
 'use strict';
 var exceptions = require('./../../exceptions.js');
-var Validator = require('./../Validator.js');
-var SchemaMatcher = require('./../SchemaMatcher.js');
+var Validator = require('./../../Component/Builtin/Validator.js');
+var SchemaMatcher = require('./../../Component/Builtin/SchemaMatcher.js');
 var utils = require('./../utils.js');
 var util = require('util');
 var ModelTrigger = require('./../ModelTrigger');
@@ -16,9 +16,9 @@ function MySQLInterface(dataSource, configurations) {
     }
     this.dataSource = dataSource;
     // Methods that are going to be injected into the model (prefixed with $)
-    this.methods = ['query', 'use', 'call', 'builder'];
+    this.methods = ['query', 'use', 'call'];
     // Methods that should be mocked
-    this.mockMethods = ['query', 'use', 'call'];
+    this.mockMethods = this.methods;
     // Database name
     this.database = configurations.database || dataSource.database;
     // Database selected

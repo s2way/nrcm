@@ -7,7 +7,7 @@ var ModelInterface = require('./../../src/Model/ModelInterface');
 describe('ModelInterface.js', function () {
 
     var configurations = {
-        'uid' : 'pessoa'
+        "type" : 'pessoa'
     };
     var dataSource = {
         'bucket' : 'bucket',

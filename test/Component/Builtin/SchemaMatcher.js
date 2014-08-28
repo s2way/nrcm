@@ -2,7 +2,7 @@
 /*globals describe, it */
 'use strict';
 var assert = require('assert');
-var SchemaMatcher = require('./../../../src/Model/SchemaMatcher');
+var SchemaMatcher = require('./../../../src/Component/Builtin/SchemaMatcher');
 
 describe('SchemaMatcher.js', function () {
 

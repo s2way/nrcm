@@ -3,44 +3,55 @@
 var exceptions = require('./../exceptions');
 
 /**
- * DataSource object, the datasource is persistent and last the whole request
+ * DataSource object, the data source is persistent and last the whole request
  *
  * @constructor
  * @method DataSource
- * @param {string} name ?
- * @param {json} configs The json with the database parameters
+ * @param {object} logger The logger which will be used by the DataSource
+ * @param {string} name The name of the DataSource as specified in the configuration file
+ * @param {object} configs
  */
 function DataSource(logger, name, configs) {
     if (typeof configs !== 'object' ||
             typeof configs.type !== 'string') {
         throw new exceptions.IllegalArgument('Invalid DataSource configurations');
     }
+    var validTypes = ['couchbase', 'mysql', 'elasticsearch'];
+
     this.logger = logger;
     this.name = name;
-    // Copy the DataSource configs
-    var configProp;
-    for (configProp in configs) {
-        if (configs.hasOwnProperty(configProp)) {
-            this[configProp] = configs[configProp];
+
+    (function copyDataSourceConfigs($this) {
+        var configProp;
+        for (configProp in configs) {
+            if (configs.hasOwnProperty(configProp)) {
+                $this[configProp] = configs[configProp];
+            }
         }
+    }(this));
+
+    if (this.type) {
+        this.type = this.type.toLowerCase();
     }
 
     if (typeof this.index !== 'string') {
         this.index = 'default';
     }
 
-    this.connection = null;
-    // This is necessary for Travis
-    try {
-        this.couchbase = require('couchbase');
-    } catch (e) {
-        console.log(e);
-        return;
-    }
-    this.mysql = require('mysql');
+    (function loadDataSourceModule($this) {
+        $this.connection = null;
+        if (validTypes.indexOf($this.type) !== -1) {
+            try {
+                /* This is necessary for Travis */
+                $this[$this.type] = require($this.type);
+            } catch (e) {
+                console.log(e);
+                return;
+            }
+        }
+    }(this));
 }
 
-// Log
 DataSource.prototype.info = function (msg) {
     this.logger.info('[DataSource] [' + this.name + '] ' + msg);
 };
@@ -52,8 +63,8 @@ DataSource.prototype.debug = function (msg) {
  * Establish a connection with the database
  *
  * @method connect
- * @param {function} onSuccess Callback for the success
- * @param {function} onError Callback for the error
+ * @param {function} onSuccess Callback for success
+ * @param {function} onError Callback for the
  */
 DataSource.prototype.connect = function (onSuccess, onError) {
     var $this = this;
@@ -68,7 +79,7 @@ DataSource.prototype.connect = function (onSuccess, onError) {
         return;
     }
     this.info('Connecting to ' + this.host + ':' + this.port);
-    if (this.type === 'Couchbase') {
+    if (this.type === 'couchbase') {
         connection = new this.couchbase.Connection({
             'host' : this.host + ':' + this.port,
             'bucket' : this.index
@@ -82,7 +93,7 @@ DataSource.prototype.connect = function (onSuccess, onError) {
                 onSuccess(connection);
             }
         });
-    } else if (this.type === 'MySQL') {
+    } else if (this.type === 'mysql') {
         connection = this.mysql.createConnection({
             'host': this.host,
             'user': this.user,
@@ -98,6 +109,13 @@ DataSource.prototype.connect = function (onSuccess, onError) {
                 onSuccess(connection);
             }
         });
+    } else if (this.type === 'elasticsearch') {
+        connection = new this.elasticsearch.Client({
+            'host' : this.host + ':' + this.port,
+            'log' : 'trace'
+        });
+        this.connection = connection;
+        onSuccess();
     } else {
         onError();
     }
@@ -109,11 +127,15 @@ DataSource.prototype.connect = function (onSuccess, onError) {
  * @method disconnect
  */
 DataSource.prototype.disconnect = function () {
-    if (this.connection !== null) {
+    var isConnected = this.connection !== null;
+    var isCouchbase = this.type === 'couchbase';
+    var isMySQL = this.type === 'mysql';
+
+    if (isConnected) {
         this.info('Disconnecting');
-        if (this.type === 'Couchbase') {
+        if (isCouchbase) {
             this.connection.shutdown();
-        } else if (this.type === 'MySQL') {
+        } else if (isMySQL) {
             this.connection.end();
         }
         this.connection = null;

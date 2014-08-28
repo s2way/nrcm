@@ -13,7 +13,7 @@ describe('ModelFactory.js', function () {
         var application = {
             'models' : {
                 'MyModel' : function () {
-                    this.uid = 'index';
+                    this.type = 'index';
                     return;
                 }
             },
@@ -96,18 +96,6 @@ describe('ModelFactory.js', function () {
                     }
                 }
             }
-        });
-
-        it('should inject the $builder property normally even if the mock parameter is true', function () {
-            loader = new ModelFactory(logger, application, {
-                'default' : {
-                    'type' : 'MySQL',
-                    'mock' : true
-                }
-            }, componentFactory);
-            instance = loader.create('MyModel');
-            var myModel = instance.model('MyModel');
-            assert.equal('function', typeof myModel.$builder);
         });
 
         it('should inject the method for retrieving models inside the models retrieved by the model method', function () {

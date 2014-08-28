@@ -1,13 +1,13 @@
 /*jslint devel: true, node: true, indent: 4 */
 /*globals describe, it */
 'use strict';
-var NRCM = require('./../src/NRCM');
+var WaferPie = require('./../src/WaferPie');
 var assert = require('assert');
 var path = require('path');
 var sync = require('./../src/Util/sync');
 var fs = require('fs');
 
-describe('NRCM.js', function () {
+describe('WaferPie.js', function () {
 
     function clearStructure(dir) {
         fs.rmdirSync(path.join(dir, 'src', 'Component'));
@@ -29,8 +29,8 @@ describe('NRCM.js', function () {
         fs.rmdirSync(dir);
     }
 
-    var nrcm = new NRCM();
-    nrcm.logger = {
+    var wafer = new WaferPie();
+    wafer.logger = {
         'info' : function () { return; },
         'debug' : function () { return; }
     };
@@ -40,7 +40,7 @@ describe('NRCM.js', function () {
         it('should load the configs without throwing an exception', function () {
             var configFileName = 'config_test.json';
             sync.createFileIfNotExists(configFileName, '{ "urlFormat": "/$application/$controller" }');
-            nrcm.configure(configFileName);
+            wafer.configure(configFileName);
             fs.unlinkSync(configFileName);
         });
 
@@ -48,7 +48,7 @@ describe('NRCM.js', function () {
             var configFileName = 'config_test.json';
             sync.createFileIfNotExists(configFileName, 'this is not a json file');
             try {
-                nrcm.configure(configFileName);
+                wafer.configure(configFileName);
             } catch (e) {
                 assert.equal('Fatal', e.name);
                 assert.equal('Configuration file is not a valid JSON', e.message);
@@ -60,7 +60,7 @@ describe('NRCM.js', function () {
             var configFileName = 'config_test.json';
             sync.createFileIfNotExists(configFileName, '{}');
             try {
-                nrcm.configure(configFileName);
+                wafer.configure(configFileName);
             } catch (e) {
                 assert.equal('Fatal', e.name);
                 assert.equal('urlFormat has not been specified or it is not a string', e.message);
@@ -75,7 +75,7 @@ describe('NRCM.js', function () {
             sync.createFileIfNotExists(path.join('testing', 'src', 'Config', 'core.json'), '');
 
             try {
-                nrcm.setUp('testing');
+                wafer.setUp('testing');
                 assert.fail();
             } catch (e) {
                 assert.equal('Fatal', e.name);
@@ -97,8 +97,8 @@ describe('NRCM.js', function () {
         var componentFile = path.join('testing1', 'src', 'Component', 'MyComponent.js');
         sync.createFileIfNotExists(componentFile, 'module.exports = function () { };');
 
-        nrcm.setUp('testing1');
-        nrcm.start();
+        wafer.setUp('testing1');
+        wafer.start();
         // Nothing to test here
         fs.unlinkSync(path.join('testing1', 'src', 'Controller', 'MyController.js'));
         fs.unlinkSync(path.join('testing1', 'src', 'Component', 'MyComponent.js'));
@@ -106,7 +106,7 @@ describe('NRCM.js', function () {
     });
 
     it('should create the default internal structure', function () {
-        nrcm.setUp('testing2');
+        wafer.setUp('testing2');
         assert.equal(true, fs.existsSync(path.join('testing2', 'src', 'Controller')));
         assert.equal(true, fs.existsSync(path.join('testing2', 'src', 'Component')));
         assert.equal(true, fs.existsSync(path.join('testing2', 'src', 'Config', 'acl.json')));
@@ -126,7 +126,7 @@ describe('NRCM.js', function () {
         var controllerFile = path.join('testing3', 'src', 'Controller', 'MyController.js');
         sync.createFileIfNotExists(controllerFile, '{}');
         try {
-            nrcm.setUp('testing3');
+            wafer.setUp('testing3');
             assert.fail();
         } catch (e) {
             assert.equal('Fatal', e.name);
@@ -143,7 +143,7 @@ describe('NRCM.js', function () {
         var modelFile = path.join('testing4', 'src', 'Model', 'MyModel.js');
         sync.createFileIfNotExists(modelFile, '{}');
         try {
-            nrcm.setUp('testing4');
+            wafer.setUp('testing4');
             assert.fail();
         } catch (e) {
             assert.equal('Fatal', e.name);
@@ -161,7 +161,7 @@ describe('NRCM.js', function () {
         var componentFile = path.join('testing5', 'src', 'Component', 'MyComponent.js');
         sync.createFileIfNotExists(componentFile, '{}');
         try {
-            nrcm.setUp('testing5');
+            wafer.setUp('testing5');
             assert.fail();
         } catch (e) {
             assert.equal('Fatal', e.name);
@@ -178,7 +178,7 @@ describe('NRCM.js', function () {
         var controllerFile = path.join('testing6', 'src', 'Controller', 'MyController.js');
         sync.createFileIfNotExists(controllerFile, 'module.exports = function (){ this.get = 1; };');
         try {
-            nrcm.setUp('testing6');
+            wafer.setUp('testing6');
             assert.fail();
         } catch (e) {
             assert.equal('Fatal', e.name);
@@ -198,7 +198,7 @@ describe('NRCM.js', function () {
             sync.createFileIfNotExists(coreFile, '{ "requestTimeout": "string" }');
 
             try {
-                nrcm.setUp('testing7');
+                wafer.setUp('testing7');
                 assert.fail();
             } catch (e) {
                 assert.equal('Fatal', e.name);
@@ -215,7 +215,7 @@ describe('NRCM.js', function () {
             sync.createFileIfNotExists(coreFile, '{ }');
 
             try {
-                nrcm.setUp('testing8');
+                wafer.setUp('testing8');
                 assert.fail();
             } catch (e) {
                 assert.equal('Fatal', e.name);

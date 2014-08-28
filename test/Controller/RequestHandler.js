@@ -152,7 +152,7 @@ describe('RequestHandler.js', function () {
         }
         var models = {
             'MyModel' : function () {
-                this.uid = 'My';
+                this.type = 'My';
                 this.validate = {};
                 this.requires = {};
                 this.locks = {};
@@ -459,7 +459,7 @@ describe('RequestHandler.js', function () {
                         this.post = function (callback) {
                             var model = this.model('MyModel');
                             assert.equal('MyModel', model.name);
-                            assert.equal('My', model.uid);
+                            assert.equal('My', model.type);
                             assert.equal('{}', JSON.stringify(model.validate));
                             assert.equal('{}', JSON.stringify(model.requires));
                             assert.equal('{}', JSON.stringify(model.locks));

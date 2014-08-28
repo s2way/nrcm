@@ -3,7 +3,7 @@
 'use strict';
 var assert = require('assert');
 var util = require('util');
-var MySQLInterface = require('./../../../src/Model/MySQLInterface');
+var MySQLInterface = require('./../../../src/Model/Interface/MySQLInterface');
 var DataSource = require('./../../../src/Model/DataSource');
 
 describe('MySQLInterface.js', function () {
@@ -30,7 +30,7 @@ describe('MySQLInterface.js', function () {
         'info' : function () { return; }
     };
 
-    var configurations = {'uid': 'pessoa'};
+    var configurations = {"type": 'pessoa'};
 
     function createDataSource(mysql, dataSourceConfigs) {
         dataSourceConfigs = dataSourceConfigs || {

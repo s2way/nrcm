@@ -1,6 +1,6 @@
-# NRCM
+# WaferPie
 
-NRCM is a Request Controller Model framework for NodeJS.
+WaferPie is a Controller Model framework for NodeJS.
 
 It is an ultra lightweight implementation of a RESTful API that acts as a content provider.
 
@@ -10,12 +10,12 @@ It is an ultra lightweight implementation of a RESTful API that acts as a conten
 * Couchbase model support;
 * Multi-application: several different applications can run inside the same NodeJS HTTP server;
 * Couchbase and MySQL data sources supported;
-* Assynchronous logging using winston;
+* Asynchronous logging using winston;
 * Does **not read a single file from the disk** after startup;
 
 ## Setup & Run
 
-1) Create your Node project and install the NRCM dependency locally: 
+1) Create your Node project and install the WaferPie dependency locally:
 ```bash
 $ npm install nrcm
 ``` 
@@ -28,8 +28,8 @@ $ npm install nrcm
 ```
 3) Create a file named index.js:
 ```javascript
-var NRCM = require('nrcm');
-var instance = new NRCM();
+var WaferPie = require('nrcm');
+var instance = new WaferPie();
 // Your server configuration JSON file
 instance.configure('config.json'); 
 // The name of your application 
@@ -40,7 +40,7 @@ instance.start('127.0.0.1', 3333);
 ```
 4) Start your server by typing: `node index.js`
 
-Your server should be running now. NRCM will automatically create the folder structure of your application.
+Your server should be running now. WaferPie will automatically create the folder structure of your application.
 
 ## Folder Structure
 
@@ -68,7 +68,7 @@ The line `instance.setUp('app')` will create the application folder structure if
 ├── index.js               --> Application entry point
 ```
 
-If you're using a multi-application server, you can have call `instance.setUp()` several times providing different names. NRCM will load all JS files into memory when the server starts and will not check them anymore.
+If you're using a multi-application server, you can have call `instance.setUp()` several times providing different names. WaferPie will load all JS files into memory when the server starts and will not check them anymore.
 
 ## Coding
 
@@ -84,7 +84,7 @@ The URL `/app/my_controller` will map to the application `app` and to the `MyCon
 
 ### Controllers
 
-All controllers must be located inside the application's Controller folder. They must be declared as a constructor function and NRCM will try to instantiate them when a valid request is issued. 
+All controllers must be located inside the application's Controller folder. They must be declared as a constructor function and WaferPie will try to instantiate them when a valid request is issued.
 
 ```javascript
 function MyController() {
@@ -98,7 +98,7 @@ MyController.prototype.get = function (callback) {
     this.statusCode = 200; // Not required: defaults to 200
     // Call the callback function passing the response JSON
     callback({
-        'hello_world' : 'NRCM says: ' + says
+        'hello_world' : 'WaferPie says: ' + says
     });
 };
 
@@ -112,7 +112,7 @@ $ curl -X GET http://localhost:3333/app/my_controller?says=Hi
 The following output is expected:
 ```json
 {
-    "hello_world" : "NRCM says: Hi"
+    "hello_world" : "WaferPie says: Hi"
 }
 ```
 
@@ -126,7 +126,7 @@ function AnotherController() {
 
 AnotherController.prototype.post = function (callback) {
     // Call the callback function passing the response JSON
-    this.headers['X-NRCM'] = 'This is a custom header';
+    this.headers['X-WaferPie'] = 'This is a custom header';
     // Use the function below for logging 
     this.logger.info('Logging cool information'); 
     callback({
@@ -138,7 +138,7 @@ AnotherController.prototype.post = function (callback) {
 // You MUST export the controller constructor
 module.exports = AnotherController;
 ```
-NRCM supports `application/x-www-form-urlencoded` and `application/json` payloads. Both are treated internally as JSONs;
+WaferPie supports `application/x-www-form-urlencoded` and `application/json` payloads. Both are treated internally as JSONs;
 
 ### Models
 
@@ -219,7 +219,7 @@ Coming soon...
 ### Components
 
 Wanna share information and routines between different models and/or controllers? Components can accomplish that.
-Again, component files should export be located inside `app/Component/` folder and must export a constructor function which will be instantiated by NRCM:
+Again, component files should export be located inside `app/Component/` folder and must export a constructor function which will be instantiated by WaferPie:
 
 A component named Util should be located inside `app/Component/Util.js` and contain something like this:
 
@@ -261,7 +261,7 @@ MyModel.prototype.hashPassword = function (password) {
 
 ## Testing
 
-NRCM provides tools for testing your controllers, models, and components. 
+WaferPie provides tools for testing your controllers, models, and components.
 
 Be sure to include the Testing class at the beginning of your test file. Instantiate the testing tools passing the path of your application:
 

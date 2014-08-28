@@ -1,11 +1,12 @@
 /*jslint devel: true, node: true, indent: 4, vars: true, maxlen: 256, nomen: true */
 'use strict';
 var exceptions = require('./../../exceptions.js');
-var Validator = require('./../Validator.js');
-var SchemaMatcher = require('./../SchemaMatcher.js');
+var Validator = require('./../../Component/Builtin/Validator.js');
+var SchemaMatcher = require('./../../Component/Builtin/SchemaMatcher.js');
 var utils = require('./../utils.js');
 var util = require('util');
 var ModelTrigger = require('./../ModelTrigger');
+
 /**
  * CouchBaseInterface object
  *
@@ -20,12 +21,12 @@ function CouchbaseInterface(dataSource, configurations) {
     if (configurations === undefined) {
         throw new exceptions.IllegalArgument('The configurations parameter is mandatory');
     }
-    if (configurations.uid === undefined) {
-        throw new exceptions.IllegalArgument('Uid is not defined!');
+    if (configurations.type === undefined) {
+        throw new exceptions.IllegalArgument('Type is not defined!');
     }
     this.dataSource = dataSource;
-    // Record key: uid prefix
-    this.uid = configurations.uid;
+    // Record key: type prefix
+    this.type = configurations.type;
     // Possible fields that are coing to be searched by
     this.keys = configurations.keys;
     // Field locks
@@ -38,6 +39,7 @@ function CouchbaseInterface(dataSource, configurations) {
     this.bucket = dataSource.index;
     // Validation rules
     this.validate = configurations.validate;
+
     if (this.validate === undefined || typeof this.validate !== 'object') {
         this.validate = {};
     }
@@ -60,7 +62,7 @@ function CouchbaseInterface(dataSource, configurations) {
     this.mockMethods = this.methods;
 }
 
-/*
+/**
  * Increment the counter for the key
  * It`s called automatically when id is missing on save method
  *
@@ -95,7 +97,7 @@ CouchbaseInterface.prototype._counter = function (keyName, callback) {
     });
 };
 
-/*
+/**
  * Check the options of locked fields
  *
  * @method _isLocked
@@ -119,7 +121,8 @@ CouchbaseInterface.prototype._isLocked = function (data, lock, status) {
     }
     return false;
 };
-/*
+
+/**
  * Search
  *
  * @method _isLocked
@@ -137,7 +140,7 @@ CouchbaseInterface.prototype._searchKeys = function (keys, data) {
                 if (typeof keys[n] === 'object') {
                     searchKeys(keys[n], data[n]);
                 } else if (typeof data[n] !== 'object' && data[n] !== undefined) {
-                    removeIds.push(that.uid + that.separator + n + that.separator + data[n]);
+                    removeIds.push(that.type + that.separator + n + that.separator + data[n]);
                 }
             }
         }
@@ -171,11 +174,12 @@ CouchbaseInterface.prototype.getMulti = function (keys, options, callback) {
         callback(err);
     });
 };
+
 /**
  * Delete a document
  *
  * @method removeById
- * @param {string} id Id that will be used with uid/prefix to delete the document
+ * @param {string} id Id that will be used with type/prefix to delete the document
  * @param {function} callback
  * @param {json} data Options to report to the database behavior
  */
@@ -227,7 +231,6 @@ CouchbaseInterface.prototype.removeById = function (id, callback, options) {
     trigger.execute();
 };
 
-// Save keys
 CouchbaseInterface.prototype._saveKeys = function (keys, data, id, oldData, callback) {
     var documents = {};
     var removeIds = [];
@@ -242,9 +245,9 @@ CouchbaseInterface.prototype._saveKeys = function (keys, data, id, oldData, call
                 } else {
                     if (typeof data[n] !== 'object' && data[n] !== undefined) {
                         if (oldData !== undefined && oldData[n] !== undefined && oldData[n] !== null) {
-                            removeIds.push(that.uid + that.separator + n + that.separator + oldData[n]);
+                            removeIds.push(that.type + that.separator + n + that.separator + oldData[n]);
                         }
-                        documents[that.uid + that.separator + n + that.separator + data[n]] = {'value' : {'key' : id }};
+                        documents[that.type + that.separator + n + that.separator + data[n]] = {'value' : {'key' : id }};
                         documentsCount += 1;
                     }
                 }
@@ -294,13 +297,13 @@ CouchbaseInterface.prototype._saveKeys = function (keys, data, id, oldData, call
     });
 };
 
-/*
+/**
 * Retrieve documents from the bucket
 *
 * @method find
-* @param {Object} condition Conditions to match
-* @param {Object} options Rules like limit, skip, order
-* @param {Object} callback
+* @param {object} condition Conditions to match
+* @param {object} options Rules like limit, skip, order
+* @param {function} callback
 */
 CouchbaseInterface.prototype._find = function (conditions, options, callback) {
     var that = this;
@@ -326,33 +329,34 @@ CouchbaseInterface.prototype._find = function (conditions, options, callback) {
  * Get few documents using a view
  *
  * @method findAll
- * @param {string} viewName
- * @param {object} viewOptions
- * @param {object} queryOptions
+ * @param {object} params (viewName, viewOptions and queryOptions)
  * @param {function} callback
  */
-CouchbaseInterface.prototype.findAll = function (viewName, viewOptions, queryOptions, callback) {
-    var that = this;
+CouchbaseInterface.prototype.findAll = function (params,  callback) {
+    var $this = this;
+    var viewName = params.viewName;
+    var viewOptions = params.viewOptions || {};
+    var queryOptions = params.queryOptions || {};
     var keysToGet = [];
     var i = 0;
     var l = 0;
-    that.dataSource.connect(function (connection) {
-        that.log('[findAll] connected ' + that.bucket + ' | ' + viewName);
+
+    $this.dataSource.connect(function (connection) {
+        $this.log('[findAll] connected ' + $this.bucket + ' | ' + viewName);
         queryOptions.limit = queryOptions.limit === undefined ? 10 : queryOptions.limit;
 
         connection.view(viewName, viewName, viewOptions).query(queryOptions, function (err, result) {
             if (err) {
-                that.log('[findAll] err' + err);
+                $this.log('[findAll] err' + err);
                 callback(err);
             } else {
-                that.log('[findAll] ok');
+                $this.log('[findAll] ok');
                 for (i = 0, l = result.length; i < l; i += 1) {
                     keysToGet.push(result[i].id);
                 }
                 connection.getMulti(keysToGet, {}, function (err, result) {
                     callback(err, result);
                 });
-                // callback(err, result);
             }
         });
     }, function (err) {
@@ -361,42 +365,18 @@ CouchbaseInterface.prototype.findAll = function (viewName, viewOptions, queryOpt
 };
 
 /**
- * Smart find - by Id or by View 
- * PENDING: Check if query has a key field
- * @method find
- * @param {string} query
- * @param {function} callback
- */
-CouchbaseInterface.prototype.find = function (query, callback) {
-    if (query.id !== undefined) {
-        this.findById(query.id, function (err, result) {
-            callback(err, result);
-        });
-    } else {
-        var queryOptions = {};
-        queryOptions.limit = query.limit !== undefined ? query.limit : 10;
-        queryOptions.skip = query.skip !== undefined ? query.skip : 0;
-        this.findAll(this.uid, {}, queryOptions, function (err, result) {
-            callback(err, result);
-        });
-    }
-};
-
-
-/**
  * Get a document using one of the related keys that points to this document
  *
  * @method findByKey
- * @param {string} keyValue Value that will be used with prefix to find the document
- * @param {string} keyName Prefix of the key
+ * @param {object} params Object with 'key' and 'value'
  * @param {function} callback
  */
-CouchbaseInterface.prototype.findByKey = function (keyValue, keyName, callback) {
+CouchbaseInterface.prototype.findByKey = function (params, callback) {
     var that = this;
-    if (keyValue === undefined || keyName === undefined || typeof callback !== 'function') {
+    if (params === undefined || params.value === undefined || params.key === undefined || typeof callback !== 'function') {
         throw new exceptions.IllegalArgument('All parameters are mandatory');
     }
-    var completeKey = that.uid + that.separator + keyName + that.separator + keyValue;
+    var completeKey = that.type + that.separator + params.key + that.separator + params.value;
     that.dataSource.connect(function (connection) {
         that.log('[findByKey] connected');
         connection.getMulti([completeKey], {}, function (err, result) {
@@ -423,7 +403,7 @@ CouchbaseInterface.prototype.findByKey = function (keyValue, keyName, callback) 
  * Get a document using the id
  *
  * @method findById
- * @param {string} id Id that will be used with uid to find the document
+ * @param {string} id Id that will be used with type to find the document
  * @param {function} callback
  */
 CouchbaseInterface.prototype.findById = function (id, callback) {
@@ -431,35 +411,44 @@ CouchbaseInterface.prototype.findById = function (id, callback) {
         throw new exceptions.IllegalArgument('All arguments are mandatory');
     }
     this.log('[CouchbaseInterface] findById(' + id + ')');
-    this._find({'_id' : this.uid + this.separator + id}, {}, callback);
+    var wholeDocumentKey = this.type + this.separator + id;
+    this._find({'_id' : wholeDocumentKey}, {}, callback);
 };
-// Log
+
+/**
+ * Log function
+ * Mocked in tests
+ * @param msg The log message
+ */
 CouchbaseInterface.prototype.log = function (msg) {
     console.log('[CouchbaseInterface] ' + (typeof msg === 'object' ? JSON.stringify(msg) : msg));
 };
+
 /**
  * Index a document in the database
  *
  * @method save
- * @param {string} id Id that will be used with uid/prefix to index the document
- * @param {json} data Document data to index
- * @param {function} callback
- * @param {string} prefix If using a related document
- * @param {json} data Options to report to the database behavior
+ * @param {object} Save parameters (id, data, type, options)
+ * @param {function} callback Function that will be called after the operation is complete
  */
-CouchbaseInterface.prototype.save = function (id, data, callback, prefix, options) {
+CouchbaseInterface.prototype.save = function (params, callback) {
     var $this = this;
+    var id = params.id;
+    var data = params.data;
+    var options = params.options;
+    var type = params.type;
+
     if (options === undefined) {
         options = {};
     }
     if (options.saveOptions === undefined) {
         options.saveOptions = {};
     }
-    if (prefix === undefined || prefix === null) {
-        prefix = this.uid;
+    if (type === undefined || type === null) {
+        type = this.type;
     }
 
-    var completeKey = id ? prefix + $this.separator + id : false;
+    var completeKey = id ? type + $this.separator + id : false;
 
     if (typeof callback !== 'function') {
         throw new exceptions.IllegalArgument('callback must be a function');
@@ -504,7 +493,7 @@ CouchbaseInterface.prototype.save = function (id, data, callback, prefix, option
 
                 function controlId(callback) {
                     if (id === undefined || id === null) {
-                        $this._counter(prefix, function (err, value) {
+                        $this._counter(type, function (err, value) {
                             if (err) {
                                 callback(err);
                             } else {
@@ -520,14 +509,14 @@ CouchbaseInterface.prototype.save = function (id, data, callback, prefix, option
                 function setOrReplace() {
                     $this.log('Setting/replacing');
                     if (isUpdate) {
-                        connection.replace(prefix + $this.separator + id, mergedData, options.saveOptions, callback);
+                        connection.replace(type + $this.separator + id, mergedData, options.saveOptions, callback);
                     } else {
-                        connection.set(prefix + $this.separator + id, mergedData, options.saveOptions, callback);
+                        connection.set(type + $this.separator + id, mergedData, options.saveOptions, callback);
                     }
                 }
 
                 // Saving in the same model: should perform validation, check locked fields and save keys
-                if (prefix === $this.uid) {
+                if (type === $this.type) {
                     performValidation(function () {
                         checkLockedFields(function () {
                             controlId(function (err) {
@@ -536,7 +525,7 @@ CouchbaseInterface.prototype.save = function (id, data, callback, prefix, option
                                     return;
                                 }
                                 $this.log('Saving keys');
-                                $this._saveKeys($this.keys, data, prefix + $this.separator + id, oldData, function (err) {
+                                $this._saveKeys($this.keys, data, type + $this.separator + id, oldData, function (err) {
                                     $this.log('Keys saved');
                                     if (err) {
                                         callback(err);

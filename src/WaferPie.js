@@ -23,7 +23,7 @@ var sync = require('./Util/sync');
 var Logger = require('./Util/Logger');
 var RequestHandler = require('./Controller/RequestHandler');
 
-function NRCM() {
+function WaferPie() {
     this.version = require('./../package.json').version;
     this.applications = {};
     this.configs = {
@@ -33,8 +33,8 @@ function NRCM() {
     this.logger = new Logger('logs');
 }
 
-NRCM.prototype.info = function (message) {
-    this.logger.info('[NRCM] ' + message);
+WaferPie.prototype.info = function (message) {
+    this.logger.info('[WaferPie] ' + message);
 };
 
 /**
@@ -46,7 +46,7 @@ NRCM.prototype.info = function (message) {
  * @method setUp
  * @param {string} appName The name of application, it will be also used as directory's name
  */
-NRCM.prototype.setUp = function (appName) {
+WaferPie.prototype.setUp = function (appName) {
     var app = {}, name;
     app.basePath = path.join(appName);
     app.srcPath = path.join(appName, 'src');
@@ -142,7 +142,7 @@ NRCM.prototype.setUp = function (appName) {
  * @returns {object} Components
  * @private
  */
-NRCM.prototype._loadComponents = function (componentsPath) {
+WaferPie.prototype._loadComponents = function (componentsPath) {
     var components = this._loadElements(path.join(__dirname, 'Component', 'Builtin'));
     var appComponents = this._loadElements(componentsPath);
     var componentName;
@@ -154,7 +154,7 @@ NRCM.prototype._loadComponents = function (componentsPath) {
     return components;
 };
 
-NRCM.prototype._loadElements = function (dirPath) {
+WaferPie.prototype._loadElements = function (dirPath) {
     var elementNames = [];
     var files = sync.listFilesFromDir(dirPath);
     files.forEach(function (file) {
@@ -167,7 +167,7 @@ NRCM.prototype._loadElements = function (dirPath) {
     return sync.loadNodeFilesIntoArray(elementNames);
 };
 
-NRCM.prototype._validateCoreFile = function (core) {
+WaferPie.prototype._validateCoreFile = function (core) {
     if (core.requestTimeout === undefined) {
         throw new exceptions.Fatal('The requestTimeout configuration is not defined');
     }
@@ -183,7 +183,7 @@ NRCM.prototype._validateCoreFile = function (core) {
  * @method configure
  * @param {string} configJSONFile The file name that contains your configuration object
  */
-NRCM.prototype.configure = function (configJSONFile) {
+WaferPie.prototype.configure = function (configJSONFile) {
     try {
         this.configs = sync.fileToJSON(configJSONFile);
     } catch (e) {
@@ -201,7 +201,7 @@ NRCM.prototype.configure = function (configJSONFile) {
  * @param {string} address The listening address of NodeJS http.createServer function
  * @param {number} port The listening port of NodeJS http.createServer function
  */
-NRCM.prototype.start = function (address, port) {
+WaferPie.prototype.start = function (address, port) {
     var $this = this;
     this.info('Starting...');
     http.createServer(function (request, response) {
@@ -218,6 +218,6 @@ NRCM.prototype.start = function (address, port) {
     this.info('Started!');
 };
 
-NRCM.Testing = require('./Test/Testing');
+WaferPie.Testing = require('./Test/Testing');
 
-module.exports = NRCM;
+module.exports = WaferPie;

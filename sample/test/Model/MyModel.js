@@ -1,7 +1,7 @@
 var assert = require('assert');
 var path = require('path');
 
-var Testing = require('../../../src/NRCM').Testing;
+var Testing = require('../../../src/WaferPie').Testing;
 
 describe('MyModel', function () {
 

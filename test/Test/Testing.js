@@ -55,7 +55,7 @@ describe('Testing', function () {
             if (path === 'app/src/Model/MyModel') {
                 // Model constructor
                 return function () {
-                    this.uid = 'something';
+                    this.type = 'something';
                     this.myModelMethod = function (callback) {
                         callback({});
                     };
@@ -64,7 +64,7 @@ describe('Testing', function () {
             if (path === 'app/src/Model/AnotherModel') {
                 // Model constructor
                 return function () {
-                    this.uid = 'something-else';
+                    this.type = 'something-else';
                     return;
                 };
             }

@@ -3,7 +3,7 @@
 'use strict';
 var assert = require('assert');
 var util = require('util');
-var CouchbaseInterface = require('./../../../src/Model/CouchbaseInterface');
+var CouchbaseInterface = require('./../../../src/Model/Interface/CouchbaseInterface');
 var DataSource = require('./../../../src/Model/DataSource');
 
 describe('CouchbaseInterface.js', function () {
@@ -18,7 +18,7 @@ describe('CouchbaseInterface.js', function () {
         'senha' : '123456',
         'endereco' : {
             'logradouro' : 'Rua José de Alencar',
-            'cep' : '93310210',
+            'cep' : '93310210'
         },
         'preferencias' : ['Cerveja', 'Salgadinho']
     };
@@ -77,12 +77,12 @@ describe('CouchbaseInterface.js', function () {
                 }
             });
         }
-        var modelInterface = new CouchbaseInterface(createDataSource(couchbase), {'uid': 'pessoa'});
+        var modelInterface = new CouchbaseInterface(createDataSource(couchbase), {'type': 'pessoa'});
         modelInterface.log = blankFunction;
         return modelInterface;
     }
     describe('CouchbaseInterface', function () {
-        it('should throw an exception if the uid is not provided', function () {
+        it('should throw an exception if the type is not provided', function () {
             try {
                 var ci = new CouchbaseInterface(createDataSource(), { 'bucket' : 'bucket' });
                 assert.equal(true, ci !== null);
@@ -113,7 +113,7 @@ describe('CouchbaseInterface.js', function () {
 
     describe('findByKey', function () {
         it('should throw an exception if the id is undefined', function () {
-            var modelInterface = new CouchbaseInterface(createDataSource(), {'uid': 'pessoa'});
+            var modelInterface = new CouchbaseInterface(createDataSource(), {'type': 'pessoa'});
             modelInterface.log = blankFunction;
             try {
                 modelInterface.findByKey();
@@ -131,7 +131,7 @@ describe('CouchbaseInterface.js', function () {
                         callback(null, {
                             'pessoa_email_davi@versul.com.br' : {
                                 'value' : {
-                                    'key' : 'pessoa_02895328099',
+                                    'key' : 'pessoa_02895328099'
                                 }
                             }
                         });
@@ -147,11 +147,14 @@ describe('CouchbaseInterface.js', function () {
                     } else {
                         assert.fail();
                     }
-                },
+                }
             });
-            var modelInterface = new CouchbaseInterface(createDataSource(couchbase), {'uid' : 'pessoa'});
+            var modelInterface = new CouchbaseInterface(createDataSource(couchbase), {'type' : 'pessoa'});
             modelInterface.log = blankFunction;
-            modelInterface.findByKey('davi@versul.com.br', 'email', function (err, result) {
+            modelInterface.findByKey({
+                'key' : 'email',
+                'value' : 'davi@versul.com.br'
+            }, function (err, result) {
                 assert.equal('Davi', result[mainKey].value.nome);
                 assert.equal('davi@versul.com.br', result[mainKey].value.email);
                 assert.equal(undefined, err);
@@ -179,56 +182,20 @@ describe('CouchbaseInterface.js', function () {
                         'value' : document
                     }
                 });
-            },
-        })), {'uid' : 'pessoa'});
+            }
+        })), {'type' : 'pessoa'});
         modelInterface.log = blankFunction;
 
         it('should return all records if the id is missing', function (done) {
-            modelInterface.findAll('viewName', {}, {}, function (err) {
+            modelInterface.findAll({
+                'viewName' : 'viewName'
+            }, function (err) {
                 assert.equal(undefined, err);
                 done();
             });
         });
     });
-    describe('find', function () {
-        var document = {
-            'nome' : 'Davi',
-            'cpf' : '02895328099'
-        };
-        var couchbase = mockCouchbase({
-            'getMulti' : function (keys, options, callback) {
-                callback(null, {
-                    'pessoa_02895328099' : {
-                        'value' : document
-                    }
-                });
-            },
-            'view' : function () {
-                return {
-                    'query' : function (queryOptions, callback) {
-                        callback(null, true);
-                    }
-                };
-            }
-        });
-        var modelInterface = new CouchbaseInterface(createDataSource(couchbase), {'uid' : 'pessoa'});
-        modelInterface.log = blankFunction;
-        it('should return all records calling findAll if the id is missing', function (done) {
-            modelInterface.find({}, function (err) {
-                assert.equal(undefined, err);
-                done();
-            });
-        });
 
-        it('should return the record calling find if the id is present', function (done) {
-            modelInterface.find({id : '02895328099'}, function (err, result) {
-                assert.equal(JSON.stringify(document), JSON.stringify(result.value));
-                assert.equal(undefined, err);
-                done();
-            });
-
-        });
-    });
     describe('findById', function () {
         var doc = {
             'nome' : 'Davi',
@@ -243,7 +210,7 @@ describe('CouchbaseInterface.js', function () {
                 });
             }
         });
-        var modelInterface = new CouchbaseInterface(createDataSource(couchbase), {'uid' : 'pessoa'});
+        var modelInterface = new CouchbaseInterface(createDataSource(couchbase), {'type' : 'pessoa'});
         modelInterface.log = blankFunction;
         it('should throw an exception if the id is not passed or if the callback is not a function', function () {
             try {
@@ -272,7 +239,7 @@ describe('CouchbaseInterface.js', function () {
         });
         it('should throw an IllegalArgument exception if the passed callback is not a function', function () {
             try {
-                var modelInterface = new CouchbaseInterface(createDataSource(couchbase), {'uid': 'pessoa'});
+                var modelInterface = new CouchbaseInterface(createDataSource(couchbase), {'type': 'pessoa'});
                 modelInterface.log = blankFunction;
                 modelInterface.removeById('02895328099', 'pessoa', null, {});
                 assert.fail();
@@ -295,7 +262,7 @@ describe('CouchbaseInterface.js', function () {
                         callback();
                     });
                 }
-            })), {'uid': 'pessoa'});
+            })), {'type': 'pessoa'});
             modelInterface.log = blankFunction;
             modelInterface.removeById('pessoa_02895328099', function () {
                 assert.equal('pessoa_02895328099', removeKey);
@@ -365,7 +332,7 @@ describe('CouchbaseInterface.js', function () {
 
     describe('getMulti', function () {
         it('should throw an IllegalArgument exception if the callback is not a function', function () {
-            var modelInterface = new CouchbaseInterface(createDataSource(), {'uid' : 'pessoa'});
+            var modelInterface = new CouchbaseInterface(createDataSource(), {'type' : 'pessoa'});
             try {
                 modelInterface.getMulti([]);
                 assert.fail();
@@ -374,7 +341,7 @@ describe('CouchbaseInterface.js', function () {
             }
         });
         it('should throw an IllegalArgument exception if the keys is not an array', function (done) {
-            var modelInterface = new CouchbaseInterface(createDataSource(), {'uid' : 'pessoa'});
+            var modelInterface = new CouchbaseInterface(createDataSource(), {'type' : 'pessoa'});
             try {
                 modelInterface.getMulti(null, {}, function (err) {
                     try {
@@ -414,7 +381,7 @@ describe('CouchbaseInterface.js', function () {
                         callback(null, expectedResult);
                     });
                 }
-            })), {'uid' : 'pessoa'});
+            })), {'type' : 'pessoa'});
             modelInterface.getMulti(['pessoa_02895328099', 'pessoa_19100000000'], {}, function (err, result) {
                 if (err) {
                     assert.fail();
@@ -456,7 +423,7 @@ describe('CouchbaseInterface.js', function () {
                     });
                 }
             }));
-            modelInterface.save(null, {'dado' : 'dado'}, function (err, result) {
+            modelInterface.save({'data' : {'dado' : 'dado'}}, function (err, result) {
                 assert.equal(true, incrCalled);
                 assert.equal(true, setCalled);
                 done();
@@ -483,7 +450,7 @@ describe('CouchbaseInterface.js', function () {
                     });
                 }
             }));
-            modelInterface.save('02895328099', data, function (err) {
+            modelInterface.save({'id' : '02895328099', 'data' : data}, function (err) {
                 assert.equal(null, err);
                 assert.equal(true, replaceCalled);
                 assert.equal(true, getMultiCalled);
@@ -523,7 +490,7 @@ describe('CouchbaseInterface.js', function () {
                     callback(err, result);
                 });
             };
-            modelInterface.save('02895328099', data, function (err, result) {
+            modelInterface.save({'id' : '02895328099', 'data' : data}, function (err, result) {
                 assert.equal(null, err);
                 assert.equal(true, beforeCalled);
                 assert.equal(true, afterCalled);
@@ -548,7 +515,7 @@ describe('CouchbaseInterface.js', function () {
                 }
             });
             var modelInterface = createModelInterface(couchbase);
-            modelInterface.save('02895328099', data, function (err) {
+            modelInterface.save({'id' : '02895328099', 'data' : data}, function (err) {
                 assert.equal(null, err);
                 done();
             });
@@ -574,7 +541,7 @@ describe('CouchbaseInterface.js', function () {
                     callback(false, false, {});
                 });
             };
-            modelInterface.save('02895328099', document, function (exception) {
+            modelInterface.save({'id' : '02895328099', 'data' : document}, function (exception) {
                 assert.equal('ValidationFailed', exception.name);
                 assert.equal(undefined, controlVars.replaceCalled);
                 done();
@@ -603,7 +570,7 @@ describe('CouchbaseInterface.js', function () {
             modelInterface.locks = {
                 'senha' : 'M'
             };
-            modelInterface.save('02895328099', data, function (exception) {
+            modelInterface.save({'id' : '02895328099', 'data' : data}, function (exception) {
                 assert.equal('FieldLocked', exception.name);
                 assert.equal(undefined, controlVars.replaceCalled);
                 done();
@@ -627,7 +594,7 @@ describe('CouchbaseInterface.js', function () {
                     callback(false, false, {});
                 });
             };
-            modelInterface.save('02895328099', data, function (exception) {
+            modelInterface.save({'id' : '02895328099', 'data' : data}, function (exception) {
                 assert.equal('ValidationFailed', exception.name);
                 done();
             });
@@ -678,7 +645,7 @@ describe('CouchbaseInterface.js', function () {
                     callback(false, true, {});
                 });
             };
-            modelInterface.save('02895328099', document, function (exception, result) {
+            modelInterface.save({'id' : '02895328099', 'data' : document}, function (exception, result) {
                 var expectedKeys = {
                     'pessoa_email_davi@versul.com.br' : {
                         'value' : {
@@ -720,7 +687,7 @@ describe('CouchbaseInterface.js', function () {
                 }
             });
             var modelInterface = new CouchbaseInterface(createDataSource(couchbase), {
-                'uid': 'pessoa',
+                'type': 'pessoa',
                 'schema' : {
                     'senha' : false
                 }
@@ -732,7 +699,7 @@ describe('CouchbaseInterface.js', function () {
                     callback(false, true, {});
                 });
             };
-            modelInterface.save('02895328099', document, function (exception, result) {
+            modelInterface.save({'id' : '02895328099', 'data' : document}, function (exception, result) {
                 assert.equal('InvalidSchema', exception.name);
                 done();
             });
@@ -788,7 +755,7 @@ describe('CouchbaseInterface.js', function () {
                     callback(false, true, {});
                 }, 1);
             };
-            modelInterface.save('02895328099', document, function (exception, result) {
+            modelInterface.save({'id' : '02895328099', 'data' : document}, function (exception, result) {
                 var expectedKeys = {
                     'pessoa_email_davi@versul.com.br' : {
                         'value' : {

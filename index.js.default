@@ -1,5 +1,5 @@
-var NRCM = require('nrcm');
-var nrcm = new NRCM();
-nrcm.configure('config.json');
-nrcm.setUp('app');
-nrcm.start('0.0.0.0', 3333);
+var WaferPie = require('waferpie');
+var wafer = new WaferPie();
+wafer.configure('config.json');
+wafer.setUp('app');
+wafer.start('0.0.0.0', 3333);

@@ -1,27 +1,28 @@
 {
   "bugs": {
-    "url": "http://www.s2way.com/nrcm/issues",
+    "url": "http://www.s2way.com/waferpie/issues",
     "email": "support@s2way.com"
   },
   "description": "The official S2Way Framework for Node.js.",
   "engines": {
     "node": ">=0.8.8"
   },
-  "homepage": "http://www.s2way.com/nrcm",
+  "homepage": "http://www.s2way.com/waferpie",
   "keywords": [
     "s2way",
     "framework",
-    "nrcm",
+    "waferpie",
     "request",
     "view",
     "controller"
   ],
-  "main": "./src/NRCM.js",
+  "main": "./src/WaferPie.js",
   "license": "Apache2",
-  "name": "nrcm",
+  "name": "waferpie",
   "dependencies": {
     "chalk": "^0.5.1",
     "couchbase": "^1.2.4",
+    "elasticsearch": "^2.4.0",
     "mysql": "^2.4.2",
     "winston": "^0.7.3"
   },
@@ -43,9 +44,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "http://github.com/nrcm/nrcm.git"
+    "url": "http://github.com/s2way/waferpie.git"
   },
-  "version": "0.4.0",
+  "version": "0.4.3",
   "scripts": {
     "preinstall": "npm install -g grunt-cli jslint mocha blanket",
     "pretest": "jslint --node --vars --devel --nomen --stupid --indent 4 --maxlen 2048 `find src test  *.js | grep -P '.*\\.js$' | tr '\\n' ' '`",
@@ -64,11 +65,11 @@
   ],
   "readme": "Please reade the README.md file.",
   "readmeFilename": "README.md",
-  "_id": "nrcm@0.1.1",
-  "_from": "nrcm@",
+  "_id": "waferpie@0.4.3",
+  "_from": "waferpie@",
   "config": {
     "blanket": {
-      "pattern": "nrcm/src",
+      "pattern": "waferpie/src",
       "data-cover-never": "node_modules"
     },
     "travis-cov": {
