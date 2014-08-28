@@ -13,16 +13,16 @@ var exceptions = require('./../exceptions');
  * @constructor
  */
 function ModelFactory(logger, application, dataSources, componentFactory) {
-    this.application = application;
-    this.dataSources = dataSources;
-    this.componentFactory = componentFactory;
-    this.logger = logger;
-    this.models = {};
+    this._application = application;
+    this._dataSources = dataSources;
+    this._componentFactory = componentFactory;
+    this._logger = logger;
+    this._models = [];
     this.info('ModelFactory created');
 }
 
 ModelFactory.prototype.info = function (msg) {
-    this.logger.info('[ModelFactory] ' + msg);
+    this._logger.info('[ModelFactory] ' + msg);
 };
 
 /**
@@ -34,11 +34,6 @@ ModelFactory.prototype.create = function (modelName) {
     this.info('Creating model: ' + modelName);
     var $this = this;
     var modelInterface, i, modelInterfaceMethod;
-    var modelAlreadyCreated = this.models[modelName] !== undefined;
-
-    if (modelAlreadyCreated) {
-        return this.models[modelName];
-    }
 
     function modelInterfaceDelegation(method) {
         return function () {
@@ -50,8 +45,8 @@ ModelFactory.prototype.create = function (modelName) {
         throw new exceptions.NotMocked('You must mock this method in your tests');
     }
 
-    if (this.application.models[modelName] !== undefined) {
-        var ModelConstructor = this.application.models[modelName];
+    if (this._application.models[modelName] !== undefined) {
+        var ModelConstructor = this._application.models[modelName];
         var modelInstance = new ModelConstructor();
         var modelDataSourceName = modelInstance.dataSource;
 
@@ -61,10 +56,10 @@ ModelFactory.prototype.create = function (modelName) {
 
         modelInstance.name = modelName;
         // Make the application logger available to the models
-        modelInstance.logger = this.application.logger;
+        modelInstance.logger = this._application.logger;
 
         this.info('Creating ModelInterface');
-        var dataSource = this.dataSources[modelDataSourceName];
+        var dataSource = this._dataSources[modelDataSourceName];
         // If the DataSource is not specified or not found, do not inject any interface methods
         if (!dataSource) {
             this.info('DataSource not found: ' + modelDataSourceName);
@@ -94,9 +89,9 @@ ModelFactory.prototype.create = function (modelName) {
         };
 
         modelInstance.component = function (componentName) {
-            return $this.componentFactory.create(componentName);
+            return $this._componentFactory.create(componentName);
         };
-        this.models[modelName] = modelInstance;
+        this._models.push(modelInstance);
         this.info('All model methods injected');
 
         return modelInstance;

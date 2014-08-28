@@ -9,7 +9,7 @@
 function ComponentFactory(logger, application) {
     this._application = application;
     this._logger = logger;
-    this._components = {};
+    this._components = [];
     this.info('ComponentFactory created');
 }
 
@@ -35,11 +35,6 @@ ComponentFactory.prototype.create = function (componentName, params) {
     this.info('Creating component: ' + componentName);
     var $this = this;
     var ComponentConstructor, componentInstance;
-    var componentAlreadyCreated = this._components[componentName] !== undefined;
-
-    if (componentAlreadyCreated) {
-        return this._components[componentName];
-    }
 
     if (this._application.components[componentName] !== undefined) {
         ComponentConstructor = this._application.components[componentName];
@@ -53,7 +48,7 @@ ComponentFactory.prototype.create = function (componentName, params) {
             return $this.create(componentName);
         };
         this.info('Component created');
-        this._components[componentName] = componentInstance;
+        this._components.push = componentInstance;
         return componentInstance;
     }
     this.info('Component not found');

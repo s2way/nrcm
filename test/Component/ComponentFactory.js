@@ -47,9 +47,9 @@ describe('ComponentFactory.js', function () {
             instance = factory.create('MyComponent');
         });
 
-        it('should return the same component instance if called twice', function () {
+        it('should not return the same component instance if called twice', function () {
             var anotherInstance = factory.create('MyComponent');
-            expect(instance).to.be.equal(anotherInstance);
+            expect(instance).not.to.be.equal(anotherInstance);
         });
 
         it('should create the component and inject the name property', function () {

@@ -45,8 +45,8 @@ describe('ModelFactory.js', function () {
             instance = factory.create('MyModel');
         });
 
-        it('should return the same instance if called twice', function () {
-            expect(instance).to.be.equal(factory.create('MyModel'));
+        it('should not return the same instance if called twice', function () {
+            expect(instance).not.to.be.equal(factory.create('MyModel'));
         });
 
         it('should create the model and inject the name property', function () {
