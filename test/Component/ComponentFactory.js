@@ -2,7 +2,7 @@
 /*globals describe, it, beforeEach */
 'use strict';
 
-var assert = require('assert');
+var expect = require('expect.js');
 var ComponentFactory = require('../../src/Component/ComponentFactory');
 
 ComponentFactory.prototype.info = function () { return; };
@@ -11,10 +11,29 @@ describe('ComponentFactory.js', function () {
 
     describe('create', function () {
 
-        var instance;
+        var factory, instance;
+
+        it('should pass the params to the component constructor', function (done) {
+            factory = new ComponentFactory({
+                'info' : function () { return; },
+                'debug' : function () { return; }
+            }, {
+                'components' : {
+                    'MyComponent' : function (params) {
+                        expect(params.key).to.be('value');
+                        done();
+                        return;
+                    }
+                },
+                'logger' : { }
+            });
+            instance = factory.create('MyComponent', {
+                'key' : 'value'
+            });
+        });
 
         beforeEach(function () {
-            var factory = new ComponentFactory({
+            factory = new ComponentFactory({
                 'info' : function () { return; },
                 'debug' : function () { return; }
             }, {
@@ -28,21 +47,25 @@ describe('ComponentFactory.js', function () {
             instance = factory.create('MyComponent');
         });
 
+        it('should return the same component instance if called twice', function () {
+            var anotherInstance = factory.create('MyComponent');
+            expect(instance).to.be.equal(anotherInstance);
+        });
+
         it('should create the component and inject the name property', function () {
-            assert.equal('MyComponent', instance.name);
+            expect(instance.name).to.be('MyComponent');
         });
 
         it('should create the model and inject the application logger object', function () {
-            assert.equal('object', typeof instance.logger);
+            expect(instance.logger).to.be.an('object');
         });
 
         it('should inject the method for retrieving components', function () {
-            assert.equal(null, instance.component('InvalidComponent'));
+            expect(instance.component('InvalidComponent')).to.be(null);
         });
 
         it('should inject the method for retrieving components inside the components retrieved by the component method', function () {
-            // Retrieving itself
-            assert.equal('MyComponent', instance.component('MyComponent').component('MyComponent').name);
+            expect(instance.component('MyComponent').component('MyComponent').name).to.be('MyComponent');
         });
 
     });

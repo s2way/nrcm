@@ -3,13 +3,14 @@
 'use strict';
 
 var assert = require('assert');
+var expect = require('expect.js');
 var ModelFactory = require('../../src/Model/ModelFactory');
 
 describe('ModelFactory.js', function () {
 
     describe('create', function () {
 
-        var instance, loader;
+        var instance, factory;
         var application = {
             'models' : {
                 'MyModel' : function () {
@@ -40,8 +41,12 @@ describe('ModelFactory.js', function () {
         };
 
         beforeEach(function () {
-            loader = new ModelFactory(logger, application, dataSources, componentFactory);
-            instance = loader.create('MyModel');
+            factory = new ModelFactory(logger, application, dataSources, componentFactory);
+            instance = factory.create('MyModel');
+        });
+
+        it('should return the same instance if called twice', function () {
+            expect(instance).to.be.equal(factory.create('MyModel'));
         });
 
         it('should create the model and inject the name property', function () {
@@ -75,13 +80,13 @@ describe('ModelFactory.js', function () {
         });
 
         it('should inject all ModelInterface and they should throw a NotMocked if the DataSource mock parameter is true', function () {
-            loader = new ModelFactory(logger, application, {
+            factory = new ModelFactory(logger, application, {
                 'default' : {
                     'type' : 'MySQL',
                     'mock' : true
                 }
             }, componentFactory);
-            instance = loader.create('MyModel');
+            instance = factory.create('MyModel');
             var myModel = instance.model('MyModel');
             var methods = ['$query', '$use'];
             var i, method;

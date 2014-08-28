@@ -6,6 +6,7 @@ var Router = require('./../../src/Core/Router.js');
 var ModelFactory = require('./../../src/Model/ModelFactory.js');
 var ComponentFactory = require('./../../src/Component/ComponentFactory.js');
 var assert = require('assert');
+var expect = require('expect.js');
 
 describe('RequestHandler.js', function () {
 
@@ -147,6 +148,9 @@ describe('RequestHandler.js', function () {
                         controlVars.componentMethodCalled = true;
                         callback();
                     };
+                    this.destroy = function () {
+                        controlVars.componentDestroyCalled = true;
+                    };
                 }
             };
         }
@@ -230,6 +234,13 @@ describe('RequestHandler.js', function () {
                     sendResponseCounter += 1;
                 };
                 instance = requestHandler.prepareController('MyController');
+            });
+
+            it('should destroy all components by calling their destroy() method if defined', function (done) {
+                requestHandler.invokeController(instance, 'post', function () {
+                    expect(controlVars.componentDestroyCalled).to.be.ok();
+                    done();
+                });
             });
 
             it('should throw a MethodNotFound exception if the method passed is not implemented inside the controller', function () {
@@ -405,7 +416,6 @@ describe('RequestHandler.js', function () {
                             var myComponent = this.component('MyComponent');
                             myComponent.method(callback);
                             assert(myComponent.component('MyComponent') !== undefined);
-
                         };
                     }
                 });

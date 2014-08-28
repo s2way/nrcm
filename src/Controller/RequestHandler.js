@@ -301,7 +301,6 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
                 }());
 
                 $this.info('Shutting down connections');
-
                 (function shutdownAllConnections() {
                     var dataSourceNameAC, dataSourceAC;
                     for (dataSourceNameAC in $this.dataSources) {
@@ -311,6 +310,21 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
                         }
                     }
                 }());
+
+                $this.info('Destroying components');
+                (function destroyComponents() {
+                    var componentInstance, componentName;
+                    var componentsCreated = $this.componentFactory.getComponents();
+                    for (componentName in componentsCreated) {
+                        if (componentsCreated.hasOwnProperty(componentName)) {
+                            componentInstance = componentsCreated[componentName];
+                            if (typeof componentInstance.destroy === 'function') {
+                                componentInstance.destroy();
+                            }
+                        }
+                    }
+                }());
+
                 $this.render(
                     savedOutput,
                     controllerInstance.statusCode,

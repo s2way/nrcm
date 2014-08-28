@@ -4,11 +4,20 @@
 var ModelInterface = require('./ModelInterface');
 var exceptions = require('./../exceptions');
 
+/**
+ * Responsible for creating models
+ * @param {object} logger
+ * @param {object} application
+ * @param {object} dataSources
+ * @param {object} componentFactory
+ * @constructor
+ */
 function ModelFactory(logger, application, dataSources, componentFactory) {
     this.application = application;
     this.dataSources = dataSources;
     this.componentFactory = componentFactory;
     this.logger = logger;
+    this.models = {};
     this.info('ModelFactory created');
 }
 
@@ -16,10 +25,20 @@ ModelFactory.prototype.info = function (msg) {
     this.logger.info('[ModelFactory] ' + msg);
 };
 
+/**
+ * Create a model. If it has already been called within the same request, returns the same instance again.
+ * @param {string} modelName Model name (if folders are necessary, the names must be separated by dots)
+ * @returns {object} The model instance or null if it does not exist
+ */
 ModelFactory.prototype.create = function (modelName) {
     this.info('Creating model: ' + modelName);
     var $this = this;
     var modelInterface, i, modelInterfaceMethod;
+    var modelAlreadyCreated = this.models[modelName] !== undefined;
+
+    if (modelAlreadyCreated) {
+        return this.models[modelName];
+    }
 
     function modelInterfaceDelegation(method) {
         return function () {
@@ -77,6 +96,7 @@ ModelFactory.prototype.create = function (modelName) {
         modelInstance.component = function (componentName) {
             return $this.componentFactory.create(componentName);
         };
+        this.models[modelName] = modelInstance;
         this.info('All model methods injected');
 
         return modelInstance;
