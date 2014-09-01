@@ -195,14 +195,17 @@ All models will use the `default` DataSource by default.
 ```javascript
 // The constructor cannot have any parameters
 function Order() {
-    // This model is going to use the 'mysql' data source instead of 'default'
-    this.dataSource = 'mysql'; 
 }
 
-Order.prototype.findAll = function (callback) {
+Order.prototype.init = function () {
+    // This model is going to use the 'mysql' data source instead of 'default'
+    this.mysql = this.component('DataSource.MySQL', 'mysql');
+};
 
-    $.use('my_database', function () {
-        $.query('SELECT * FROM order', [], function (err, rows, result) {
+Order.prototype.findAll = function (callback) {
+    var mysql = this.mysql;
+    mysql.use('my_database', function () {
+        mysql.query('SELECT * FROM order', [], function (err, rows, result) {
             callback(err, rows);
         });
     });
