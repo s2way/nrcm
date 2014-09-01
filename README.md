@@ -17,7 +17,7 @@ It is an ultra lightweight implementation of a RESTful API that acts as a conten
 
 1) Create your Node project and install the WaferPie dependency locally:
 ```bash
-$ npm install nrcm
+$ npm install waferpie
 ``` 
 
 2) Create your server configuration file and name it config.json:
@@ -28,7 +28,7 @@ $ npm install nrcm
 ```
 3) Create a file named index.js:
 ```javascript
-var WaferPie = require('nrcm');
+var WaferPie = require('waferpie');
 var instance = new WaferPie();
 // Your server configuration JSON file
 instance.configure('config.json'); 
@@ -212,6 +212,23 @@ Order.prototype.findAll = function (callback) {
 module.exports = Order;
 ```
 
+##### QueryBuilder
+
+If you are dealing with a MySQL data source, you may want to use the QueryBuilder component. You can access it inside your models:
+```javascript
+// Model constructor
+function MyModel() {
+}
+
+MyModel.prototype.findAll = function () {
+    var $ = this.component('QueryBuilder'); // Get an instance of the query builder
+    var sqlQuery = $.selectStarFrom('my_model').where(
+        $.eq('color', $.value('white')) // $.value() escapes the string
+    );
+};
+```
+
+
 #### Couchbase
 
 Coming soon...
@@ -230,6 +247,8 @@ function Util() {
 }
 
 Util.prototype.md5 = function (value) {
+    // You may want to get the params passed in the component() function
+    var seed = this.params.seed;
     // md5 function here
     ...
     return something;
@@ -244,7 +263,9 @@ Inside a controller:
 MyController.prototype.get = function (callback) {
 
     var value = this.query.value;
-    var util = this.component('Util'); // Load the Util component
+    var seed = new Date().getTime();
+    var params = { 'seed' : seed }; // You may want to pass parameters to the component
+    var util = this.component('Util', params); // Load the Util component
     
     callback({
         'md5' : util.md5(value)
@@ -266,7 +287,7 @@ WaferPie provides tools for testing your controllers, models, and components.
 Be sure to include the Testing class at the beginning of your test file. Instantiate the testing tools passing the path of your application:
 
 ```javascript
-var Testing = require('nrcm').Testing;
+var Testing = require('waferpie').Testing;
 ...
 var testing = new Testing(path.join(__dirname, '../../../sample'));
 ```
@@ -315,22 +336,6 @@ myModel.find(function (result) {
     assert.equal('{}', JSON.stringify(result));
 });
 ```
-#### QueryBuilder
-
-If you are dealing with a MySQL data source, you may want to use the QueryBuilder. You can access it inside your models:
-```javascript
-// Model constructor
-function MyModel() {
-}
-
-MyModel.prototype.findAll = function () {
-    var $ = this.$builder(); // Get an instance of the query builder
-    var sqlQuery = $.selectStarFrom('my_model').where(
-        $.eq('color', $.value('white')) // $.value() escapes the string
-    );
-};
-```
-
 ### Components
 
 Similar to models, you can test components by calling `createComponent()`:

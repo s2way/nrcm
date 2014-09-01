@@ -21,34 +21,11 @@ describe('DataSource.js', function () {
         };
     };
 
-    var mockMySQL = function (connectionError) {
-        return {
-            'createConnection' : function () {
-                return {
-                    'connect' : function (callback) {
-                        setImmediate(function () {
-                            callback(connectionError);
-                        });
-                    },
-                    'end' : function () { return; }
-                };
-            }
-        };
-    };
-
     var couchbaseConfigs = {
         //'index' : 'cep', if index is not passed, should assume default
         'host' : '127.0.0.1',
         'port' : '8091',
         'type' : 'Couchbase'
-    };
-
-    var mySQLConfigs = {
-        'host' : '127.0.0.1',
-        'port' : '3306',
-        'type' : 'MySQL',
-        'user' : 'root',
-        'password' : ''
     };
 
     var logger = {
@@ -89,31 +66,6 @@ describe('DataSource.js', function () {
             }, function () {
                 assert.fail();
             });
-        });
-
-        describe('MySQL', function () {
-
-            it('should call MySQL connect if the type is MySQL', function (done) {
-                var ds = new DataSource(logger, 'default', mySQLConfigs);
-                ds.mysql = mockMySQL();
-                ds.connect(function () {
-                    done();
-                }, function (err) {
-                    assert.fail(err);
-                });
-            });
-
-            it('should call onError if MySQL connection function returns an error', function (done) {
-                var ds = new DataSource(logger, 'default', mySQLConfigs);
-                var connectionError = { };
-                ds.mysql = mockMySQL(connectionError);
-                ds.connect(function () {
-                    assert.fail();
-                }, function () {
-                    done();
-                });
-            });
-
         });
 
         describe('Couchbase', function () {
@@ -168,23 +120,6 @@ describe('DataSource.js', function () {
                 });
 
             });
-        });
-
-        describe('MySQL', function () {
-
-            it('should call MySQL end if the type is MySQL and there is an active connection', function (done) {
-
-                var ds = new DataSource(logger, 'default', mySQLConfigs);
-                ds.mysql = mockMySQL();
-                ds.connect(function () {
-                    ds.disconnect();
-                    done();
-                }, function () {
-                    assert.fail();
-                });
-
-            });
-
         });
 
     });

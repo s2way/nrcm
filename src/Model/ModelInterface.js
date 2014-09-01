@@ -4,7 +4,6 @@
  * Dependencies
  */
 var CouchbaseInterface = require('./Interface/CouchbaseInterface');
-var MySQLInterface = require('./Interface/MySQLInterface');
 var ElasticsearchInterface = require('./Interface/ElasticsearchInterface');
 
 var exceptions = require('./../exceptions');
@@ -14,8 +13,6 @@ function ModelInterface(dataSource, configurations) {
     this.dataSource = dataSource;
     if (type === 'couchbase') {
         this._model = new CouchbaseInterface(dataSource, configurations);
-    } else if (type === 'mysql') {
-        this._model = new MySQLInterface(dataSource, configurations);
     } else if (type === 'elasticsearch') {
         this._model = new ElasticsearchInterface(dataSource, configurations);
     } else {

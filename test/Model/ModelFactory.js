@@ -79,30 +79,6 @@ describe('ModelFactory.js', function () {
             assert.equal('function', typeof myModel.$save);
         });
 
-        it('should inject all ModelInterface and they should throw a NotMocked if the DataSource mock parameter is true', function () {
-            factory = new ModelFactory(logger, application, {
-                'default' : {
-                    'type' : 'MySQL',
-                    'mock' : true
-                }
-            }, componentFactory);
-            instance = factory.create('MyModel');
-            var myModel = instance.model('MyModel');
-            var methods = ['$query', '$use'];
-            var i, method;
-            for (i in methods) {
-                if (methods.hasOwnProperty(i)) {
-                    method = methods[i];
-                    try {
-                        myModel[method]();
-                        assert.fail();
-                    } catch (e) {
-                        assert.equal('NotMocked', e.name);
-                    }
-                }
-            }
-        });
-
         it('should inject the method for retrieving models inside the models retrieved by the model method', function () {
             // Retrieving itself
             assert.equal('MyModel', instance.model('MyModel').model('MyModel').name);

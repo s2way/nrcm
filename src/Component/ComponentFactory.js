@@ -47,6 +47,10 @@ ComponentFactory.prototype.create = function (componentName, params) {
         componentInstance.component = function (componentName) {
             return $this.create(componentName);
         };
+        componentInstance.core = this._application.core;
+        if (typeof componentInstance.init === 'function') {
+            componentInstance.init();
+        }
         this.info('Component created');
         this._components.push = componentInstance;
         return componentInstance;

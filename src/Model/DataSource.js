@@ -16,7 +16,7 @@ function DataSource(logger, name, configs) {
             typeof configs.type !== 'string') {
         throw new exceptions.IllegalArgument('Invalid DataSource configurations');
     }
-    var validTypes = ['couchbase', 'mysql', 'elasticsearch'];
+    var validTypes = ['couchbase', 'elasticsearch'];
 
     this.logger = logger;
     this.name = name;
@@ -93,22 +93,6 @@ DataSource.prototype.connect = function (onSuccess, onError) {
                 onSuccess(connection);
             }
         });
-    } else if (this.type === 'mysql') {
-        connection = this.mysql.createConnection({
-            'host': this.host,
-            'user': this.user,
-            'password': this.password
-        });
-        connection.connect(function (error) {
-            if (error) {
-                $this.info('Connection error: ' + error);
-                onError(error);
-            } else {
-                $this.connection = connection;
-                $this.info('Connection successful');
-                onSuccess(connection);
-            }
-        });
     } else if (this.type === 'elasticsearch') {
         connection = new this.elasticsearch.Client({
             'host' : this.host + ':' + this.port,
@@ -129,14 +113,11 @@ DataSource.prototype.connect = function (onSuccess, onError) {
 DataSource.prototype.disconnect = function () {
     var isConnected = this.connection !== null;
     var isCouchbase = this.type === 'couchbase';
-    var isMySQL = this.type === 'mysql';
 
     if (isConnected) {
         this.info('Disconnecting');
         if (isCouchbase) {
             this.connection.shutdown();
-        } else if (isMySQL) {
-            this.connection.end();
         }
         this.connection = null;
         this.info('Disconnected');

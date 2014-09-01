@@ -25,6 +25,7 @@ describe('ComponentFactory.js', function () {
                         return;
                     }
                 },
+                'core' : { },
                 'logger' : { }
             });
             instance = factory.create('MyComponent', {
@@ -42,9 +43,28 @@ describe('ComponentFactory.js', function () {
                         return;
                     }
                 },
+                'core' : { },
                 'logger' : { }
             });
             instance = factory.create('MyComponent');
+        });
+
+        it('should call the init method if defined', function (done) {
+            factory = new ComponentFactory({
+                'info' : function () { return; },
+                'debug' : function () { return; }
+            }, {
+                'components' : {
+                    'MyComponent' : function () {
+                        this.init = function () {
+                            done();
+                        };
+                        return;
+                    }
+                },
+                'logger' : { }
+            });
+            factory.create('MyComponent');
         });
 
         it('should not return the same component instance if called twice', function () {
@@ -58,6 +78,10 @@ describe('ComponentFactory.js', function () {
 
         it('should create the model and inject the application logger object', function () {
             expect(instance.logger).to.be.an('object');
+        });
+
+        it('should create the model and inject the application core object (configurations)', function () {
+            expect(instance.core).to.be.an('object');
         });
 
         it('should inject the method for retrieving components', function () {
