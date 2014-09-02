@@ -124,6 +124,7 @@ describe('ComponentFactory.js', function () {
             }, {
                 'components' : {
                     'MyComponent' : function () {
+                        return;
                     }
                 },
                 'core' : { },

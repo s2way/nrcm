@@ -91,8 +91,8 @@ ComponentFactory.prototype.create = function (componentName, params) {
  * @param {object} componentInstance The component instance
  */
 ComponentFactory.prototype.init = function (componentInstance) {
-    this.info('[' + componentInstance.name + '] Component initialized');
-    if (typeof componentInstance.init === 'function') {
+    if (componentInstance !== null && typeof componentInstance.init === 'function') {
+        this.info('[' + componentInstance.name + '] Component initialized');
         componentInstance.init();
     }
 };

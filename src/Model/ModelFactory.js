@@ -62,8 +62,8 @@ ModelFactory.prototype.create = function (modelName) {
  * @param {object} modelInstance The model instance
  */
 ModelFactory.prototype.init = function (modelInstance) {
-    this.info('Model initialized');
-    if (typeof modelInstance.init === 'function') {
+    if (modelInstance !== null && typeof modelInstance.init === 'function') {
+        this.info('Model initialized');
         modelInstance.init();
     }
 };

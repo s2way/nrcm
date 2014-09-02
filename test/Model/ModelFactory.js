@@ -29,6 +29,9 @@ describe('ModelFactory.js', function () {
         var componentFactory = {
             'create' : function () {
                 return null;
+            },
+            'init' : function () {
+                return;
             }
         };
         var logger = {
