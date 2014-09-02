@@ -173,13 +173,11 @@ All DataSource configuration is located within the `app/Config/core.json` file. 
     "requestTimeout" : 10000,
     "dataSources" : {
         "default" : {
-            "type" : "Couchbase",
             "host" : "0.0.0.0",
             "port" : "8091",
             "index" : "index"
         },
         "mysql" : {
-            "type" : "MySQL",
             "host" : "0.0.0.0",
             "port" : "3306",
             "user" : "root",
