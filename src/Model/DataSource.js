@@ -16,7 +16,7 @@ function DataSource(logger, name, configs) {
             typeof configs.type !== 'string') {
         throw new exceptions.IllegalArgument('Invalid DataSource configurations');
     }
-    var validTypes = ['couchbase', 'elasticsearch'];
+    var validTypes = ['couchbase'];
 
     this.logger = logger;
     this.name = name;
@@ -93,13 +93,6 @@ DataSource.prototype.connect = function (onSuccess, onError) {
                 onSuccess(connection);
             }
         });
-    } else if (this.type === 'elasticsearch') {
-        connection = new this.elasticsearch.Client({
-            'host' : this.host + ':' + this.port,
-            'log' : 'trace'
-        });
-        this.connection = connection;
-        onSuccess();
     } else {
         onError();
     }
