@@ -369,6 +369,24 @@ describe('QueryBuilder.js', function () {
 
     });
 
+    describe('in', function () {
+
+        it('should output an IN expression', function () {
+            assert.equal('id IN (1, 2, 3)', $.in('id', [1, 2, 3]));
+            assert.equal("id IN ('1', 'a', 3)", $.in('id', ['1', 'a', 3]));
+        });
+
+        it('should throw an exception if no parameters were passed', function () {
+            try {
+                $.in();
+                assert.fail();
+            } catch (e) {
+                assert.equal('IllegalArgument', e.name);
+            }
+        });
+
+    });
+
     describe('or', function () {
 
         it('should throw an IllegalArgument exception if less than two parameters are passed', function () {
