@@ -9,7 +9,8 @@
 function ComponentFactory(logger, application) {
     this._application = application;
     this._logger = logger;
-    this._components = [];
+    this._dynamicComponents = [];
+    this._staticComponents = {};
     this.info('ComponentFactory created');
 }
 
@@ -18,11 +19,24 @@ ComponentFactory.prototype.info = function (msg) {
 };
 
 /**
- * Return all components instantiated by this factory
+ * Return all components instantiated by this factory (both dynamic and static)
  * @returns {{}|*}
  */
 ComponentFactory.prototype.getComponents = function () {
-    return this._components;
+    var instances = [];
+    var componentName;
+
+    this._dynamicComponents.forEach(function (instance) {
+        instances.push(instance);
+    });
+
+    for (componentName in this._staticComponents) {
+        if (this._staticComponents.hasOwnProperty(componentName)) {
+            instances.push(this._staticComponents[componentName]);
+        }
+    }
+
+    return instances;
 };
 
 /**
@@ -35,6 +49,7 @@ ComponentFactory.prototype.create = function (componentName, params) {
     this.info('Creating component: ' + componentName);
     var $this = this;
     var ComponentConstructor, componentInstance;
+    var alreadyInstantiated;
 
     if (this._application.components[componentName] !== undefined) {
         ComponentConstructor = this._application.components[componentName];
@@ -42,21 +57,42 @@ ComponentFactory.prototype.create = function (componentName, params) {
             return null;
         }
         componentInstance = new ComponentConstructor(params);
+
+        if (componentInstance.singleInstance === true) {
+            alreadyInstantiated = this._staticComponents[componentName] !== undefined;
+            if (alreadyInstantiated) {
+                this.info('Recycling component');
+                return this._staticComponents[componentName];
+            }
+        }
+
         componentInstance.name = componentName;
         componentInstance.logger = this._application.logger;
-        componentInstance.component = function (componentName) {
-            return $this.create(componentName);
+        componentInstance.component = function (componentName, params) {
+            return $this.create(componentName, params);
         };
         componentInstance.core = this._application.core;
-        if (typeof componentInstance.init === 'function') {
-            componentInstance.init();
-        }
         this.info('Component created');
-        this._components.push = componentInstance;
+        if (componentInstance.singleInstance) {
+            this._staticComponents[componentName] = componentInstance;
+        } else {
+            this._dynamicComponents.push(componentInstance);
+        }
         return componentInstance;
     }
     this.info('Component not found');
     return null;
+};
+
+/**
+ * Calls the component init() method if defined
+ * @param {object} componentInstance The component instance
+ */
+ComponentFactory.prototype.init = function (componentInstance) {
+    this.info('Component initialized');
+    if (typeof componentInstance.init === 'function') {
+        componentInstance.init();
+    }
 };
 
 module.exports = ComponentFactory;

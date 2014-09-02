@@ -1,21 +1,20 @@
 /*jslint devel: true, node: true, indent: 4 */
+/*globals __dirname */
 'use strict';
 
 var path = require('path');
 var fs = require('fs');
 var ComponentFactory = require('../Component/ComponentFactory');
 var ModelFactory = require('../Model/ModelFactory');
-var DataSource = require('../Model/DataSource');
 var RequestHandler = require('../Controller/RequestHandler');
 
 /**
  * Testing tool constructor
  * @constructor
- * @param {string} applicationPath
- * @param {json} core
+ * @param {string} applicationPath The path of your application
+ * @param {json} core Mocked core.json object
  */
 function Testing(applicationPath, core) {
-    var dataSources, dataSourceName, dataSourceConfig;
     this.core = core || {};
     this.core.requestTimeout = this.core.requestTimeout || 1000;
     this.core.dataSources = this.core.dataSources || {};
@@ -40,35 +39,43 @@ function Testing(applicationPath, core) {
         'models' : { }
     };
 
-    dataSources = [];
-
     this.applications = {
         'app' : this.application
     };
 
-    // Instantiate all DataSources
-    for (dataSourceName in this.core.dataSources) {
-        if (this.core.dataSources.hasOwnProperty(dataSourceName)) {
-            dataSourceConfig = this.core.dataSources[dataSourceName];
-            dataSources[dataSourceName] = new DataSource(logger, dataSourceName, dataSourceConfig);
-        }
-    }
-
     // Necessary for testing Components and Models
     // When you are testing the Controllers, RequestHandler has its own ModelFactory and ComponentFactory
     this.componentFactory = new ComponentFactory(logger, this.application);
-    this.modelFactory = new ModelFactory(logger, this.application, dataSources, this.componentFactory);
+    this.modelFactory = new ModelFactory(logger, this.application, this.componentFactory);
 }
 
+/**
+ * Call require
+ * Necessary for mocking in the tests
+ * @param path
+ * @returns {Object|*}
+ * @private
+ */
 Testing.prototype._require = function (path) {
     return require(path);
 };
 
+/**
+ * Call fs.existsSync
+ * Necessary for mocking in the tests
+ * @param path
+ * @returns {*}
+ * @private
+ */
 Testing.prototype._exists = function (path) {
     return fs.existsSync(path);
 };
 
-
+/**
+ * Loads, creates and returns the model instance or null if not found
+ * @param {string} modelName The model name
+ * @returns {object} The model instance or null
+ */
 Testing.prototype.createModel = function (modelName) {
     var $this = this;
     this.loadModel(modelName);
@@ -76,37 +83,53 @@ Testing.prototype.createModel = function (modelName) {
     instance.model = function (modelName) {
         return $this._model(modelName);
     };
-    instance.component = function (componentName) {
-        return $this._component(componentName);
+    instance.component = function (componentName, params) {
+        return $this._component(componentName, params);
     };
     return instance;
 };
 
+/**
+ * Loads, creates, and returns the component instance or null if not found
+ * @param {string} componentName The name of the component
+ * @returns {object} The component instance or null
+ */
 Testing.prototype.createComponent = function (componentName) {
     var $this = this;
     this.loadComponent(componentName);
     var instance = this.componentFactory.create(componentName);
-    instance.component = function (componentName) {
-        return $this._component(componentName);
+    instance.component = function (componentName, params) {
+        return $this._component(componentName, params);
     };
     return instance;
 };
 
 Testing.prototype.loadModel = function (modelName) {
-    this.models[modelName] = this._require(path.join(this.applicationPath, 'src', 'Model', modelName));
+    var modelsPath = path.join(this.applicationPath, 'src', 'Model', modelName);
+    if (this._exists(modelsPath + '.js')) {
+        this.models[modelName] = this._require(modelsPath);
+        return;
+    }
+    throw {
+        'name' : 'ModelNotFound',
+        'model' : modelName
+    };
 };
 
 /**
- *
- * @param componentName
+ * Loads a component
+ * You have to load all dependent components that you do not want to mock in your tests, including built-ins (QueryBuilder, etc)
+ * @param {string} componentName The name of the component
  */
 Testing.prototype.loadComponent = function (componentName) {
-    var applicationComponentPath = path.join(this.applicationPath, 'src', 'Component', componentName);
-    var builtinComponentPath = path.join('..', '..', 'src', 'Component', 'Builtin', componentName);
+    var componentNameAsPath = componentName.replace(/\./g, path.sep);
 
-    if (this._exists(applicationComponentPath)) {
+    var applicationComponentPath = path.join(this.applicationPath, 'src', 'Component', componentNameAsPath);
+    var builtinComponentPath = path.join(__dirname, '..', 'Component', 'Builtin', componentNameAsPath);
+
+    if (this._exists(applicationComponentPath + '.js')) {
         this.components[componentName] = this._require(applicationComponentPath);
-    } else if (this._exists(builtinComponentPath)) {
+    } else if (this._exists(builtinComponentPath + '.js')) {
         this.components[componentName] = this._require(builtinComponentPath);
     } else {
         throw {
@@ -116,11 +139,21 @@ Testing.prototype.loadComponent = function (componentName) {
     }
 };
 
+/**
+ * Loads a model an then mocks its methods
+ * @param {string} modelName The name of the model
+ * @param {object} methods A JSON containing methods that will be injected into the model instance
+ */
 Testing.prototype.mockModel = function (modelName, methods) {
     this.loadModel(modelName);
     this.mockedMethods.models[modelName] = methods;
 };
 
+/**
+ * Loads a component an then mocks its components
+ * @param {string} componentName The name of the component
+ * @param {object} methods A JSON containing methods taht will be injected into the component instance
+ */
 Testing.prototype.mockComponent = function (componentName, methods) {
     this.loadComponent(componentName);
     this.mockedMethods.components[componentName] = methods;
@@ -141,12 +174,13 @@ Testing.prototype._model = function (modelName) {
     modelInstance.model = function (modelName) {
         return $this._model(modelName);
     };
+    this.modelFactory.init(modelInstance);
     return modelInstance;
 };
 
-Testing.prototype._component = function (componentName) {
+Testing.prototype._component = function (componentName, params) {
     var $this = this;
-    var componentInstance = this.componentFactory.create(componentName);
+    var componentInstance = this.componentFactory.create(componentName, params);
     var methods = this.mockedMethods.components[componentName];
     var methodName;
     if (methods !== undefined) {
@@ -156,35 +190,41 @@ Testing.prototype._component = function (componentName) {
             }
         }
     }
-    componentInstance.component = function (componentName) {
-        return $this._component(componentName);
+    componentInstance.component = function (componentName, params) {
+        return $this._component(componentName, params);
     };
+    this.componentFactory.init(componentInstance);
     return componentInstance;
 };
 
+/**
+ * Call a controller method for testing
+ * @param {string} controllerName The name of the controller to be called
+ * @param {string} httpMethod HTTP method
+ * @param {object} options Some options, including payload, query, and segments
+ * @param {function} callback Function that will be called when the call is complete.
+ * An object containing statusCode, headers, and contentType is passed to the callback.
+ */
 Testing.prototype.callController = function (controllerName, httpMethod, options, callback) {
     var $this = this;
     var controllerPath = path.join(this.applicationPath, 'src', 'Controller', controllerName);
     var responseStatusCode, responseContentType, responseHeaders = { }, instance;
-
-    this.controllers[controllerName] = this._require(controllerPath);
-    var requestHandler = new RequestHandler({
-        'debug' : function () { return; },
-        'info' : function () { return; }
-    }, this.core, this.applications, null);
-    // Inject the URL segments
-    requestHandler.segments = options.segments;
-
-    // Mock some RequestHandler methods
-    requestHandler._endRequest = function (callback) {
-        setImmediate(callback);
-    };
-
     var blankFunction = function () {
         return;
     };
 
-    // Return the request headers
+    this.controllers[controllerName] = this._require(controllerPath);
+    var requestHandler = new RequestHandler({
+        'debug' : blankFunction,
+        'info' : blankFunction
+    }, this.core, this.applications, null);
+
+    requestHandler.segments = options.segments;
+    requestHandler._endRequest = function (callback) {
+        setImmediate(callback);
+    };
+
+
     requestHandler._headers = function () {
         return [];
     };
@@ -204,7 +244,6 @@ Testing.prototype.callController = function (controllerName, httpMethod, options
         throw e;
     };
 
-    // Set the response headers
     requestHandler._writeResponse = blankFunction;
     requestHandler._sendResponse = blankFunction;
     requestHandler.info = blankFunction;
@@ -227,23 +266,21 @@ Testing.prototype.callController = function (controllerName, httpMethod, options
 
     requestHandler.appName = 'app';
     instance = requestHandler.prepareController(controllerName);
-    // Override the Model and Component factories
     requestHandler.modelFactory = this.modelFactory;
     requestHandler.componentFactory = this.componentFactory;
 
-    // Override the model and component method from the controller
     instance.model = function (modelName) {
         return $this._model(modelName);
     };
-    instance.component = function (componentName) {
-        return $this._component(componentName);
+    instance.component = function (componentName, params) {
+        return $this._component(componentName, params);
     };
 
     requestHandler.invokeController(instance, httpMethod, function () {
         callback(JSON.parse(requestHandler.stringOutput), {
             'statusCode' : responseStatusCode,
             'contentType' : responseContentType,
-            'headers' : responseHeaders,
+            'headers' : responseHeaders
         });
     });
     this.options = options;

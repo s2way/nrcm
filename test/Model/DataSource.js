@@ -1,7 +1,7 @@
-/*jslint devel: true, node: true, indent: 4 */
+/*jslint devel: true, node: true, indent: 4, unparam: true */
 /*globals describe, it, beforeEach */
 'use strict';
-var assert = require('assert');
+var expect = require('expect.js');
 var DataSource = require('./../../src/Model/DataSource');
 
 DataSource.prototype.info = function () { return; };
@@ -12,7 +12,6 @@ describe('DataSource.js', function () {
     var mockCouchbase = function (connectionError) {
         return {
             'Connection' : function (connOptions, connectionCallback) {
-                assert.equal(true, connOptions !== undefined);
                 this.shutdown = function () { return; };
                 setImmediate(function () {
                     connectionCallback(connectionError);
@@ -36,13 +35,12 @@ describe('DataSource.js', function () {
     describe('DataSource', function () {
 
         it('should throw an IllegalArgument exception if one of the parameters is not a string', function () {
-            try {
+            expect(function () {
                 var ds = new DataSource(logger, 'default');
-                assert(!ds);
-                assert.fail();
-            } catch (e) {
-                assert.equal('IllegalArgument', e.name);
-            }
+                expect(ds).not.to.be.ok();
+            }).to.throwException(function (e) {
+                expect(e.name).to.be('IllegalArgument');
+            });
         });
 
     });
@@ -50,12 +48,12 @@ describe('DataSource.js', function () {
     describe('connect', function () {
 
         it('should throw an IllegalArgument exception if the parameters passed are not functions', function () {
-            try {
+            expect(function () {
                 var ds = new DataSource(logger, 'default', couchbaseConfigs);
                 ds.connect(null, null);
-            } catch (e) {
-                assert.equal('IllegalArgument', e.name);
-            }
+            }).to.throwException(function (e) {
+                expect(e.name).to.be('IllegalArgument');
+            });
         });
 
         it('should call onSuccess if the connection already exists', function (done) {
@@ -64,7 +62,7 @@ describe('DataSource.js', function () {
             ds.connect(function () {
                 done();
             }, function () {
-                assert.fail();
+                expect.fail();
             });
         });
 
@@ -76,7 +74,8 @@ describe('DataSource.js', function () {
                 ds.connect(function () {
                     done();
                 }, function (err) {
-                    assert.fail(err);
+                    console.log(err);
+                    expect.fail(err);
                 });
             });
 
@@ -85,7 +84,7 @@ describe('DataSource.js', function () {
                 var connectionError = { };
                 ds.couchbase = mockCouchbase(connectionError);
                 ds.connect(function () {
-                    assert.fail();
+                    expect.fail();
                 }, function () {
                     done();
                 });
@@ -97,7 +96,7 @@ describe('DataSource.js', function () {
                 'type' : 'invalid'
             });
             ds.connect(function () {
-                assert.fail();
+                expect.fail();
             }, function () {
                 done();
             });
@@ -116,7 +115,7 @@ describe('DataSource.js', function () {
                     ds.disconnect();
                     done();
                 }, function () {
-                    assert.fail();
+                    expect.fail();
                 });
 
             });

@@ -81,8 +81,8 @@ DataSource.prototype.connect = function (onSuccess, onError) {
     this.info('Connecting to ' + this.host + ':' + this.port);
     if (this.type === 'couchbase') {
         connection = new this.couchbase.Connection({
-            'host' : this.host + ':' + this.port,
-            'bucket' : this.index
+            'host': this.host + ':' + this.port,
+            'bucket': this.index
         }, function (error) {
             if (error) {
                 $this.info('Connection error: ' + error);

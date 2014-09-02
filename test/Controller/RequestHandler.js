@@ -442,27 +442,6 @@ describe('RequestHandler.js', function () {
                 rh.process(mockRequest(url, method), mockResponse());
             });
 
-            it('should inject the model interface methods (findById, save, ...) inside the models prefixed with an underscore', function (done) {
-                var rh = mockRequestHandler({
-                    MyController : function () {
-                        this.post = function (callback) {
-                            var model = this.model('MyModel');
-                            assert.equal('function', typeof model.$find);
-                            assert.equal('function', typeof model.$findById);
-                            assert.equal('function', typeof model.$findByKey);
-                            assert.equal('function', typeof model.$findAll);
-                            assert.equal('function', typeof model.$save);
-                            assert.equal('function', typeof model.$removeById);
-                            model.method(callback);
-                        };
-                    }
-                });
-                rh.render = function () {
-                    done();
-                };
-                rh.process(mockRequest(url, method), mockResponse());
-            });
-
             it('should allow the controller to retrieve models', function (done) {
                 var rh = mockRequestHandler({
                     MyController : function () {

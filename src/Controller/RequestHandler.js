@@ -6,7 +6,6 @@ var exceptions = require('./../exceptions');
 var Router = require('./../Core/Router');
 var ComponentFactory = require('./../Component/ComponentFactory');
 var ModelFactory = require('./../Model/ModelFactory');
-var DataSource = require('./../Model/DataSource');
 var chalk = require('chalk');
 
 /**
@@ -119,22 +118,9 @@ RequestHandler.prototype.prepareController = function (controllerName) {
         throw new exceptions.ControllerNotFound();
     }
 
-    (function instantiateDataSources() {
-        var dataSources = [];
-        var dataSourceName, dataSourceConfig;
-        $this.info('Creating DataSources');
-        for (dataSourceName in application.core.dataSources) {
-            if (application.core.dataSources.hasOwnProperty(dataSourceName)) {
-                dataSourceConfig = application.core.dataSources[dataSourceName];
-                dataSources[dataSourceName] = new DataSource($this.serverLogger, dataSourceName, dataSourceConfig);
-            }
-        }
-        $this.dataSources = dataSources;
-    }());
-
     this.info('Creating factories');
     this.componentFactory = new ComponentFactory(this.serverLogger, application);
-    this.modelFactory = new ModelFactory(this.serverLogger, application, this.dataSources, this.componentFactory);
+    this.modelFactory = new ModelFactory(this.serverLogger, application, this.componentFactory);
 
     this.info('Creating controller');
     var ControllerConstructor = application.controllers[controllerName];
@@ -142,10 +128,14 @@ RequestHandler.prototype.prepareController = function (controllerName) {
 
     (function injectProperties() {
         var retrieveComponentMethod = function (componentName) {
-            return $this.componentFactory.create(componentName);
+            var instance = $this.componentFactory.create(componentName);
+            $this.componentFactory.init(instance);
+            return instance;
         };
         var retrieveModelMethod = function (modelName) {
-            return $this.modelFactory.create(modelName);
+            var instance = $this.modelFactory.create(modelName);
+            $this.modelFactory.init(modelName);
+            return instance;
         };
         var automaticTraceImplementation = function (callback) {
             controllerInstance.contentType = false;
@@ -307,17 +297,6 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
                                 value = controllerInstance.responseHeaders[name];
                                 $this._setHeader(name, value);
                             }
-                        }
-                    }
-                }());
-
-                $this.info('Shutting down connections');
-                (function shutdownAllConnections() {
-                    var dataSourceNameAC, dataSourceAC;
-                    for (dataSourceNameAC in $this.dataSources) {
-                        if ($this.dataSources.hasOwnProperty(dataSourceNameAC)) {
-                            dataSourceAC = $this.dataSources[dataSourceNameAC];
-                            dataSourceAC.disconnect();
                         }
                     }
                 }());

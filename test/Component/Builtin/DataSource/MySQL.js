@@ -52,20 +52,6 @@ describe('MySQL.js', function () {
         });
     });
 
-    describe('init()', function () {
-        it('should thrown an IllegalArgument exception if the DataSource cannot be found', function (done) {
-            instance.core = {
-                'dataSources' : { }
-            };
-            expect(function () {
-                instance.init();
-            }).to.throwException(function (e) {
-                expect(e.name).to.be('IllegalArgument');
-                done();
-            });
-        });
-    });
-
     describe('query()', function () {
 
         it('should call MySQL query method', function (done) {

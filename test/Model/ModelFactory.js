@@ -8,10 +8,11 @@ var ModelFactory = require('../../src/Model/ModelFactory');
 
 describe('ModelFactory.js', function () {
 
-    describe('create', function () {
+    var instance, factory;
+    var application;
 
-        var instance, factory;
-        var application = {
+    beforeEach(function () {
+        application = {
             'models' : {
                 'MyModel' : function () {
                     this.type = 'index';
@@ -34,16 +35,24 @@ describe('ModelFactory.js', function () {
             'debug' : function () { return; },
             'info' : function () { return; }
         };
-        var dataSources = {
-            'default' : {
-                'type' : 'Couchbase'
-            }
-        };
+        factory = new ModelFactory(logger, application, componentFactory);
+        instance = factory.create('MyModel');
+    });
 
-        beforeEach(function () {
-            factory = new ModelFactory(logger, application, dataSources, componentFactory);
+    describe('init', function () {
+        it('should call the init method if defined', function (done) {
+            application.models.MyModel = function () {
+                this.type = 'index';
+                this.init = function () {
+                    done();
+                };
+            };
             instance = factory.create('MyModel');
+            factory.init(instance);
         });
+    });
+
+    describe('create', function () {
 
         it('should not return the same instance if called twice', function () {
             expect(instance).not.to.be.equal(factory.create('MyModel'));
@@ -63,24 +72,11 @@ describe('ModelFactory.js', function () {
 
         it('should inject the method for retrieving models', function () {
             var myModel = instance.model('MyModel');
-            // Just to be sure that this model really is MyModel
             assert.equal('MyModel', myModel.name);
             assert.equal(null, instance.model('InvalidModel'));
         });
 
-        it('should inject all ModelInterface methods inside the models retrieved by the model method', function () {
-            var myModel = instance.model('MyModel');
-
-            assert.equal('function', typeof myModel.$findAll);
-            assert.equal('function', typeof myModel.$findByKey);
-            assert.equal('function', typeof myModel.$findById);
-            assert.equal('function', typeof myModel.$find);
-            assert.equal('function', typeof myModel.$removeById);
-            assert.equal('function', typeof myModel.$save);
-        });
-
         it('should inject the method for retrieving models inside the models retrieved by the model method', function () {
-            // Retrieving itself
             assert.equal('MyModel', instance.model('MyModel').model('MyModel').name);
         });
 

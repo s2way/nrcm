@@ -15,6 +15,7 @@ function MySQL(dataSourceName) {
     if (!dataSourceName) {
         this._dataSource = 'default';
     }
+    this.singleInstance = true;
 }
 
 /**
@@ -22,13 +23,7 @@ function MySQL(dataSourceName) {
  * Validates if the DataSource exists
  */
 MySQL.prototype.init = function () {
-    var dataSource = this.core.dataSources[this._dataSourceName];
-
-    if (!this._dataSourceName || dataSource === undefined) {
-        throw new exceptions.IllegalArgument('Invalid DataSource');
-    }
-
-    this._dataSource = dataSource;
+    this._dataSource = this.core.dataSources[this._dataSourceName];
 };
 
 /**
@@ -81,6 +76,12 @@ MySQL.prototype.destroy = function () {
     }());
 };
 
+/**
+ * Issues a query to the MySQL server
+ * @param {string} query The query (you can use the QueryBuilder component to build it)
+ * @param {array} params An array of parameters that will be used to replace the query placeholders (?)
+ * @param {function} callback The function that will be called when the operation has been completed
+ */
 MySQL.prototype.query = function (query, params, callback) {
     var $this = this;
     this._connect(function (error, connection) {
@@ -103,6 +104,11 @@ MySQL.prototype.query = function (query, params, callback) {
     });
 };
 
+/**
+ * Selects a database to be used
+ * @param {string} database The name of the database
+ * @param {function} callback The function taht will be called when the operation has been completed
+ */
 MySQL.prototype.use = function (database, callback) {
     this._connect(function (error, connection) {
         if (error) {
@@ -119,6 +125,12 @@ MySQL.prototype.use = function (database, callback) {
     });
 };
 
+/**
+ * Call a procedure passing the specified parameters
+ * @param {string} procedure The procedure name
+ * @param {array} params An array of parameters that will be passed to the procedure
+ * @param {function} callback Function called when the operation has been completed
+ */
 MySQL.prototype.call = function (procedure, params, callback) {
     if (typeof procedure !== 'string') {
         throw new exceptions.IllegalArgument('The procedure parameter is mandatory');

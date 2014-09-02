@@ -5,18 +5,58 @@
 var expect = require('expect.js');
 var ComponentFactory = require('../../src/Component/ComponentFactory');
 
-ComponentFactory.prototype.info = function () { return; };
 
 describe('ComponentFactory.js', function () {
 
-    describe('create', function () {
+    var factory, instance;
+    var blankFunction = function () { return; };
 
-        var factory, instance;
+    ComponentFactory.prototype.info = blankFunction;
+
+    beforeEach(function () {
+        factory = new ComponentFactory({
+            'info' : blankFunction,
+            'debug' : blankFunction
+        }, {
+            'components' : {
+                'MyComponent' : blankFunction
+            },
+            'core' : { },
+            'logger' : { }
+        });
+        instance = factory.create('MyComponent');
+    });
+
+
+    describe('init', function () {
+
+        it('should call the init method if defined', function (done) {
+            factory = new ComponentFactory({
+                'info' : blankFunction,
+                'debug' : blankFunction
+            }, {
+                'components' : {
+                    'MyComponent' : function () {
+                        this.init = function () {
+                            done();
+                        };
+                        return;
+                    }
+                },
+                'logger' : { }
+            });
+            instance = factory.create('MyComponent');
+            factory.init(instance);
+        });
+
+    });
+
+    describe('create', function () {
 
         it('should pass the params to the component constructor', function (done) {
             factory = new ComponentFactory({
-                'info' : function () { return; },
-                'debug' : function () { return; }
+                'info' : blankFunction,
+                'debug' : blankFunction
             }, {
                 'components' : {
                     'MyComponent' : function (params) {
@@ -31,40 +71,6 @@ describe('ComponentFactory.js', function () {
             instance = factory.create('MyComponent', {
                 'key' : 'value'
             });
-        });
-
-        beforeEach(function () {
-            factory = new ComponentFactory({
-                'info' : function () { return; },
-                'debug' : function () { return; }
-            }, {
-                'components' : {
-                    'MyComponent' : function () {
-                        return;
-                    }
-                },
-                'core' : { },
-                'logger' : { }
-            });
-            instance = factory.create('MyComponent');
-        });
-
-        it('should call the init method if defined', function (done) {
-            factory = new ComponentFactory({
-                'info' : function () { return; },
-                'debug' : function () { return; }
-            }, {
-                'components' : {
-                    'MyComponent' : function () {
-                        this.init = function () {
-                            done();
-                        };
-                        return;
-                    }
-                },
-                'logger' : { }
-            });
-            factory.create('MyComponent');
         });
 
         it('should not return the same component instance if called twice', function () {
@@ -90,6 +96,45 @@ describe('ComponentFactory.js', function () {
 
         it('should inject the method for retrieving components inside the components retrieved by the component method', function () {
             expect(instance.component('MyComponent').component('MyComponent').name).to.be('MyComponent');
+        });
+
+        it('should always return the same instance if the component is marked as singleInstance', function () {
+            factory = new ComponentFactory({
+                'info' : blankFunction,
+                'debug' : blankFunction
+            }, {
+                'components' : {
+                    'MyComponent' : function () {
+                        this.singleInstance = true;
+                    }
+                },
+                'core' : { },
+                'logger' : { }
+            });
+            instance = factory.create('MyComponent');
+            expect(factory.create('MyComponent')).to.be(instance);
+            expect(factory.getComponents()).to.have.length(1);
+            expect(factory.getComponents()).to.contain(instance);
+        });
+
+        it('should always return a different instance if the component is not marked as singleInstance', function () {
+            factory = new ComponentFactory({
+                'info' : blankFunction,
+                'debug' : blankFunction
+            }, {
+                'components' : {
+                    'MyComponent' : function () {
+                    }
+                },
+                'core' : { },
+                'logger' : { }
+            });
+            instance = factory.create('MyComponent');
+            var instance2 = factory.create('MyComponent');
+            expect(instance2).not.to.be(instance);
+            expect(factory.getComponents()).to.have.length(2);
+            expect(factory.getComponents()).to.contain(instance);
+            expect(factory.getComponents()).to.contain(instance2);
         });
 
     });

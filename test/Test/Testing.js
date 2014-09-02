@@ -90,6 +90,17 @@ describe('Testing', function () {
 
     describe('createModel', function () {
 
+        it('should throw a ModelNotFound exception if the model does not exist', function () {
+            expect(function () {
+                testing._exists = function () {
+                    return false;
+                };
+                testing.createModel('InvalidModel');
+            }).to.throwException(function (e) {
+                expect(e.name).to.be('ModelNotFound');
+            });
+        });
+
         it('should return the instance of a model', function () {
             assert.equal('MyModel', testing.createModel('MyModel').name);
         });
@@ -108,6 +119,17 @@ describe('Testing', function () {
     });
 
     describe('createComponent', function () {
+
+        it('should throw a ComponentNotFound exception if the model does not exist', function () {
+            testing._exists = function () {
+                return false;
+            };
+            expect(function () {
+                testing.createComponent('InvalidModel');
+            }).to.throwException(function (e) {
+                expect(e.name).to.be('ComponentNotFound');
+            });
+        });
 
         it('should return the instance of a component', function () {
             assert.equal('MyComponent', testing.createComponent('MyComponent').name);
@@ -133,10 +155,10 @@ describe('Testing', function () {
 
         it('should be able to retrieve builtin components, like QueryBuilder', function () {
             testing._exists = function (path) {
-                return path === '../../src/Component/Builtin/QueryBuilder';
+                return path.indexOf('QueryBuilder.js') !== -1;
             };
-            testing._require = function (path) {
-                return require(path);
+            testing._require = function () {
+                return require('../../src/Component/Builtin/QueryBuilder');
             };
             var name = 'QueryBuilder';
             testing.loadComponent(name);
