@@ -108,13 +108,10 @@ RequestHandler.prototype.process = function (request, response) {
  * @return {object|boolean} The controller instance that should be passed to invokeController
  */
 RequestHandler.prototype.prepareController = function (controllerName) {
-    this.debug('prepareController()');
-
     var $this = this;
     var application = this.applications[this.appName];
 
     if (controllerName === false || application.controllers[controllerName] === undefined) {
-        $this.debug('controller not found');
         throw new exceptions.ControllerNotFound();
     }
 
@@ -134,7 +131,7 @@ RequestHandler.prototype.prepareController = function (controllerName) {
         };
         var retrieveModelMethod = function (modelName) {
             var instance = $this.modelFactory.create(modelName);
-            $this.modelFactory.init(modelName);
+            $this.modelFactory.init(instance);
             return instance;
         };
         var automaticTraceImplementation = function (callback) {
@@ -181,7 +178,6 @@ RequestHandler.prototype.prepareController = function (controllerName) {
 RequestHandler.prototype._receivePayload = function () {
     var $this = this;
     this.request.on('data', function (data) {
-        $this.debug('on data');
         $this.payload += data;
     });
 };
@@ -253,7 +249,6 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
     var application = this.applications[this.appName];
 
     if (controllerInstance[httpMethod] === undefined) {
-        $this.debug('http method not found');
         throw new exceptions.MethodNotFound();
     }
 
@@ -282,7 +277,6 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
         var timer;
 
         var afterCallback = function () {
-            $this.debug('afterCallback()');
             clearTimeout(timer);
 
             try {
@@ -328,12 +322,10 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
             }
         };
         var controllerMethodCallback = function (output) {
-            $this.debug('controllerMethodCallback()');
             savedOutput = output;
             try {
                 (function callAfterIfDefined() {
                     if (controllerInstance.after !== undefined) {
-                        $this.debug('controllerInstance.after()');
                         controllerInstance.after(afterCallback);
                     } else {
                         afterCallback();
@@ -345,7 +337,6 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
             }
         };
         var beforeCallback = function () {
-            $this.debug('beforeCallback()');
             try {
                 // Call the controller method (put, get, delete, post, etc)
                 savedOutput = controllerInstance[httpMethod](controllerMethodCallback);
@@ -357,11 +348,9 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
 
         // Encapsulate the method in a immediate so it can be killed
         var controllerMethodImmediate = setImmediate(function () {
-            $this.debug('controllerMethodImmediate()');
             try {
                 (function callBefore() {
                     if (controllerInstance.before !== undefined) {
-                        $this.debug('controllerInstance.before()');
                         controllerInstance.before(beforeCallback);
                     } else {
                         beforeCallback();
@@ -378,7 +367,6 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
 
         (function startTimeoutTimer() {
             timer = setTimeout(function () {
-                $this.debug('Request timeout!');
                 clearImmediate(controllerMethodImmediate);
                 $this.handleRequestException(new exceptions.Timeout());
             }, application.core.requestTimeout);
@@ -388,10 +376,6 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
 
 RequestHandler.prototype.info = function (message) {
     this.serverLogger.info('[RequestHandler] ' + message);
-};
-
-RequestHandler.prototype.debug = function (message) {
-    this.serverLogger.debug('[RequestHandler] ' + message);
 };
 
 /**

@@ -38,11 +38,15 @@ ModelFactory.prototype.create = function (modelName) {
         modelInstance.name = modelName;
         modelInstance.logger = this._application.logger;
         modelInstance.model = function (modelName) {
-            return $this.create(modelName);
+            var instance = $this.create(modelName);
+            $this.init(instance);
+            return instance;
         };
 
         modelInstance.component = function (componentName, params) {
-            return $this._componentFactory.create(componentName, params);
+            var instance = $this._componentFactory.create(componentName, params);
+            $this._componentFactory.init(instance);
+            return instance;
         };
         this._models.push(modelInstance);
         this.info('All model methods injected');

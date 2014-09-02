@@ -10,8 +10,8 @@ var exceptions = require('../../../exceptions');
 function MySQL(dataSourceName) {
     this._mysql = require('mysql');
     this._dataSourceName = dataSourceName;
-    this._connection = null;
-    this._databaseSelected = false;
+    this._connections = {};
+    this._databaseSelected = {};
     if (!dataSourceName) {
         this._dataSource = 'default';
     }
@@ -23,6 +23,15 @@ function MySQL(dataSourceName) {
  * Validates if the DataSource exists
  */
 MySQL.prototype.init = function () {
+    this._dataSource = this.core.dataSources[this._dataSourceName];
+};
+
+/**
+ * Changes the DataSource (connection properties) being used internally
+ * @param {string} dataSourceName The name of the DataSource, as specified in the core.json file
+ */
+MySQL.prototype.setDataSource = function (dataSourceName) {
+    this._dataSourceName = dataSourceName;
     this._dataSource = this.core.dataSources[this._dataSourceName];
 };
 
@@ -40,15 +49,17 @@ MySQL.prototype.info = function (msg) {
  * @private
  */
 MySQL.prototype._connect = function (callback) {
-    if (this._connection !== null) {
-        this.info('Recycling connection');
-        callback(null, this._connection);
+    if (this._connections[this._dataSourceName]) {
+        this.info('[' + this._dataSourceName + '] Recycling connection');
+        callback(null, this._connections[this._dataSourceName]);
         return;
     }
 
     var $this = this;
+    this.info('[' + $this._dataSourceName + '] Connecting to ' + this._dataSource.host + ':' + this._dataSource.port);
     var connection = this._mysql.createConnection({
-        'host': this._dataSource.host + ':' + this._dataSource.port,
+        'host': this._dataSource.host,
+        'port' : this._dataSource.port,
         'user': this._dataSource.user,
         'password': this._dataSource.password
     });
@@ -56,8 +67,8 @@ MySQL.prototype._connect = function (callback) {
         if (error) {
             callback(error);
         } else {
-            $this._connection = connection;
-            $this.info('Connection successful');
+            $this._connections[$this._dataSourceName] = connection;
+            $this.info('[' + $this._dataSourceName + '] Connected');
             callback(null, connection);
         }
     });
@@ -69,9 +80,14 @@ MySQL.prototype._connect = function (callback) {
 MySQL.prototype.destroy = function () {
     var $this = this;
     (function shutdownConnection() {
-        $this.info('Shutting down connection...');
-        if ($this._connection !== null) {
-            $this._connection.end();
+        var dataSourceName;
+        $this.info('Shutting down connections...');
+        for (dataSourceName in $this._connections) {
+            if ($this._connections.hasOwnProperty(dataSourceName)) {
+                $this._connections[dataSourceName].end();
+                $this.info('[' + dataSourceName + '] Closed');
+                delete $this._connections[dataSourceName];
+            }
         }
     }());
 };
@@ -89,13 +105,13 @@ MySQL.prototype.query = function (query, params, callback) {
             callback(error);
             return;
         }
-        if (!$this._databaseSelected) {
+        if (!$this._databaseSelected[$this._dataSourceName]) {
             $this.use($this._dataSource.database, function (error) {
                 if (error) {
                     callback(error);
                     return;
                 }
-                $this._databaseSelected = true;
+                $this._databaseSelected[$this._dataSourceName] = true;
                 connection.query(query, params, callback);
             });
             return;

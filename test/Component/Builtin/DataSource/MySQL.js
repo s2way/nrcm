@@ -63,7 +63,7 @@ describe('MySQL.js', function () {
             }, {
                 'something' : 'there'
             }];
-            instance._databaseSelected = true;
+            instance._databaseSelected['default'] = true;
             instance._mysql = mockMySQL({
                 'query' : function (query, params, callback) {
                     expect(query).to.be(myQuery);
@@ -133,7 +133,7 @@ describe('MySQL.js', function () {
 
         it('should recycle the connection if the query method is called twice', function (done) {
             var query = 'SELECT * FROM sky';
-            instance._databaseSelected = true;
+            instance._databaseSelected['default'] = true;
             instance._mysql = mockMySQL({
                 'query' : function (query, params, callback) {
                     callback();
@@ -239,7 +239,7 @@ describe('MySQL.js', function () {
     describe('destroy()', function () {
 
         it('should call connection.end()', function (done) {
-            instance._connection = {
+            instance._connections['default'] = {
                 'end' : function () {
                     done();
                 }

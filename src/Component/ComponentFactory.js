@@ -46,7 +46,7 @@ ComponentFactory.prototype.getComponents = function () {
  * @returns {object} The component instantiated or null if it does not exist
  */
 ComponentFactory.prototype.create = function (componentName, params) {
-    this.info('Creating component: ' + componentName);
+    this.info('[' + componentName + '] Creating component');
     var $this = this;
     var ComponentConstructor, componentInstance;
     var alreadyInstantiated;
@@ -61,7 +61,7 @@ ComponentFactory.prototype.create = function (componentName, params) {
         if (componentInstance.singleInstance === true) {
             alreadyInstantiated = this._staticComponents[componentName] !== undefined;
             if (alreadyInstantiated) {
-                this.info('Recycling component');
+                this.info('[' + componentName + '] Recycling component');
                 return this._staticComponents[componentName];
             }
         }
@@ -69,10 +69,12 @@ ComponentFactory.prototype.create = function (componentName, params) {
         componentInstance.name = componentName;
         componentInstance.logger = this._application.logger;
         componentInstance.component = function (componentName, params) {
-            return $this.create(componentName, params);
+            var instance = $this.create(componentName, params);
+            $this.init(componentName);
+            return instance;
         };
         componentInstance.core = this._application.core;
-        this.info('Component created');
+        this.info('[' + componentName + '] Component created');
         if (componentInstance.singleInstance) {
             this._staticComponents[componentName] = componentInstance;
         } else {
@@ -80,7 +82,7 @@ ComponentFactory.prototype.create = function (componentName, params) {
         }
         return componentInstance;
     }
-    this.info('Component not found');
+    this.info('[' + componentName + '] Component not found');
     return null;
 };
 
@@ -89,7 +91,7 @@ ComponentFactory.prototype.create = function (componentName, params) {
  * @param {object} componentInstance The component instance
  */
 ComponentFactory.prototype.init = function (componentInstance) {
-    this.info('Component initialized');
+    this.info('[' + componentInstance.name + '] Component initialized');
     if (typeof componentInstance.init === 'function') {
         componentInstance.init();
     }
