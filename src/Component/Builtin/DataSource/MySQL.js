@@ -13,7 +13,7 @@ function MySQL(dataSourceName) {
     this._connections = {};
     this._databaseSelected = {};
     if (!dataSourceName) {
-        this._dataSource = 'default';
+        this._dataSourceName = 'default';
     }
     this.singleInstance = true;
 }
@@ -24,6 +24,9 @@ function MySQL(dataSourceName) {
  */
 MySQL.prototype.init = function () {
     this._dataSource = this.core.dataSources[this._dataSourceName];
+    if (!this._dataSource) {
+        throw new exceptions.IllegalArgument("Couldn't find datasource '" + this._dataSourceName + "'. Take a look at your core.json.");
+    }
 };
 
 /**
@@ -56,7 +59,7 @@ MySQL.prototype._connect = function (callback) {
     }
 
     var $this = this;
-    this.info('[' + $this._dataSourceName + '] Connecting to ' + this._dataSource.host + ':' + this._dataSource.port);
+    // this.info('[' + $this._dataSourceName + '] Connecting to ' + this._dataSource.host + ':' + this._dataSource.port);
     var connection = this._mysql.createConnection({
         'host': this._dataSource.host,
         'port' : this._dataSource.port,
