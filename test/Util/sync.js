@@ -8,11 +8,11 @@ var path = require('path');
 
 describe('sync.js', function () {
 
-    describe('isFile', function() {
-        it('should return false if the file does not exist or if it exists but it is not a file', function() {
+    describe('isFile', function () {
+        it('should return false if the file does not exist or if it exists but it is not a file', function () {
             assert.equal(false, sync.isFile('/this/path/must/not/exist/please'));
         });
-        it('should return true if the file exists', function() {
+        it('should return true if the file exists', function () {
             sync.createFileIfNotExists('here.json', '{}');
             assert.equal(true, sync.isFile('here.json'));
             fs.unlinkSync('here.json');
