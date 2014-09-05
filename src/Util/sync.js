@@ -126,6 +126,23 @@ var sync = {
             });
         }
         return result;
+    },
+    /**
+     * Check if is a file
+     *
+     * @method isFile
+     * @param {string} fileNameWithPath The file full path to check
+     * @return {boolean} Returns true if it is a file
+     *
+     */
+    isFile : function (fileNameWithPath) {
+        if (fs.existsSync(fileNameWithPath)) {
+            var stats = fs.lstatSync(fileNameWithPath);
+            if (stats.isFile()) {
+                return true;
+            }
+        }
+        return false;
     }
 };
 
