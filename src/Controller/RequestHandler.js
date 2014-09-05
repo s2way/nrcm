@@ -216,18 +216,19 @@ RequestHandler.prototype._writeHead = function (statusCode, contentType) {
 };
 
 RequestHandler.prototype._writeResponse = function (output) {
-    var $this = this;
-    var remainingOutput = output;
+    this.response.write(output);
+    // var $this = this;
+    // var remainingOutput = output;
 
-    (function sendOutputInChunks() {
-        var segment;
-        var SEGMENT_LENGTH = 1024;
-        do {
-            segment = remainingOutput.substring(0, SEGMENT_LENGTH);
-            remainingOutput = remainingOutput.substring(SEGMENT_LENGTH);
-            $this.response.write(segment);
-        } while (remainingOutput.length > SEGMENT_LENGTH);
-    }());
+    // (function sendOutputInChunks() {
+    //     var segment;
+    //     var SEGMENT_LENGTH = 1024;
+    //     do {
+    //         segment = remainingOutput.substring(0, SEGMENT_LENGTH);
+    //         remainingOutput = remainingOutput.substring(SEGMENT_LENGTH);
+    //         $this.response.write(segment);
+    //     } while (remainingOutput.length > SEGMENT_LENGTH);
+    // }());
 };
 
 RequestHandler.prototype._sendResponse = function () {
