@@ -1,3 +1,5 @@
+/*jslint devel: true, node: true, indent: 4, unparam: true, stupid: true*/
+
 'use strict';
 var exceptions = require('./../../exceptions');
 
@@ -5,7 +7,7 @@ function QueryBuilder() {
     this.query = '';
 }
 
-QueryBuilder.prototype._fieldsToCommaList = function (fields) {
+QueryBuilder.prototype._fieldsToCommaList = function (fields, escaping) {
     var commaList = '';
     var i;
     for (i in fields) {
@@ -13,7 +15,11 @@ QueryBuilder.prototype._fieldsToCommaList = function (fields) {
             if (commaList !== '') {
                 commaList += ', ';
             }
-            commaList += fields[i];
+            if (escaping) {
+                commaList += this.escape(fields[i]);
+            } else {
+                commaList += fields[i];
+            }
         }
     }
     return commaList;
@@ -82,6 +88,7 @@ QueryBuilder.prototype.set = function (fields) {
             fieldList += name + ' = ' + value;
         }
     }
+
     this.query += 'SET ' + fieldList + ' ';
     return this;
 };
@@ -104,6 +111,16 @@ QueryBuilder.prototype.limit = function (p1, p2) {
         this.query += 'LIMIT ' + p1 + ', ' + p2 + ' ';
     }
     return this;
+};
+
+QueryBuilder.prototype.in = function (field, params) {
+    if (params === undefined || params.length === 0) {
+        throw new exceptions.IllegalArgument();
+    }
+    if (field === null || typeof field !== 'string') {
+        throw new exceptions.IllegalArgument();
+    }
+    return field + ' IN (' + this._fieldsToCommaList(params, true) + ')';
 };
 
 QueryBuilder.prototype.build = function () {

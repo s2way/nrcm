@@ -20,4 +20,12 @@ Logger.prototype.debug = function (message) {
     return this.logger.debug(message);
 };
 
+Logger.prototype.error = function (message) {
+    return this.logger.error(message);
+};
+
+Logger.prototype.warn = function (message) {
+    return this.logger.warn(message);
+};
+
 module.exports = Logger;

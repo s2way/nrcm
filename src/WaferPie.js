@@ -22,6 +22,7 @@ var exceptions = require('./exceptions');
 var sync = require('./Util/sync');
 var Logger = require('./Util/Logger');
 var RequestHandler = require('./Controller/RequestHandler');
+var os = require('os');
 
 function WaferPie() {
     this.version = require('./../package.json').version;
@@ -42,6 +43,7 @@ WaferPie.prototype.info = function (message) {
  * Create the directory structure if it does not exist
  * It loads all application files on memory
  * It is possible to have more then one application running on the same nodejs server
+ * It is possible to have one core.json by each host that will run the server
  *
  * @method setUp
  * @param {string} appName The name of application, it will be also used as directory's name
@@ -55,13 +57,21 @@ WaferPie.prototype.setUp = function (appName) {
     app.componentsPath = path.join(app.srcPath, 'Component');
     app.modelsPath = path.join(app.srcPath, 'Model');
     app.configPath = path.join(app.srcPath, 'Config');
-    app.coreFileName = path.join(app.srcPath, 'Config', 'core.json');
     app.aclFileName = path.join(app.srcPath, 'Config', 'acl.json');
+    app.hostname = os.hostname();
 
     app.testPath = path.join(appName, 'test');
     app.controllersTestPath = path.join(app.testPath, 'Controller');
     app.componentsTestPath = path.join(app.testPath, 'Component');
     app.modelsTestPath = path.join(app.testPath, 'Model');
+
+    (function shouldPointCoreFileBasedOnHost() {
+        if (sync.isFile(path.join(app.srcPath, 'Config', app.hostname, '.json'))) {
+            app.coreFileName = path.join(app.srcPath, 'Config', app.hostname, '.json');
+        } else {
+            app.coreFileName = path.join(app.srcPath, 'Config', 'core.json');
+        }
+    }());
 
     sync.createDirIfNotExists(app.basePath);
     sync.createDirIfNotExists(app.srcPath);

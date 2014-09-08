@@ -25,7 +25,9 @@ function Testing(applicationPath, core) {
     this.models = { };
     var logger = {
         'info' : function () { return; },
-        'debug' : function () { return; }
+        'debug' : function () { return; },
+        'error' : function () { return; },
+        'warn' : function () { return; }
     };
     this.application = {
         'controllers' : this.controllers,
@@ -216,7 +218,9 @@ Testing.prototype.callController = function (controllerName, httpMethod, options
     this.controllers[controllerName] = this._require(controllerPath);
     var requestHandler = new RequestHandler({
         'debug' : blankFunction,
-        'info' : blankFunction
+        'info' : blankFunction,
+        'error' : blankFunction,
+        'warn' : blankFunction
     }, this.core, this.applications, null);
 
     requestHandler.segments = options.segments;

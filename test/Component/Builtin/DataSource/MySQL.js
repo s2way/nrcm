@@ -48,7 +48,7 @@ describe('MySQL.js', function () {
     describe('MySQL()', function () {
         it('should use default if no parameter is passed', function () {
             instance = new MySQL();
-            expect(instance._dataSource).to.be.ok();
+            expect(instance._dataSourceName).to.be.ok();
         });
     });
 
