@@ -12,7 +12,6 @@ describe('WaferPie.js', function () {
     function clearStructure(dir) {
         fs.rmdirSync(path.join(dir, 'src', 'Component'));
         fs.rmdirSync(path.join(dir, 'src', 'Controller'));
-        fs.unlinkSync(path.join(dir, 'src', 'Config', 'acl.json'));
         fs.unlinkSync(path.join(dir, 'src', 'Config', 'core.json'));
         fs.rmdirSync(path.join(dir, 'src', 'Config'));
         fs.rmdirSync(path.join(dir, 'src', 'Model'));
@@ -109,7 +108,6 @@ describe('WaferPie.js', function () {
         wafer.setUp('testing2');
         assert.equal(true, fs.existsSync(path.join('testing2', 'src', 'Controller')));
         assert.equal(true, fs.existsSync(path.join('testing2', 'src', 'Component')));
-        assert.equal(true, fs.existsSync(path.join('testing2', 'src', 'Config', 'acl.json')));
         assert.equal(true, fs.existsSync(path.join('testing2', 'src', 'Config', 'core.json')));
         assert.equal(true, fs.existsSync(path.join('testing2', 'src', 'Model')));
         assert.equal(true, fs.existsSync(path.join('testing2', 'test', 'Controller')));

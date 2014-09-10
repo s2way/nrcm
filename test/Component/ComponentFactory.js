@@ -22,7 +22,8 @@ describe('ComponentFactory.js', function () {
                 'MyComponent' : blankFunction
             },
             'core' : { },
-            'logger' : { }
+            'logger' : { },
+            'constants' : { }
         });
         instance = factory.create('MyComponent');
     });
@@ -43,7 +44,8 @@ describe('ComponentFactory.js', function () {
                         return;
                     }
                 },
-                'logger' : { }
+                'logger' : { },
+                'constants' : { }
             });
             instance = factory.create('MyComponent');
             factory.init(instance);
@@ -66,7 +68,8 @@ describe('ComponentFactory.js', function () {
                     }
                 },
                 'core' : { },
-                'logger' : { }
+                'logger' : { },
+                'constants' : { }
             });
             instance = factory.create('MyComponent', {
                 'key' : 'value'
@@ -80,6 +83,10 @@ describe('ComponentFactory.js', function () {
 
         it('should create the component and inject the name property', function () {
             expect(instance.name).to.be('MyComponent');
+        });
+
+        it('should inject the application constants', function () {
+            expect(instance.constants).to.be.ok();
         });
 
         it('should create the model and inject the application logger object', function () {

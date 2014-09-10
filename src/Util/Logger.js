@@ -6,7 +6,7 @@ function Logger(logsPath) {
     this.logger = new winston.Logger({
         transports: [
             new (winston.transports.Console)({ json: false, timestamp: true, level: 'debug' }),
-            new winston.transports.File({ filename: path.join(logsPath, 'main.log'), json: false }),
+            new winston.transports.File({ filename: path.join(logsPath, 'main.log'), json: false })
         ],
         exitOnError: false
     });

@@ -24,7 +24,8 @@ describe('ModelFactory.js', function () {
                     return;
                 }
             },
-            'logger' : { }
+            'logger' : { },
+            'constants' : { }
         };
         var componentFactory = {
             'create' : function () {
@@ -67,6 +68,10 @@ describe('ModelFactory.js', function () {
 
         it('should create the model and inject the application logger object', function () {
             assert.equal('object', typeof instance.logger);
+        });
+
+        it('should inject the application constants', function () {
+            expect(instance.constants).to.be.ok();
         });
 
         it('should inject the method for retrieving components', function () {

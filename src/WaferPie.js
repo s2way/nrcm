@@ -50,55 +50,53 @@ WaferPie.prototype.info = function (message) {
  */
 WaferPie.prototype.setUp = function (appName) {
     var app = {}, name;
-    app.basePath = path.join(appName);
-    app.srcPath = path.join(appName, 'src');
-    app.logsPath = path.join(appName, 'logs');
-    app.controllersPath = path.join(app.srcPath, 'Controller');
-    app.componentsPath = path.join(app.srcPath, 'Component');
-    app.modelsPath = path.join(app.srcPath, 'Model');
-    app.configPath = path.join(app.srcPath, 'Config');
-    app.aclFileName = path.join(app.srcPath, 'Config', 'acl.json');
+    app.constants = {};
+    app.constants.basePath = path.resolve(path.join(appName));
+    app.constants.srcPath = path.resolve(path.join(appName, 'src'));
+    app.constants.logsPath = path.resolve(path.join(appName, 'logs'));
+    app.constants.controllersPath = path.resolve(path.join(app.constants.srcPath, 'Controller'));
+    app.constants.componentsPath = path.resolve(path.join(app.constants.srcPath, 'Component'));
+    app.constants.modelsPath = path.resolve(path.join(app.constants.srcPath, 'Model'));
+    app.constants.configPath = path.resolve(path.join(app.constants.srcPath, 'Config'));
     app.hostname = os.hostname();
 
-    app.testPath = path.join(appName, 'test');
-    app.controllersTestPath = path.join(app.testPath, 'Controller');
-    app.componentsTestPath = path.join(app.testPath, 'Component');
-    app.modelsTestPath = path.join(app.testPath, 'Model');
+    app.constants.testPath = path.resolve(path.join(appName, 'test'));
+    app.constants.controllersTestPath = path.resolve(path.join(app.constants.testPath, 'Controller'));
+    app.constants.componentsTestPath = path.resolve(path.join(app.constants.testPath, 'Component'));
+    app.constants.modelsTestPath = path.resolve(path.join(app.constants.testPath, 'Model'));
 
     (function shouldPointCoreFileBasedOnHost() {
-        if (sync.isFile(path.join(app.srcPath, 'Config', app.hostname, '.json'))) {
-            app.coreFileName = path.join(app.srcPath, 'Config', app.hostname, '.json');
+        if (sync.isFile(path.join(app.constants.srcPath, 'Config', app.hostname, '.json'))) {
+            app.coreFileName = path.join(app.constants.srcPath, 'Config', app.hostname, '.json');
         } else {
-            app.coreFileName = path.join(app.srcPath, 'Config', 'core.json');
+            app.coreFileName = path.join(app.constants.srcPath, 'Config', 'core.json');
         }
     }());
 
-    sync.createDirIfNotExists(app.basePath);
-    sync.createDirIfNotExists(app.srcPath);
-    sync.createDirIfNotExists(app.controllersPath);
-    sync.createDirIfNotExists(app.componentsPath);
-    sync.createDirIfNotExists(app.modelsPath);
-    sync.createDirIfNotExists(app.configPath);
-    sync.createDirIfNotExists(app.testPath);
-    sync.createDirIfNotExists(app.controllersTestPath);
-    sync.createDirIfNotExists(app.modelsTestPath);
-    sync.createDirIfNotExists(app.componentsTestPath);
-    sync.createDirIfNotExists(app.logsPath);
+    sync.createDirIfNotExists(app.constants.basePath);
+    sync.createDirIfNotExists(app.constants.srcPath);
+    sync.createDirIfNotExists(app.constants.controllersPath);
+    sync.createDirIfNotExists(app.constants.componentsPath);
+    sync.createDirIfNotExists(app.constants.modelsPath);
+    sync.createDirIfNotExists(app.constants.configPath);
+    sync.createDirIfNotExists(app.constants.testPath);
+    sync.createDirIfNotExists(app.constants.controllersTestPath);
+    sync.createDirIfNotExists(app.constants.modelsTestPath);
+    sync.createDirIfNotExists(app.constants.componentsTestPath);
+    sync.createDirIfNotExists(app.constants.logsPath);
 
-    sync.copyIfNotExists(path.join(__dirname, 'Copy', 'acl.json'), app.aclFileName);
     sync.copyIfNotExists(path.join(__dirname, 'Copy', 'core.json'), app.coreFileName);
     sync.copyIfNotExists(path.join(__dirname, 'Controller', 'Exceptions.js'), path.join('Exceptions.js'));
-    app.controllers = this._loadElements(app.controllersPath);
-    app.components = this._loadComponents(app.componentsPath);
-    app.models = this._loadElements(app.modelsPath);
-    app.acl = sync.fileToJSON(app.aclFileName);
+    app.controllers = this._loadElements(app.constants.controllersPath);
+    app.components = this._loadComponents(app.constants.componentsPath);
+    app.models = this._loadElements(app.constants.modelsPath);
     try {
         app.core = sync.fileToJSON(app.coreFileName);
     } catch (e) {
         throw new exceptions.Fatal('The core configuration file is not a valid JSON', e);
     }
     this._validateCoreFile(app.core);
-    app.logger = new Logger(app.logsPath);
+    app.logger = new Logger(app.constants.logsPath);
 
     this.applications[appName] = app;
 

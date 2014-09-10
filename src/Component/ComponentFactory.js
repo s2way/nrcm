@@ -23,8 +23,7 @@ ComponentFactory.prototype.info = function (msg) {
  * @returns {{}|*}
  */
 ComponentFactory.prototype.getComponents = function () {
-    var instances = [];
-    var componentName;
+    var componentName, instances = [];
 
     this._dynamicComponents.forEach(function (instance) {
         instances.push(instance);
@@ -47,9 +46,7 @@ ComponentFactory.prototype.getComponents = function () {
  */
 ComponentFactory.prototype.create = function (componentName, params) {
     this.info('[' + componentName + '] Creating component');
-    var $this = this;
-    var ComponentConstructor, componentInstance;
-    var alreadyInstantiated;
+    var $this = this, alreadyInstantiated, ComponentConstructor, componentInstance;
 
     if (this._application.components[componentName] !== undefined) {
         ComponentConstructor = this._application.components[componentName];
@@ -67,6 +64,7 @@ ComponentFactory.prototype.create = function (componentName, params) {
         }
 
         componentInstance.name = componentName;
+        componentInstance.constants = this._application.constants;
         componentInstance.logger = this._application.logger;
         componentInstance.component = function (componentName, params) {
             var instance = $this.create(componentName, params);
