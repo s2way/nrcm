@@ -8,6 +8,7 @@ var ModelFactory = require('../../src/Model/ModelFactory');
 var ComponentFactory = require('../../src/Component/ComponentFactory');
 var RequestHandler = require('../../src/Controller/RequestHandler');
 var expect = require('expect.js');
+var path = require('path');
 
 describe('Testing', function () {
 
@@ -28,11 +29,11 @@ describe('Testing', function () {
 
     beforeEach(function () {
         testing = new Testing('app');
-        testing._exists = function (path) {
-            return path.indexOf('InvalidComponent') === -1;
+        testing._exists = function (filePath) {
+            return filePath.indexOf('InvalidComponent') === -1;
         };
-        testing._require = function (path) {
-            if (path === 'app/src/Controller/MyController') {
+        testing._require = function (filePath) {
+            if (filePath === path.join('app', 'src', 'Controller', 'MyController')) {
                 // Controller constructor
                 return function () {
                     this.post = function (callback) {
@@ -56,7 +57,7 @@ describe('Testing', function () {
                     };
                 };
             }
-            if (path === 'app/src/Model/MyModel') {
+            if (filePath === path.join('app', 'src', 'Model', 'MyModel')) {
                 // Model constructor
                 return function () {
                     this.type = 'something';
@@ -65,20 +66,19 @@ describe('Testing', function () {
                     };
                 };
             }
-            if (path === 'app/src/Model/AnotherModel') {
+            if (filePath === path.join('app', 'src', 'Model', 'AnotherModel')) {
                 // Model constructor
                 return function () {
                     this.type = 'something-else';
                     return;
                 };
             }
-            if (path === 'app/src/Component/MyComponent') {
-                // Component constructor
+            if (filePath === path.join('app', 'src', 'Component', 'MyComponent')) {                // Component constructor
                 return function () {
                     return;
                 };
             }
-            if (path === 'app/src/Component/AnotherComponent') {
+            if (filePath === path.join('app', 'src', 'Component', 'AnotherComponent')) {
                 // Component constructor
                 return function () {
                     return;
@@ -154,8 +154,8 @@ describe('Testing', function () {
         });
 
         it('should be able to retrieve builtin components, like QueryBuilder', function () {
-            testing._exists = function (path) {
-                return path.indexOf('QueryBuilder.js') !== -1;
+            testing._exists = function (filePath) {
+                return filePath.indexOf('QueryBuilder.js') !== -1;
             };
             testing._require = function () {
                 return require('../../src/Component/Builtin/QueryBuilder');
