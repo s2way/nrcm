@@ -1,7 +1,6 @@
 /*jslint devel: true, node: true, indent: 4 */
 'use strict';
 
-var ModelInterface = require('./ModelInterface');
 var exceptions = require('./../exceptions');
 
 /**
@@ -30,11 +29,11 @@ ModelFactory.prototype.info = function (msg) {
  */
 ModelFactory.prototype.create = function (modelName) {
     this.info('Creating model: ' + modelName);
-    var $this = this;
+    var $this = this, ModelConstructor, modelInstance;
 
     if (this._application.models[modelName] !== undefined) {
-        var ModelConstructor = this._application.models[modelName];
-        var modelInstance = new ModelConstructor();
+        ModelConstructor = this._application.models[modelName];
+        modelInstance = new ModelConstructor();
         modelInstance.name = modelName;
         modelInstance.logger = this._application.logger;
         modelInstance.model = function (modelName) {

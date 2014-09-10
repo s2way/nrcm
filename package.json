@@ -72,7 +72,7 @@
       "data-cover-never": "node_modules"
     },
     "travis-cov": {
-      "threshold": 90,
+      "threshold": 95,
       "removeKey": "branchFcn"
     }
   }
