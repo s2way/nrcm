@@ -124,8 +124,8 @@ RequestHandler.prototype.prepareController = function (controllerName) {
     var controllerInstance = new ControllerConstructor();
 
     (function injectProperties() {
-        var retrieveComponentMethod = function (componentName) {
-            var instance = $this.componentFactory.create(componentName);
+        var retrieveComponentMethod = function (componentName, params) {
+            var instance = $this.componentFactory.create(componentName, params);
             $this.componentFactory.init(instance);
             return instance;
         };
@@ -217,18 +217,6 @@ RequestHandler.prototype._writeHead = function (statusCode, contentType) {
 
 RequestHandler.prototype._writeResponse = function (output) {
     this.response.write(output);
-    // var $this = this;
-    // var remainingOutput = output;
-
-    // (function sendOutputInChunks() {
-    //     var segment;
-    //     var SEGMENT_LENGTH = 1024;
-    //     do {
-    //         segment = remainingOutput.substring(0, SEGMENT_LENGTH);
-    //         remainingOutput = remainingOutput.substring(SEGMENT_LENGTH);
-    //         $this.response.write(segment);
-    //     } while (remainingOutput.length > SEGMENT_LENGTH);
-    // }());
 };
 
 RequestHandler.prototype._sendResponse = function () {
