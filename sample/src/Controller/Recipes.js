@@ -5,9 +5,17 @@ function Recipes() {
 }
 
 Recipes.prototype.get = function (callback) {
-    this.responseHeaders['X-Header'] = 'A Header';
+    var myself = this.component('Bridge', 'myself');
+
+    myself.put('recipes', {}, function (error, response) {
+        callback(response.body);
+    });
+
+};
+
+Recipes.prototype.put = function (callback) {
     callback({
-        'a' : 'recipe'
+        'ok' : false
     });
 };
 

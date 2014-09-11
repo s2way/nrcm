@@ -1,6 +1,13 @@
 {
     "version" : "1.0.0",
     "requestTimeout" : 10000,
+    "bridges" : {
+        "myself" : {
+            "app" : "sample",
+            "host" : "localhost",
+            "port" : 8001
+        }
+    },
     "dataSources" : {
         "default" : {
             "host" : "localhost",

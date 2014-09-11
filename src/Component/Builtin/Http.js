@@ -25,11 +25,14 @@ Http.prototype.setHeaders = function (headers) {
 /**
  * Perform a GET request
  * @param {string} resource URL resource (must start with /)
+ * @param {object} options
  * @param {function} callback Function that will be called after completion. Two parameters are passed, error and response.
  */
-Http.prototype.get = function (resource, callback) {
+Http.prototype.get = function (resource, options, callback) {
     this.request({
         'method' : 'get',
+        'query' : options.query,
+        'headers' : options.headers,
         'resource' : resource
     }, callback);
 };
@@ -37,40 +40,47 @@ Http.prototype.get = function (resource, callback) {
 /**
  * Perform a PUT request
  * @param {string} resource URL resource (must start with /)
- * @param {object} payload JSON payload (will be sent urlencoded if the contentType is application/x-www-form-urlencoded)
+ * @param {object} options Object that may contain a payload property (will be sent urlencoded if the contentType is application/x-www-form-urlencoded) and the query property (query string that will be appended to the resource)
  * @param {function} callback Function that will be called after completion. Two parameters are passed, error and response.
  */
-Http.prototype.put = function (resource, payload, callback) {
+Http.prototype.put = function (resource, options, callback) {
     this.request({
         'method' : 'put',
         'resource' : resource,
-        'payload' : payload
+        'payload' : options.payload,
+        'query' : options.query,
+        'headers' : options.headers
     }, callback);
 };
 
 /**
  * Perform a POST request
  * @param {string} resource URL resource (must start with /)
- * @param {object} payload JSON payload (will be sent urlencoded if the contentType is application/x-www-form-urlencoded)
+ * @param {object} options
  * @param {function} callback Function that will be called after completion. Two parameters are passed, error and response.
  */
-Http.prototype.post = function (resource, payload, callback) {
+Http.prototype.post = function (resource, options, callback) {
     this.request({
         'method' : 'post',
         'resource' : resource,
-        'payload' : payload
+        'payload' : options.payload,
+        'query' : options.query,
+        'headers' : options.headers
     }, callback);
 };
 
 /**
  * Perform a DELETE request
  * @param {string} resource URL resource (must start with /)
- * @param {object} payload JSON payload (will be sent urlencoded if the contentType is application/x-www-form-urlencoded)
+ * @param {object} options
  * @param {function} callback Function that will be called after completion. Two parameters are passed, error and response.
  */
-Http.prototype.delete = function (resource, callback) {
+Http.prototype.delete = function (resource, options, callback) {
     this.request({
         'method' : 'delete',
+        'query' : options.query,
+        'payload' : options.payload,
+        'headers' : options.headers,
         'resource' : resource
     }, callback);
 };
@@ -107,7 +117,7 @@ Http.prototype._parseUrlEncoded = function (url) {
  * @param {function} callback
  */
 Http.prototype.request = function (options, callback) {
-    var $this, request, payload = false;
+    var $this, request, resource, headers, payload = false;
 
     if (options.payload) {
         if (this._contentType === 'application/x-www-form-urlencoded') {
@@ -116,15 +126,21 @@ Http.prototype.request = function (options, callback) {
             payload = options.payload;
         }
     }
+    resource = options.resource;
+    headers = options.headers || this._headers;
+
+    if (options.query) {
+        resource += '?' + this._toUrlEncoded(options.query);
+    }
 
     $this = this;
     request = this._http.request({
         'hostname' : this._hostname,
         'host' : this._host,
         'port' : this._port,
-        'headers' : this._headers,
+        'headers' : headers,
         'method' : options.method,
-        'path' : options.resource
+        'path' : resource
     }, function (response) {
         var responseObject, responseBody = '';
         response.on('data', function (chunk) {
@@ -156,7 +172,11 @@ Http.prototype.request = function (options, callback) {
         callback(error);
     });
     if (payload) {
-        request.write(payload);
+        if (typeof payload === 'object') {
+            request.write(JSON.stringify(payload));
+        } else {
+            request.write(payload);
+        }
     }
     request.end();
 

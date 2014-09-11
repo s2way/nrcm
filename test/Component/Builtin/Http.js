@@ -83,7 +83,7 @@ describe('Http.js', function () {
     describe('get', function () {
 
         it('should perform a get operation', function (done) {
-            instance.get('/', function (error, response) {
+            instance.get('/', {}, function (error, response) {
                 expect(response).to.be.ok();
                 done();
             });
@@ -94,7 +94,7 @@ describe('Http.js', function () {
     describe('delete', function () {
 
         it('should perform a delete operation', function (done) {
-            instance.delete('/', function (error, response) {
+            instance.delete('/', {}, function (error, response) {
                 expect(response).to.be.ok();
                 done();
             });
@@ -129,7 +129,9 @@ describe('Http.js', function () {
                 }
             });
             instance.post('/', {
-                'this is a bad key' : 'this is a bad value'
+                'payload' : {
+                    'this is a bad key': 'this is a bad value'
+                }
             }, blankFunction);
         });
 
