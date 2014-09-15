@@ -16,13 +16,6 @@ describe('Couchbase.js', function () {
                 return;
             }
         };
-        instance._couchbase = {
-            'Connection' : function (options, callback) {
-                setImmediate(function () {
-                    callback(null);
-                });
-            }
-        };
         instance.core = {
             'dataSources': {
                 'default': {
@@ -34,6 +27,7 @@ describe('Couchbase.js', function () {
     });
 
     describe('init', function () {
+
         it('should throw an IllegalArgument exception if the data source cannot be found', function () {
             instance = new Couchbase('invalid');
             instance.core = { 'dataSources' : { } };
@@ -43,45 +37,12 @@ describe('Couchbase.js', function () {
                 expect(e.name).to.be('IllegalArgument');
             });
         });
-    });
-
-    describe('destroy', function () {
-
-        it('should call the couchbase shutdown() method', function (done) {
-            instance = new Couchbase('default');
-            instance.logger = {
-                'info': function () {
-                    return;
-                }
-            };
-            instance._couchbase = {
-                'Connection' : function (options, callback) {
-                    setImmediate(function () {
-                        callback(null);
-                    });
-                    this.shutdown = function () {
-                        done();
-                    };
-                }
-            };
-            instance.core = {
-                'dataSources': {
-                    'default': {
-                        'host': 'localhost',
-                        'port' : 9000
-                    }
-                }
-            };
-            instance.connect(function () {
-                instance.destroy();
-            });
-        });
 
     });
 
     describe('connect', function () {
-        it('should pass the error to the callback if one occurs', function (done) {
-            var error = { };
+        it('should return the bucket object', function () {
+            var bucket = { };
             instance = new Couchbase();
             instance.logger = {
                 'info': function () {
@@ -89,36 +50,17 @@ describe('Couchbase.js', function () {
                 }
             };
             instance._couchbase = {
-                'Connection' : function (options, callback) {
-                    setImmediate(function () {
-                        callback(error);
-                    });
+                'Cluster' : function () {
+                    return {
+                        'openBucket' : function () {
+                            return bucket;
+                        }
+                    };
                 }
             };
-            instance.connect(function (err) {
-                expect(err).to.be.equal(error);
-                done();
-            });
+            expect(instance.connect()).to.be(bucket);
         });
 
-        it('should return the couchbase connection object', function (done) {
-            instance.connect(function (error, connection) {
-                expect(error).not.to.be.ok();
-                expect(connection).to.be.ok();
-                done();
-            });
-        });
-
-        it('should return exactly the same connection if the method is called twice', function (done) {
-            instance.connect(function (error, connection) {
-                instance.connect(function (error2, connection2) {
-                    expect(error).not.to.be.ok();
-                    expect(error2).not.to.be.ok();
-                    expect(connection).to.be.equal(connection2);
-                    done();
-                });
-            });
-        });
     });
 
 });
