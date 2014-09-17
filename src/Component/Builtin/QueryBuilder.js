@@ -8,8 +8,7 @@ function QueryBuilder() {
 }
 
 QueryBuilder.prototype._fieldsToCommaList = function (fields, escaping) {
-    var commaList = '';
-    var i;
+    var i, commaList = '';
     for (i in fields) {
         if (fields.hasOwnProperty(i)) {
             if (commaList !== '') {
@@ -77,8 +76,7 @@ QueryBuilder.prototype.set = function (fields) {
     if (typeof fields !== 'object') {
         throw new exceptions.IllegalArgument();
     }
-    var fieldList = '';
-    var name, value;
+    var name, value, fieldList = '';
     for (name in fields) {
         if (fields.hasOwnProperty(name)) {
             if (fieldList !== '') {
@@ -130,8 +128,7 @@ QueryBuilder.prototype.build = function () {
 };
 
 QueryBuilder.prototype._conditions = function (conditions, operation) {
-    var query = '';
-    var key;
+    var key, query = '';
 
     for (key in conditions) {
         if (conditions.hasOwnProperty(key)) {
@@ -241,8 +238,7 @@ QueryBuilder.prototype.and = function () {
     if (arguments.length < 2) {
         throw new exceptions.IllegalArgument();
     }
-    var expression = '(';
-    var i;
+    var i, expression = '(';
     for (i in arguments) {
         if (arguments.hasOwnProperty(i)) {
             if (expression !== '(') {
@@ -259,8 +255,7 @@ QueryBuilder.prototype.or = function () {
     if (arguments.length < 2) {
         throw new exceptions.IllegalArgument();
     }
-    var expression = '(';
-    var i;
+    var i, expression = '(';
     for (i in arguments) {
         if (arguments.hasOwnProperty(i)) {
             if (expression !== '(') {

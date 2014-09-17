@@ -8,6 +8,9 @@ lint.out
 testing*
 *.log
 *.swp
-.idea/**
 /Exceptions.js
 report.html
+
+
+.idea/workspace.xml
+.idea/dictionaries
