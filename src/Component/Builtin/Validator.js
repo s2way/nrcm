@@ -17,15 +17,15 @@ function Validator(params) {
 }
 
 // Validate fields
-Validator.prototype._succeeded = function (validatedFields) {
+Validator.prototype._succeeded = function (fieldErrors) {
     var key;
-    for (key in validatedFields) {
-        if (validatedFields.hasOwnProperty(key)) {
-            if (typeof validatedFields[key] !== 'object') {
-                if (validatedFields[key] !== true) {
+    for (key in fieldErrors) {
+        if (fieldErrors.hasOwnProperty(key)) {
+            if (typeof fieldErrors[key] !== 'object') {
+                if (fieldErrors[key] === false) {
                     return false;
                 }
-            } else if (!this._succeeded(validatedFields[key])) {
+            } else if (!this._succeeded(fieldErrors[key])) {
                 return false;
             }
         }
@@ -34,19 +34,19 @@ Validator.prototype._succeeded = function (validatedFields) {
 };
 
 // Find all fields to validate
-Validator.prototype._hasValidatedAllFields = function (validatedFields, validate) {
+Validator.prototype._hasValidatedAllFields = function (fieldErrors, validate) {
     var key;
     for (key in validate) {
         if (validate.hasOwnProperty(key)) {
             if (typeof validate[key] !== 'object' || validate[key] instanceof Array) {
-                if (validatedFields[key] === undefined) {
+                if (fieldErrors[key] === undefined) {
                     return false;
                 }
             } else {
-                if (validatedFields[key] === undefined) {
-                    validatedFields[key] = {};
+                if (fieldErrors[key] === undefined) {
+                    fieldErrors[key] = {};
                 }
-                if (!this._hasValidatedAllFields(validatedFields[key], validate[key])) {
+                if (!this._hasValidatedAllFields(fieldErrors[key], validate[key])) {
                     return false;
                 }
             }
@@ -55,12 +55,13 @@ Validator.prototype._hasValidatedAllFields = function (validatedFields, validate
     return true;
 };
 
-Validator.prototype._validate = function (data, validatedFields, validate, originalData) {
+Validator.prototype._validate = function (data, validatedFields, fieldErrors, validate, originalData) {
     var n;
     originalData = originalData || data;
 
     var validateFunctionCallback = function (validationErrorObject) {
-        validatedFields[n] = validationErrorObject || true;
+        fieldErrors[n] = validationErrorObject || true;
+        validatedFields[n] = validationErrorObject ? false : true;
     };
 
     for (n in validate) {
@@ -68,11 +69,11 @@ Validator.prototype._validate = function (data, validatedFields, validate, origi
             if (typeof validate[n] === 'function') {
                 validate[n](data[n], originalData, validateFunctionCallback);
             } else {
-                if (validatedFields[n] === undefined) {
-                    validatedFields[n] = {};
+                if (fieldErrors[n] === undefined) {
+                    fieldErrors[n] = {};
                 }
                 if (validate[n] !== undefined) {
-                    this._validate(data[n], validatedFields[n], validate[n], originalData);
+                    this._validate(data[n], validatedFields, fieldErrors[n], validate[n], originalData);
                 }
             }
         }
@@ -87,13 +88,14 @@ Validator.prototype._validate = function (data, validatedFields, validate, origi
  */
 Validator.prototype.validate = function (data, callback) {
     var validate = this._rules;
+    var fieldErrors = {};
     var validatedFields = {};
     var that = this;
     var expired = false;
     var succeeded = false;
 
     // Fire all validations callbacks
-    this._validate(data, validatedFields, validate);
+    this._validate(data, validatedFields, fieldErrors, validate);
 
     // Start a timer to control validations
     var timer = setTimeout(function () {
@@ -105,18 +107,18 @@ Validator.prototype.validate = function (data, callback) {
         if (expired) {
             callback({
                 'name' : 'ValidationExpired'
-            }, validatedFields);
-        } else if (that._hasValidatedAllFields(validatedFields, validate)) {
+            }, fieldErrors);
+        } else if (that._hasValidatedAllFields(fieldErrors, validate)) {
             clearTimeout(timer);
             succeeded = that._succeeded(validatedFields);
             if (!succeeded) {
                 callback({
                     'name' : 'ValidationFailed',
-                    'fields' : validatedFields
-                }, validatedFields);
+                    'fields' : fieldErrors
+                }, fieldErrors);
                 return;
             }
-            callback(null, validatedFields);
+            callback(null, fieldErrors);
         } else {
             setTimeout(timeoutFunc, that.timeout / 500);
         }
