@@ -29,7 +29,7 @@ describe('Validator.js', function () {
             var validate, validator;
             validate = {
                 'field' : function (value, fields, callback) {
-                    callback(value !== undefined);
+                    callback({});
                 }
             };
             validator = new Validator({ 'validate' : validate});
@@ -44,24 +44,24 @@ describe('Validator.js', function () {
                 'cpf' : function (value, validationData, callback) {
                     assert.equal(cpf, value);
                     assert.equal(JSON.stringify(data), JSON.stringify(validationData));
-                    callback(true);
+                    callback();
                 },
                 'e-mail' : function (value, validationData, callback) {
                     assert.equal(JSON.stringify(data), JSON.stringify(validationData));
                     assert.equal(JSON.stringify(value), JSON.stringify(email));
-                    callback(true);
+                    callback();
                 },
                 'address' : {
                     'street' : function (value, validationData, callback) {
                         assert.equal(JSON.stringify(data), JSON.stringify(validationData));
                         assert.equal(street, value);
-                        callback(true);
+                        callback();
                     }
                 },
                 'preferences' : function (value, validationData, callback) {
                     assert.equal(JSON.stringify(data), JSON.stringify(validationData));
                     assert.equal(JSON.stringify(value), JSON.stringify(preferences));
-                    callback(true);
+                    callback();
                 }
             };
             var validator = new Validator({ 'validate' : validate, 'timeout' : 100 });
@@ -86,25 +86,25 @@ describe('Validator.js', function () {
                     assert.equal(cpf, value);
                     assert.equal(JSON.stringify(data), JSON.stringify(validationData));
                     setTimeout(function () {
-                        callback(true);
+                        callback();
                     }, 10000);
                 },
                 'e-mail' : function (value, validationData, callback) {
                     assert.equal(email, value);
                     assert.equal(JSON.stringify(data), JSON.stringify(validationData));
-                    callback(true);
+                    callback();
                 },
                 'address' : {
                     'street' : function (value, validationData, callback) {
                         assert.equal(street, value);
                         assert.equal(JSON.stringify(data), JSON.stringify(validationData));
-                        callback(true);
+                        callback();
                     }
                 },
                 'preferences' : function (value, validationData, callback) {
                     assert.equal(JSON.stringify(preferences), JSON.stringify(value));
                     assert.equal(JSON.stringify(data), JSON.stringify(validationData));
-                    callback(true);
+                    callback();
                 }
             };
             var validator = new Validator({ 'validate': validate, 'timeout': 10 });

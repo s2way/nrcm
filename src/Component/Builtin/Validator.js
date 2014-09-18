@@ -22,7 +22,7 @@ Validator.prototype._succeeded = function (validatedFields) {
     for (key in validatedFields) {
         if (validatedFields.hasOwnProperty(key)) {
             if (typeof validatedFields[key] !== 'object') {
-                if (validatedFields[key] === false) {
+                if (validatedFields[key] !== true) {
                     return false;
                 }
             } else if (!this._succeeded(validatedFields[key])) {
@@ -59,8 +59,8 @@ Validator.prototype._validate = function (data, validatedFields, validate, origi
     var n;
     originalData = originalData || data;
 
-    var validateFunctionCallback = function (valid) {
-        validatedFields[n] = valid;
+    var validateFunctionCallback = function (validationErrorObject) {
+        validatedFields[n] = validationErrorObject || true;
     };
 
     for (n in validate) {
@@ -111,7 +111,8 @@ Validator.prototype.validate = function (data, callback) {
             succeeded = that._succeeded(validatedFields);
             if (!succeeded) {
                 callback({
-                    'name' : 'ValidationFailed'
+                    'name' : 'ValidationFailed',
+                    'fields' : validatedFields
                 }, validatedFields);
                 return;
             }
