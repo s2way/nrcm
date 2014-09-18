@@ -1,41 +1,41 @@
 /*jslint devel: true, node: true, indent: 4 */
 /*globals describe, it */
 'use strict';
-var sync = require('./../../src/Util/sync');
+var Sync = require('./../../src/Util/Sync');
 var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
 
-describe('sync.js', function () {
+describe('Sync.js', function () {
 
     describe('isFile', function () {
         it('should return false if the file does not exist or if it exists but it is not a file', function () {
-            assert.equal(false, sync.isFile('/this/path/must/not/exist/please'));
+            assert.equal(false, Sync.isFile('/this/path/must/not/exist/please'));
         });
         it('should return true if the file exists', function () {
-            sync.createFileIfNotExists('here.json', '{}');
-            assert.equal(true, sync.isFile('here.json'));
+            Sync.createFileIfNotExists('here.json', '{}');
+            assert.equal(true, Sync.isFile('here.json'));
             fs.unlinkSync('here.json');
         });
     });
 
     describe('copyIfNotExists', function () {
         it('should copy the file if it does not exist', function () {
-            sync.createFileIfNotExists('here.json', '{}');
-            sync.copyIfNotExists('here.json', 'there.json');
-            assert.equal('{}', JSON.stringify(sync.fileToJSON('there.json')));
+            Sync.createFileIfNotExists('here.json', '{}');
+            Sync.copyIfNotExists('here.json', 'there.json');
+            assert.equal('{}', JSON.stringify(Sync.fileToJSON('there.json')));
             fs.unlinkSync('here.json');
             fs.unlinkSync('there.json');
         });
         it('should return false if the file exists', function () {
-            sync.createFileIfNotExists('here.json', '{}');
-            assert.equal(false, sync.copyIfNotExists('here.json', 'here.json'));
+            Sync.createFileIfNotExists('here.json', '{}');
+            assert.equal(false, Sync.copyIfNotExists('here.json', 'here.json'));
             fs.unlinkSync('here.json');
         });
         it('should throw a Fatal exception if it is not a file', function () {
-            sync.createDirIfNotExists('here');
+            Sync.createDirIfNotExists('here');
             try {
-                assert.equal(false, sync.copyIfNotExists('here', 'here'));
+                assert.equal(false, Sync.copyIfNotExists('here', 'here'));
                 assert.fail();
             } catch (e) {
                 assert.equal('Fatal', e.name);
@@ -45,10 +45,10 @@ describe('sync.js', function () {
     });
 
     describe('copy', function () {
-        it('should copy the file synchronously', function () {
-            sync.createFileIfNotExists('here.json', '{}');
-            sync.copy('here.json', 'there.json');
-            assert.equal('{}', JSON.stringify(sync.fileToJSON('there.json')));
+        it('should copy the file Synchronously', function () {
+            Sync.createFileIfNotExists('here.json', '{}');
+            Sync.copy('here.json', 'there.json');
+            assert.equal('{}', JSON.stringify(Sync.fileToJSON('there.json')));
             fs.unlinkSync('here.json');
             fs.unlinkSync('there.json');
         });
@@ -57,7 +57,7 @@ describe('sync.js', function () {
     describe('loadNodeFilesIntoArray', function () {
         it('should throw a Fatal exception if the param is not an array', function () {
             try {
-                sync.loadNodeFilesIntoArray();
+                Sync.loadNodeFilesIntoArray();
                 assert.fail();
             } catch (e) {
                 assert.equal('Fatal', e.name);
@@ -75,10 +75,10 @@ describe('sync.js', function () {
                 for (file in files) {
                     if (files.hasOwnProperty(file)) {
                         fileName = files[file];
-                        sync.createFileIfNotExists(fileName, 'module.exports = { };');
+                        Sync.createFileIfNotExists(fileName, 'module.exports = { };');
                     }
                 }
-                filesJSON = sync.loadNodeFilesIntoArray(files);
+                filesJSON = Sync.loadNodeFilesIntoArray(files);
             } finally {
                 for (file in files) {
                     if (files.hasOwnProperty(file)) {
@@ -104,21 +104,21 @@ describe('sync.js', function () {
             };
             var fileName = 'fileToJSON.js';
             fs.writeFileSync(fileName, JSON.stringify(json));
-            assert.equal(JSON.stringify(json), JSON.stringify(sync.fileToJSON(fileName)));
+            assert.equal(JSON.stringify(json), JSON.stringify(Sync.fileToJSON(fileName)));
             fs.unlinkSync(fileName);
         });
     });
     describe('createDirIfNotExists', function () {
         it('create the directory if it does not exists', function () {
             var dir = 'path';
-            sync.createDirIfNotExists(dir);
+            Sync.createDirIfNotExists(dir);
             assert.equal(true, fs.existsSync(dir));
             fs.rmdirSync(dir);
         });
         it('should work when called twice', function () {
             var dir = 'path';
-            sync.createDirIfNotExists(dir);
-            sync.createDirIfNotExists(dir);
+            Sync.createDirIfNotExists(dir);
+            Sync.createDirIfNotExists(dir);
             assert.equal(true, fs.existsSync(dir));
             fs.rmdirSync(dir);
         });
@@ -126,14 +126,14 @@ describe('sync.js', function () {
     describe('createFileIfNotExists', function () {
         it('create the file if it does not exists', function () {
             var dir = 'file.txt';
-            sync.createFileIfNotExists(dir);
+            Sync.createFileIfNotExists(dir);
             assert.equal(true, fs.existsSync(dir));
             fs.unlinkSync(dir);
         });
         it('should work when called twice', function () {
             var dir = 'file.txt';
-            sync.createFileIfNotExists(dir);
-            sync.createFileIfNotExists(dir);
+            Sync.createFileIfNotExists(dir);
+            Sync.createFileIfNotExists(dir);
             assert.equal(true, fs.existsSync(dir));
             fs.unlinkSync(dir);
         });
@@ -141,7 +141,7 @@ describe('sync.js', function () {
             var dir = 'file';
             fs.mkdirSync(dir, parseInt('0777', 8));
             try {
-                sync.createFileIfNotExists(dir);
+                Sync.createFileIfNotExists(dir);
             } catch (e) {
                 assert.equal('Fatal', e.name);
                 return;
@@ -168,7 +168,7 @@ describe('sync.js', function () {
                 fs.writeFileSync(files[i], '');
             }
             try {
-                list = sync.listFilesFromDir('dir');
+                list = Sync.listFilesFromDir('dir');
             } finally {
                 for (i = 0; i < files.length; i += 1) {
                     fs.unlinkSync(files[i]);
@@ -183,7 +183,7 @@ describe('sync.js', function () {
             var dir = 'dir';
             try {
                 fs.mkdirSync(dir, parseInt('0777', 8));
-                assert.equal('[]', JSON.stringify(sync.listFilesFromDir(dir)));
+                assert.equal('[]', JSON.stringify(Sync.listFilesFromDir(dir)));
             } finally {
                 fs.rmdirSync(dir);
             }

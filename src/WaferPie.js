@@ -19,7 +19,7 @@
 var path = require('path');
 var http = require('http');
 var exceptions = require('./exceptions');
-var sync = require('./Util/sync');
+var Sync = require('./Util/Sync');
 var Logger = require('./Util/Logger');
 var RequestHandler = require('./Controller/RequestHandler');
 var os = require('os');
@@ -30,7 +30,7 @@ function WaferPie() {
     this.configs = {
         'url' : '/$controller'
     };
-    sync.createDirIfNotExists('logs');
+    Sync.createDirIfNotExists('logs');
     this.logger = new Logger('logs');
 }
 
@@ -66,32 +66,32 @@ WaferPie.prototype.setUp = function (appName) {
     app.constants.modelsTestPath = path.resolve(path.join(app.constants.testPath, 'Model'));
 
     (function shouldPointCoreFileBasedOnHost() {
-        if (sync.isFile(path.join(app.constants.srcPath, 'Config', app.hostname, '.json'))) {
+        if (Sync.isFile(path.join(app.constants.srcPath, 'Config', app.hostname, '.json'))) {
             app.coreFileName = path.join(app.constants.srcPath, 'Config', app.hostname, '.json');
         } else {
             app.coreFileName = path.join(app.constants.srcPath, 'Config', 'core.json');
         }
     }());
 
-    sync.createDirIfNotExists(app.constants.basePath);
-    sync.createDirIfNotExists(app.constants.srcPath);
-    sync.createDirIfNotExists(app.constants.controllersPath);
-    sync.createDirIfNotExists(app.constants.componentsPath);
-    sync.createDirIfNotExists(app.constants.modelsPath);
-    sync.createDirIfNotExists(app.constants.configPath);
-    sync.createDirIfNotExists(app.constants.testPath);
-    sync.createDirIfNotExists(app.constants.controllersTestPath);
-    sync.createDirIfNotExists(app.constants.modelsTestPath);
-    sync.createDirIfNotExists(app.constants.componentsTestPath);
-    sync.createDirIfNotExists(app.constants.logsPath);
+    Sync.createDirIfNotExists(app.constants.basePath);
+    Sync.createDirIfNotExists(app.constants.srcPath);
+    Sync.createDirIfNotExists(app.constants.controllersPath);
+    Sync.createDirIfNotExists(app.constants.componentsPath);
+    Sync.createDirIfNotExists(app.constants.modelsPath);
+    Sync.createDirIfNotExists(app.constants.configPath);
+    Sync.createDirIfNotExists(app.constants.testPath);
+    Sync.createDirIfNotExists(app.constants.controllersTestPath);
+    Sync.createDirIfNotExists(app.constants.modelsTestPath);
+    Sync.createDirIfNotExists(app.constants.componentsTestPath);
+    Sync.createDirIfNotExists(app.constants.logsPath);
 
-    sync.copyIfNotExists(path.join(__dirname, 'Copy', 'core.json'), app.coreFileName);
-    sync.copyIfNotExists(path.join(__dirname, 'Controller', 'Exceptions.js'), path.join('Exceptions.js'));
+    Sync.copyIfNotExists(path.join(__dirname, 'Copy', 'core.json'), app.coreFileName);
+    Sync.copyIfNotExists(path.join(__dirname, 'Controller', 'Exceptions.js'), path.join('Exceptions.js'));
     app.controllers = this._loadElements(app.constants.controllersPath);
     app.components = this._loadComponents(app.constants.componentsPath);
     app.models = this._loadElements(app.constants.modelsPath);
     try {
-        app.core = sync.fileToJSON(app.coreFileName);
+        app.core = Sync.fileToJSON(app.coreFileName);
     } catch (e) {
         throw new exceptions.Fatal('The core configuration file is not a valid JSON', e);
     }
@@ -164,7 +164,7 @@ WaferPie.prototype._loadComponents = function (componentsPath) {
 
 WaferPie.prototype._loadElements = function (dirPath) {
     var elementNames = [];
-    var files = sync.listFilesFromDir(dirPath);
+    var files = Sync.listFilesFromDir(dirPath);
     files.forEach(function (file) {
         var relative = file.substring(dirPath.length + 1);
         var extensionIndex = relative.lastIndexOf('.');
@@ -172,7 +172,7 @@ WaferPie.prototype._loadElements = function (dirPath) {
         var elementName = relativeWithoutExt.replace(/\//g, '.');
         elementNames[elementName] = file;
     });
-    return sync.loadNodeFilesIntoArray(elementNames);
+    return Sync.loadNodeFilesIntoArray(elementNames);
 };
 
 WaferPie.prototype._validateCoreFile = function (core) {
@@ -193,7 +193,7 @@ WaferPie.prototype._validateCoreFile = function (core) {
  */
 WaferPie.prototype.configure = function (configJSONFile) {
     try {
-        this.configs = sync.fileToJSON(configJSONFile);
+        this.configs = Sync.fileToJSON(configJSONFile);
     } catch (e) {
         throw new exceptions.Fatal('Configuration file is not a valid JSON', e);
     }

@@ -3,8 +3,7 @@
 var exceptions = require('./../exceptions');
 var fs = require('fs');
 var path = require('path');
-var util = require('util');
-var sync = {
+var Sync = {
 
     /**
      * Copy a file from a place to another if the destination does not exist
@@ -22,7 +21,7 @@ var sync = {
             }
             return false;
         }
-        return sync.copy(src, dst);
+        return Sync.copy(src, dst);
     },
     /**
      * Copy a file from a place to another
@@ -32,7 +31,7 @@ var sync = {
      * @param {string} src The directory destination
      */
     copy : function (src, dst) {
-        sync.createFileIfNotExists(dst, fs.readFileSync(src, "utf8"));
+        Sync.createFileIfNotExists(dst, fs.readFileSync(src, "utf8"));
         return true;
     },
     /**
@@ -121,7 +120,7 @@ var sync = {
                 if (stats.isFile()) {
                     result.push(fullFilePath);
                 } else if (stats.isDirectory()) {
-                    result = result.concat(sync.listFilesFromDir(fullFilePath));
+                    result = result.concat(Sync.listFilesFromDir(fullFilePath));
                 }
             });
         }
@@ -146,4 +145,4 @@ var sync = {
     }
 };
 
-module.exports = sync;
+module.exports = Sync;

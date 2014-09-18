@@ -4,7 +4,7 @@
 var WaferPie = require('./../src/WaferPie');
 var assert = require('assert');
 var path = require('path');
-var sync = require('./../src/Util/sync');
+var sync = require('./../src/Util/Sync');
 var fs = require('fs');
 
 describe('WaferPie.js', function () {

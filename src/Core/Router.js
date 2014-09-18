@@ -8,7 +8,7 @@
  */
 var url = require('url');
 var path = require('path');
-var stringUtils = require('./../Util/stringUtils');
+var StringUtils = require('./../Util/StringUtils');
 
 /**
  * The router object
@@ -93,7 +93,7 @@ Router.prototype.findController = function (controllers, decomposedUrl) {
     for (i in controllersArrayReverted) {
         if (controllersArrayReverted.hasOwnProperty(i)) {
             controllerName = controllersArrayReverted[i];
-            controllerNameCamelCase = stringUtils.lowerCaseUnderscoredToCamelCase(controllerName.replace(/\//g, '.'));
+            controllerNameCamelCase = StringUtils.lowerCaseUnderscoredToCamelCase(controllerName.replace(/\//g, '.'));
             if (controllers[controllerNameCamelCase] !== undefined) {
                 return {
                     'controller' : controllerNameCamelCase,

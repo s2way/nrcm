@@ -1,12 +1,12 @@
 /*jslint devel: true, node: true, indent: 4, vars: true, maxlen: 256 */
 'use strict';
-var stringUtils = {
+var StringUtils = {
     /**
     * Set to upper the first letter
     *
     * @method firstLetterUp
     * @param {string} str The string that will be converted
-    * @return {string} Returns the formated string
+    * @return {string} Returns the formatted string
     */
     firstLetterUp : function (str) {
         if (str.length > 0) {
@@ -18,7 +18,7 @@ var stringUtils = {
     *
     * @method lowerCaseUnderscoredToCamelCase
     * @param {string} lowerCaseUnderscored The string that will be converted
-    * @return {string} Returns the formated string
+    * @return {string} Returns the formatted string
     */
     lowerCaseUnderscoredToCamelCase : function (lowerCaseUnderscored) {
         var parts = lowerCaseUnderscored.replace(/\./g, '._').split('_');
@@ -27,7 +27,7 @@ var stringUtils = {
         for (i = 0; i < parts.length; i += 1) {
             part = parts[i];
             if (part.length > 0) {
-                camelCase += stringUtils.firstLetterUp(part);
+                camelCase += StringUtils.firstLetterUp(part);
             }
         }
         return camelCase;
@@ -42,7 +42,7 @@ var stringUtils = {
         var lowerCaseUnderscored = '';
         var length = camelCase.length;
         var upperCaseRegex = /[A-Z]/;
-        var ch, i, previousCh;
+        var ch, i, previousCh = '';
         for (i = 0; i < length; i += 1) {
             ch = camelCase.charAt(i);
             if (i > 0 && upperCaseRegex.test(ch) && previousCh !== '.') {
@@ -55,4 +55,4 @@ var stringUtils = {
     }
 };
 
-module.exports = stringUtils;
+module.exports = StringUtils;
