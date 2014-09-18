@@ -12,8 +12,8 @@ var exceptions = require('../../exceptions');
  */
 function Validator(params) {
     params = params || {};
-    this.timeout = params.timeout || 10000;
-    this.validate = params.validate;
+    this._timeout = params.timeout || 10000;
+    this._rules = params.validate;
 }
 
 // Validate fields
@@ -55,26 +55,24 @@ Validator.prototype._hasValidatedAllFields = function (validatedFields, validate
     return true;
 };
 
-// isValid
-Validator.prototype._isValid = function (data, validatedFields, validate, originalData) {
+Validator.prototype._validate = function (data, validatedFields, validate, originalData) {
     var n;
+    originalData = originalData || data;
 
     var validateFunctionCallback = function (valid) {
         validatedFields[n] = valid;
     };
 
-    for (n in data) {
-        if (data.hasOwnProperty(n)) {
-            if (typeof data[n] !== 'object' || Array.isArray(data[n])) {
-                if (typeof validate[n] === 'function') {
-                    validate[n](data[n], originalData, validateFunctionCallback);
-                }
+    for (n in validate) {
+        if (validate.hasOwnProperty(n)) {
+            if (typeof validate[n] === 'function') {
+                validate[n](data[n], originalData, validateFunctionCallback);
             } else {
                 if (validatedFields[n] === undefined) {
                     validatedFields[n] = {};
                 }
                 if (validate[n] !== undefined) {
-                    this._isValid(data[n], validatedFields[n], validate[n], originalData);
+                    this._validate(data[n], validatedFields[n], validate[n], originalData);
                 }
             }
         }
@@ -83,28 +81,41 @@ Validator.prototype._isValid = function (data, validatedFields, validate, origin
 /**
  * Validate all properties of a json
  *
- * @method isValid
- * @param {json} data The json object to be validated
+ * @method validate
+ * @param {object} data The json object to be validated
  * @param {function} callback
  */
-Validator.prototype.isValid = function (data, callback) {
-    var validate = this.validate;
+Validator.prototype.validate = function (data, callback) {
+    var validate = this._rules;
     var validatedFields = {};
     var that = this;
     var expired = false;
+    var succeeded = false;
+
     // Fire all validations callbacks
-    this._isValid(data, validatedFields, validate, data);
+    this._validate(data, validatedFields, validate);
+
     // Start a timer to control validations
     var timer = setTimeout(function () {
         expired = true;
-    }, this.timeout);
+    }, this._timeout);
+
     // Timeout
     var timeoutFunc = function () {
         if (expired) {
-            callback(true, false, validatedFields);
+            callback({
+                'name' : 'ValidationExpired'
+            }, validatedFields);
         } else if (that._hasValidatedAllFields(validatedFields, validate)) {
             clearTimeout(timer);
-            callback(false, that._succeeded(validatedFields), validatedFields);
+            succeeded = that._succeeded(validatedFields);
+            if (!succeeded) {
+                callback({
+                    'name' : 'ValidationFailed'
+                }, validatedFields);
+                return;
+            }
+            callback(null, validatedFields);
         } else {
             setTimeout(timeoutFunc, that.timeout / 500);
         }
@@ -117,7 +128,7 @@ Validator.prototype._matchAgainst = function (data, level, validate) {
     var n, test;
     if (level === undefined) {
         level = 1;
-        validate = this.validate;
+        validate = this._rules;
     } else {
         level += 1;
     }

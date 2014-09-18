@@ -1,27 +1,44 @@
 /*jslint devel: true, node: true, indent: 4, unparam: true */
 /*globals describe, it */
 'use strict';
+
 var assert = require('assert');
 var expect = require('expect.js');
 var Validator = require('./../../../src/Component/Builtin/Validator');
 
 describe('Validator.js', function () {
 
-    describe('isValid', function () {
-        var logradouro = 'Rua José de Alencar';
-        var email = 'davi@versul.com.br';
-        var preferencias = ['Cerveja', 'Salgadinho'];
-        var cpf = '02895328099';
-        var data = {
+    describe('validate', function () {
+        var street, email, preferences, cpf, data;
+        street = 'José de Alencar';
+        email = 'davi@versul.com.br';
+        preferences = ['Beer', 'Chips'];
+        cpf = '02895328099';
+        data = {
             'cpf' : cpf,
             'e-mail' : email,
-            'senha' : '123456',
-            'endereco' : {
-                'logradouro' : logradouro,
-                'cep' : '93310-210',
+            'password' : '123456',
+            'address' : {
+                'street' : street,
+                'zipCode' : '93310-210'
             },
-            'preferencias' : preferencias
+            'preferences' : preferences
         };
+
+        it('should validate an empty object and return that it has failed', function (done) {
+            var validate, validator;
+            validate = {
+                'field' : function (value, fields, callback) {
+                    callback(value !== undefined);
+                }
+            };
+            validator = new Validator({ 'validate' : validate});
+            validator.validate({}, function (error) {
+                expect(error.name).to.be('ValidationFailed');
+                done();
+            });
+        });
+
         it('should execute the validation functions passing each field to be validated', function (done) {
             var validate = {
                 'cpf' : function (value, validationData, callback) {
@@ -34,35 +51,35 @@ describe('Validator.js', function () {
                     assert.equal(JSON.stringify(value), JSON.stringify(email));
                     callback(true);
                 },
-                'endereco' : {
-                    'logradouro' : function (value, validationData, callback) {
+                'address' : {
+                    'street' : function (value, validationData, callback) {
                         assert.equal(JSON.stringify(data), JSON.stringify(validationData));
-                        assert.equal(logradouro, value);
+                        assert.equal(street, value);
                         callback(true);
                     }
                 },
-                'preferencias' : function (value, validationData, callback) {
+                'preferences' : function (value, validationData, callback) {
                     assert.equal(JSON.stringify(data), JSON.stringify(validationData));
-                    assert.equal(JSON.stringify(value), JSON.stringify(preferencias));
+                    assert.equal(JSON.stringify(value), JSON.stringify(preferences));
                     callback(true);
                 }
             };
             var validator = new Validator({ 'validate' : validate, 'timeout' : 100 });
-            validator.isValid(data, function (expired, succeeded, validatedFields) {
+            validator.validate(data, function (error, validatedFields) {
                 var expectedValidatedFields = {
                     'cpf' : true,
                     'e-mail' : true,
-                    'endereco' : {
-                        'logradouro' : true
+                    'address' : {
+                        'street' : true
                     },
-                    'preferencias' : true
+                    'preferences' : true
                 };
-                assert.equal(expired, false);
-                assert.equal(succeeded, true);
-                assert.equal(JSON.stringify(expectedValidatedFields), JSON.stringify(validatedFields));
+                expect(error).not.to.be.ok();
+                expect(JSON.stringify(validatedFields)).to.be(JSON.stringify(expectedValidatedFields));
                 done();
             });
         });
+
         it('should return expired as true if the validation functions took too long', function (done) {
             var validate = {
                 'cpf' : function (value, validationData, callback) {
@@ -77,31 +94,30 @@ describe('Validator.js', function () {
                     assert.equal(JSON.stringify(data), JSON.stringify(validationData));
                     callback(true);
                 },
-                'endereco' : {
-                    'logradouro' : function (value, validationData, callback) {
-                        assert.equal(logradouro, value);
+                'address' : {
+                    'street' : function (value, validationData, callback) {
+                        assert.equal(street, value);
                         assert.equal(JSON.stringify(data), JSON.stringify(validationData));
                         callback(true);
                     }
                 },
-                'preferencias' : function (value, validationData, callback) {
-                    assert.equal(JSON.stringify(preferencias), JSON.stringify(value));
+                'preferences' : function (value, validationData, callback) {
+                    assert.equal(JSON.stringify(preferences), JSON.stringify(value));
                     assert.equal(JSON.stringify(data), JSON.stringify(validationData));
                     callback(true);
                 }
             };
             var validator = new Validator({ 'validate': validate, 'timeout': 10 });
-            validator.isValid(data, function (expired, succeeded, validatedFields) {
+            validator.validate(data, function (error, validatedFields) {
                 var expectedValidatedFields = {
                     'e-mail' : true,
-                    'endereco' : {
-                        'logradouro' : true
+                    'address' : {
+                        'street' : true
                     },
-                    'preferencias' : true
+                    'preferences' : true
                 };
-                assert.equal(succeeded, false);
-                assert.equal(expired, true);
-                assert.equal(JSON.stringify(expectedValidatedFields), JSON.stringify(validatedFields));
+                expect(error.name).to.be('ValidationExpired');
+                expect(JSON.stringify(validatedFields)).to.be(JSON.stringify(expectedValidatedFields));
                 done();
             });
         });
