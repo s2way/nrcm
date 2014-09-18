@@ -58,9 +58,12 @@ MySQL.prototype._connect = function (callback) {
         return;
     }
 
-    var $this = this;
-    // this.info('[' + $this._dataSourceName + '] Connecting to ' + this._dataSource.host + ':' + this._dataSource.port);
-    var connection = this._mysql.createConnection({
+    var connection, $this;
+    $this = this;
+
+    this.info('[' + this._dataSourceName + '] Connecting to ' + this._dataSource.host + ':' + this._dataSource.port);
+
+    connection = this._mysql.createConnection({
         'host': this._dataSource.host,
         'port' : this._dataSource.port,
         'user': this._dataSource.user,
@@ -108,19 +111,33 @@ MySQL.prototype.query = function (query, params, callback) {
             callback(error);
             return;
         }
-        if (!$this._databaseSelected[$this._dataSourceName]) {
-            $this.use($this._dataSource.database, function (error) {
-                if (error) {
-                    callback(error);
-                    return;
-                }
-                $this._databaseSelected[$this._dataSourceName] = true;
-                connection.query(query, params, callback);
-            });
-            return;
-        }
-        connection.query(query, params, callback);
+
+        $this._selectDatabase(function (error) {
+            if (error) {
+                callback(error);
+                return;
+            }
+            connection.query(query, params, callback);
+        });
+
     });
+};
+
+MySQL.prototype._selectDatabase = function (callback) {
+    var $this = this;
+
+    if (!$this._databaseSelected[$this._dataSourceName]) {
+        $this.use($this._dataSource.database, function (error) {
+            if (error) {
+                callback(error);
+                return;
+            }
+            $this._databaseSelected[$this._dataSourceName] = true;
+            callback();
+        });
+        return;
+    }
+    callback();
 };
 
 /**
@@ -155,20 +172,30 @@ MySQL.prototype.call = function (procedure, params, callback) {
         throw new exceptions.IllegalArgument('The procedure parameter is mandatory');
     }
 
+    var $this = this;
+
     this._connect(function (error, connection) {
         if (error) {
             callback(error);
             return;
         }
-        var paramsString = '';
-        var i;
-        for (i = 0; i < params.length; i += 1) {
-            if (paramsString !== '') {
-                paramsString += ', ';
+
+        $this._selectDatabase(function (error) {
+            if (error) {
+                callback(error);
+                return;
             }
-            paramsString += '?';
-        }
-        connection.query('CALL ' + connection.escapeId(procedure) + '(' + paramsString + ')', params, callback);
+            var i, paramsString = '';
+
+            for (i = 0; i < params.length; i += 1) {
+                if (paramsString !== '') {
+                    paramsString += ', ';
+                }
+                paramsString += '?';
+            }
+            connection.query('CALL ' + connection.escapeId(procedure) + '(' + paramsString + ')', params, callback);
+        });
+
     });
 };
 

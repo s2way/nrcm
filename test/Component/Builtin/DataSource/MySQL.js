@@ -212,8 +212,29 @@ describe('MySQL.js', function () {
             });
         });
 
+        it('should call the use command before query if the database configuration is specified', function (done) {
+            var useCommandIssued = false;
+            instance._mysql = mockMySQL({
+                'query' : function (query, params, callback) {
+                    setImmediate(function () {
+                        callback();
+                    });
+                }
+            });
+            instance.use = function (database, callback) {
+                expect(database).to.be('s2way', database);
+                useCommandIssued = true;
+                callback();
+            };
+            instance.call('minha_procedure', [], function () {
+                expect(useCommandIssued).to.be.ok();
+                done();
+            });
+        });
+
         it('should issue a CALL procedure command', function (done) {
             var procedureParams = [1, 'two'];
+            instance._databaseSelected['default'] = true;
             instance._mysql = mockMySQL({
                 'query' : function (query, params, callback) {
                     expect(query).to.be('CALL some_procedure(?, ?)');
