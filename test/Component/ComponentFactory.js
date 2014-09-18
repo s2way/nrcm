@@ -89,10 +89,6 @@ describe('ComponentFactory.js', function () {
             expect(instance.constants).to.be.ok();
         });
 
-        it('should create the model and inject the application logger object', function () {
-            expect(instance.logger).to.be.an('object');
-        });
-
         it('should create the model and inject the application core object (configurations)', function () {
             expect(instance.core).to.be.an('object');
         });

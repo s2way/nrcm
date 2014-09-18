@@ -3,13 +3,22 @@
 var chalk = require('chalk');
 var path = require('path');
 
+/**
+ * Logger component constructor
+ * @param fileName The name of the file where the logs are going to be stored
+ * @constructor
+ */
 function Logger(fileName) {
     this.fileName = fileName || 'default.log';
     this._winston = require('winston');
 }
 
-Logger.prototype.init = function () {
-    var logsPath = path.join(this.constants.logsPath);
+/**
+ * Initializes the component
+ * @param logsPath
+ */
+Logger.prototype.init = function (logsPath) {
+    logsPath = logsPath || path.join(this.constants.logsPath);
     this._logger = new this._winston.Logger({
         transports: [
             new (this._winston.transports.Console)({ json: false, timestamp: true, level: 'debug' }),

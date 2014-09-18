@@ -98,7 +98,6 @@ describe('WaferPie.js', function () {
 
         wafer.setUp('testing1');
         wafer.start();
-        // Nothing to test here
         fs.unlinkSync(path.join('testing1', 'src', 'Controller', 'MyController.js'));
         fs.unlinkSync(path.join('testing1', 'src', 'Component', 'MyComponent.js'));
         clearStructure('testing1');

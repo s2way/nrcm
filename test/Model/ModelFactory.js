@@ -66,10 +66,6 @@ describe('ModelFactory.js', function () {
             assert.equal('MyModel', instance.name);
         });
 
-        it('should create the model and inject the application logger object', function () {
-            assert.equal('object', typeof instance.logger);
-        });
-
         it('should inject the application constants', function () {
             expect(instance.constants).to.be.ok();
         });

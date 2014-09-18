@@ -2,6 +2,11 @@
 var winston = require('winston');
 var path = require('path');
 
+/**
+ * Server logger constructor
+ * @param logsPath The path where the logs are going to be saved
+ * @constructor
+ */
 function Logger(logsPath) {
     this._logger = new winston.Logger({
         transports: [

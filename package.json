@@ -47,7 +47,7 @@
     "type": "git",
     "url": "http://github.com/s2way/waferpie.git"
   },
-  "version": "0.4.4",
+  "version": "0.7.0",
   "scripts": {
     "pretest": "jslint --node --vars --devel --nomen --stupid --indent 4 --maxlen 2048 `find src test -regex '.*\\.js$' -type f | tr '\\n' ' '`",
     "test": "mocha test --recursive -R spec && mocha test --recursive -r blanket -R html-cov > report.html",
@@ -65,7 +65,7 @@
   ],
   "readme": "Please reade the README.md file.",
   "readmeFilename": "README.md",
-  "_id": "waferpie@0.4.4",
+  "_id": "waferpie@0.7.0",
   "_from": "waferpie@",
   "config": {
     "blanket": {

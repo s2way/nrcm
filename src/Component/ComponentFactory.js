@@ -65,7 +65,6 @@ ComponentFactory.prototype.create = function (componentName, params) {
 
         componentInstance.name = componentName;
         componentInstance.constants = this._application.constants;
-        componentInstance.logger = this._application.logger;
         componentInstance.component = function (componentName, params) {
             var instance = $this.create(componentName, params);
             $this.init(componentName);

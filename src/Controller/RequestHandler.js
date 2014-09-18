@@ -163,7 +163,6 @@ RequestHandler.prototype.prepareController = function (controllerName) {
         controllerInstance.responseHeaders = { };
         controllerInstance.name = controllerName;
         controllerInstance.application = $this.appName;
-        controllerInstance.logger = application.logger;
         controllerInstance.core = application.core;
         controllerInstance.component = retrieveComponentMethod;
         controllerInstance.model = retrieveModelMethod;

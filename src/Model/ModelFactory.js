@@ -36,7 +36,6 @@ ModelFactory.prototype.create = function (modelName) {
         modelInstance = new ModelConstructor();
         modelInstance.name = modelName;
         modelInstance.constants = this._application.constants;
-        modelInstance.logger = this._application.logger;
         modelInstance.model = function (modelName) {
             var instance = $this.create(modelName);
             $this.init(instance);
