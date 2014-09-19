@@ -71,6 +71,7 @@ ComponentFactory.prototype.create = function (componentName, params) {
             return instance;
         };
         componentInstance.core = this._application.core;
+        componentInstance.configs = this._application.configs;
         this.info('[' + componentName + '] Component created');
         if (componentInstance.singleInstance) {
             this._staticComponents[componentName] = componentInstance;

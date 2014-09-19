@@ -21,6 +21,7 @@ describe('ComponentFactory.js', function () {
             'components' : {
                 'MyComponent' : blankFunction
             },
+            'configs' : { },
             'core' : { },
             'logger' : { },
             'constants' : { }
@@ -91,6 +92,10 @@ describe('ComponentFactory.js', function () {
 
         it('should create the model and inject the application core object (configurations)', function () {
             expect(instance.core).to.be.an('object');
+        });
+
+        it('should create the model and inject the application configs object (all configuration files)', function () {
+            expect(instance.configs).to.be.an('object');
         });
 
         it('should inject the method for retrieving components', function () {

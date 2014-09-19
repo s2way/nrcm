@@ -1,7 +1,6 @@
 /*jslint devel: true, node: true, indent: 4, vars: true, maxlen: 256 */
 'use strict';
 var querystring = require('querystring');
-var util = require('util');
 var exceptions = require('./../exceptions');
 var Router = require('./../Core/Router');
 var ComponentFactory = require('./../Component/ComponentFactory');
@@ -164,6 +163,7 @@ RequestHandler.prototype.prepareController = function (controllerName) {
         controllerInstance.name = controllerName;
         controllerInstance.application = $this.appName;
         controllerInstance.core = application.core;
+        controllerInstance.configs = application.configs;
         controllerInstance.component = retrieveComponentMethod;
         controllerInstance.model = retrieveModelMethod;
         controllerInstance.trace = automaticTraceImplementation;
@@ -439,7 +439,18 @@ RequestHandler.prototype.render = function (output, statusCode, contentType) {
             this.stringOutput = output;
         }
         this._writeResponse(this.stringOutput);
-        this.info('Output: ' + chalk.yellow(this.stringOutput.length > 1000 ? this.stringOutput.substring(0, 1000) + '...' : this.stringOutput));
+        this.info('Output: ' + chalk.cyan(this.stringOutput.length > 1000 ? this.stringOutput.substring(0, 1000) + '...' : this.stringOutput));
+
+        if (statusCode >= 200 && statusCode < 300) {
+            this.info(chalk.green('Response Status: ' + statusCode));
+        } else if (statusCode >= 400 && statusCode < 500) {
+            this.info(chalk.yellow('Response Status: ' + statusCode));
+        } else if (statusCode >= 500) {
+            this.info(chalk.red('Response Status: ' + statusCode));
+        } else {
+            this.info(chalk.blue('Response Status: ' + statusCode));
+        }
+
         this._sendResponse();
         this.end = new Date();
         this.info(chalk.cyan('Time: ' + (this.end.getTime() - this.start.getTime()) + 'ms'));

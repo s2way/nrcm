@@ -42,7 +42,7 @@ WaferPie.prototype.info = function (message) {
  * Initiate an application inside the framework
  * Create the directory structure if it does not exist
  * It loads all application files on memory
- * It is possible to have more then one application running on the same nodejs server
+ * It is possible to have more then one application running on the same NodeJS server
  * It is possible to have one core.json by each host that will run the server
  *
  * @method setUp
@@ -87,14 +87,19 @@ WaferPie.prototype.setUp = function (appName) {
 
     Sync.copyIfNotExists(path.join(__dirname, 'Copy', 'core.json'), app.coreFileName);
     Sync.copyIfNotExists(path.join(__dirname, 'Controller', 'Exceptions.js'), path.join('Exceptions.js'));
+
     app.controllers = this._loadElements(app.constants.controllersPath);
     app.components = this._loadComponents(app.constants.componentsPath);
     app.models = this._loadElements(app.constants.modelsPath);
+
     try {
         app.core = Sync.fileToJSON(app.coreFileName);
     } catch (e) {
         throw new exceptions.Fatal('The core configuration file is not a valid JSON', e);
     }
+
+    this._loadAllConfigJSONFiles(app, app.constants.configPath);
+
     this._validateCoreFile(app.core);
     app.logger = new Logger(app.constants.logsPath);
 
@@ -142,6 +147,22 @@ WaferPie.prototype.setUp = function (appName) {
             }
         }
     }
+};
+
+WaferPie.prototype._loadAllConfigJSONFiles = function (app, configPath) {
+    var files, elementNames = [];
+    files = Sync.listFilesFromDir(configPath);
+    files.forEach(function (file) {
+        var relative, extensionIndex, relativeWithoutExt, elementName;
+        if (file.indexOf('.json') !== -1) {
+            relative = file.substring(configPath.length + 1);
+            extensionIndex = relative.lastIndexOf('.');
+            relativeWithoutExt = relative.substring(0, extensionIndex);
+            elementName = relativeWithoutExt.replace(/\//g, '.');
+            elementNames[elementName] = file;
+        }
+    });
+    app.configs = Sync.loadNodeFilesIntoArray(elementNames);
 };
 
 /**

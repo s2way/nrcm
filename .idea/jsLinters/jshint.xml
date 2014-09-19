@@ -17,7 +17,7 @@
     <option esnext="false" />
     <option evil="false" />
     <option expr="false" />
-    <option forin="true" />
+    <option forin="false" />
     <option freeze="false" />
     <option funcscope="false" />
     <option gcl="false" />

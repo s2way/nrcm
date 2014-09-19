@@ -24,6 +24,7 @@
     "couchbase": "^2.0.0",
     "elasticsearch": "^2.4.0",
     "mysql": "^2.4.2",
+    "node-uuid": "^1.4.1",
     "winston": "^0.7.3"
   },
   "devDependencies": {

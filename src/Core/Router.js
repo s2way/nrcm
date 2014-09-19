@@ -8,7 +8,7 @@
  */
 var url = require('url');
 var path = require('path');
-var StringUtils = require('./../Util/StringUtils');
+var StringUtils = require('./../Component/Builtin/StringUtils');
 
 /**
  * The router object
@@ -23,6 +23,7 @@ function Router(logger, urlFormat) {
     this.urlFormat = urlFormat;
     this.urlFormatParts = urlFormat.substring(1).split('/');
     this.info('Router created');
+    this.stringUtils = new StringUtils();
 }
 
 Router.prototype.info = function (msg) {
@@ -93,7 +94,7 @@ Router.prototype.findController = function (controllers, decomposedUrl) {
     for (i in controllersArrayReverted) {
         if (controllersArrayReverted.hasOwnProperty(i)) {
             controllerName = controllersArrayReverted[i];
-            controllerNameCamelCase = StringUtils.lowerCaseUnderscoredToCamelCase(controllerName.replace(/\//g, '.'));
+            controllerNameCamelCase = this.stringUtils.lowerCaseUnderscoredToCamelCase(controllerName.replace(/\//g, '.'));
             if (controllers[controllerNameCamelCase] !== undefined) {
                 return {
                     'controller' : controllerNameCamelCase,

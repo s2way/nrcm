@@ -181,6 +181,7 @@ describe('RequestHandler.js', function () {
             'urlFormat' : '/#service/#version/$application/$controller'
         }, {
             'app' : {
+                'configs' : { },
                 'core' : {
                     'version' : '1.0.0',
                     'requestTimeout' : 1000,
@@ -354,6 +355,10 @@ describe('RequestHandler.js', function () {
 
             it('should inject the core property', function () {
                 assert.equal('object', typeof instance.core);
+            });
+
+            it('should inject the configs property', function () {
+                assert.equal('object', typeof instance.configs);
             });
 
             it('should throw a ControllerNotFound exception if the controller does not exist', function () {

@@ -5,6 +5,7 @@ function Couchbase(dataSourceName) {
     dataSourceName = dataSourceName || 'default';
     this._couchbase = require('couchbase');
     this._dataSourceName = dataSourceName;
+    this.ViewQuery = this._couchbase.ViewQuery;
 }
 
 /**
@@ -20,10 +21,14 @@ Couchbase.prototype.init = function () {
 
 /**
  * Connects to the database or returns the bucket object
+ * @param {function} callback
  */
-Couchbase.prototype.connect = function () {
-    var cluster = new this._couchbase.Cluster(this.host + ':' + this.port);
-    return cluster.openBucket(this.index);
+Couchbase.prototype.connect = function (callback) {
+    var cluster, bucket;
+    cluster = new this._couchbase.Cluster(this._dataSource.host + ':' + this._dataSource.port);
+    bucket = cluster.openBucket(this._dataSource.bucket, function (error) {
+        callback(error, bucket);
+    });
 };
 
 module.exports = Couchbase;

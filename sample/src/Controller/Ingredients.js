@@ -8,14 +8,16 @@ function Ingredients() {
 Ingredients.prototype._handleError = function (error) {
     this.statusCode = 500;
     return {
+        'message' : error.toString(),
         'error' : error
     };
 };
 
 Ingredients.prototype.delete = function (callback) {
-    var $this = this;
-    var id = this.segments[0];
-    var ingredient = this.model('Ingredient');
+    var $this, id, ingredient;
+    $this = this;
+    id = this.segments[0];
+    ingredient = this.model('Ingredient');
 
     ingredient.delete(id, function (error, response) {
         if (error) {
@@ -27,8 +29,9 @@ Ingredients.prototype.delete = function (callback) {
 };
 
 Ingredients.prototype.put = function (callback) {
-    var $this = this;
-    var ingredient = this.model('Ingredient');
+    var $this, ingredient;
+    $this = this;
+    ingredient = this.model('Ingredient');
 
     ingredient.save(this.payload, function (error, response) {
         if (error) {
@@ -40,18 +43,22 @@ Ingredients.prototype.put = function (callback) {
 };
 
 Ingredients.prototype.get = function (callback) {
-    var $this = this;
-    var ingredient = this.model('Ingredient');
-    var id = this.query.id;
-    var query = this.query.query;
+    var $this, ingredient, key, query;
+    $this = this;
+    ingredient = this.model('Ingredient');
+    key = this.segments[0];
+    query = this.query.query;
 
-    if (id) {
-        ingredient.findById(id, function (error, response) {
+    if (key) {
+        ingredient.findByKey(key, function (error, result) {
             if (error) {
                 callback($this._handleError(error));
                 return;
             }
-            callback(response._source);
+            if (result === null) {
+                $this.statusCode = 404;
+            }
+            callback(result);
         });
         return;
     }

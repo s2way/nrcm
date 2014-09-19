@@ -41,24 +41,39 @@ describe('Couchbase.js', function () {
     });
 
     describe('connect', function () {
-        it('should return the bucket object', function () {
+        it('should return the bucket object', function (done) {
             var bucket = { };
             instance = new Couchbase();
+            instance.core = {
+                'dataSources' : {
+                    'default' : {
+                        'host' : 'localhost',
+                        'port' : 9000
+                    }
+                }
+            };
             instance.logger = {
                 'info': function () {
                     return;
                 }
             };
+            instance.init();
             instance._couchbase = {
                 'Cluster' : function () {
                     return {
-                        'openBucket' : function () {
+                        'openBucket' : function (bucketName, callback) {
+                            setImmediate(function () {
+                                callback(null, bucket);
+                            });
                             return bucket;
                         }
                     };
                 }
             };
-            expect(instance.connect()).to.be(bucket);
+            instance.connect(function (error, b) {
+                expect(b).to.be(bucket);
+                done();
+            });
         });
 
     });
