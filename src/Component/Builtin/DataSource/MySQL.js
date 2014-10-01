@@ -43,7 +43,9 @@ MySQL.prototype.setDataSource = function (dataSourceName) {
  * @param {string} msg The log message
  */
 MySQL.prototype.info = function (msg) {
-    this.logger.info('[MySQL] ' + msg);
+    var logger = this.component('Logger');
+    logger.init();
+    logger.message('[MySQL] ' + msg);
 };
 
 /**

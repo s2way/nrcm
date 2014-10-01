@@ -41,7 +41,7 @@ Logger.prototype.info = function (message) {
  * @param message
  */
 Logger.prototype.debug = function (message) {
-    this._logger.debug(message);
+    this._logger.debug(chalk.green(message));
 };
 
 /**
