@@ -24,6 +24,7 @@ describe('ModelFactory.js', function () {
                     return;
                 }
             },
+            'configs' : { },
             'logger' : { },
             'constants' : { }
         };
@@ -64,6 +65,10 @@ describe('ModelFactory.js', function () {
 
         it('should create the model and inject the name property', function () {
             assert.equal('MyModel', instance.name);
+        });
+
+        it('should create the model and inject the configs property', function () {
+            expect(instance.configs).to.an('object');
         });
 
         it('should inject the application constants', function () {
