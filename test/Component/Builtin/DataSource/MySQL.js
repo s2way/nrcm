@@ -11,9 +11,6 @@ describe('MySQL.js', function () {
 
     beforeEach(function () {
         instance = new MySQL('default');
-        instance.logger = {
-            'info' : function () { return; }
-        };
         instance.core = {
             'dataSources' : {
                 'default' : {
@@ -23,6 +20,15 @@ describe('MySQL.js', function () {
                     'database' : 's2way',
                     'port' : 3306
                 }
+            }
+        };
+        instance.component = function (componentName) {
+            if (componentName === 'Logger') {
+                return {
+                    'init' : function () { return; },
+                    'message' : function () { return; },
+                    'info' : function () { return; }
+                };
             }
         };
         instance.init();
