@@ -24,10 +24,14 @@ Couchbase.prototype.init = function () {
  * @param {function} callback
  */
 Couchbase.prototype.connect = function (callback) {
-    var cluster, bucket;
+    var cluster, db;
     cluster = new this._couchbase.Cluster(this._dataSource.host + ':' + this._dataSource.port);
-    bucket = cluster.openBucket(this._dataSource.bucket, function (error) {
-        callback(error, bucket);
+    db = cluster.openBucket(this._dataSource.bucket);
+    db.on('connect', function (error) {
+        callback(error, db);
+    });
+    db.on('error', function (error) {
+        callback(error);
     });
 };
 
