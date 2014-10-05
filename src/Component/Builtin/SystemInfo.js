@@ -44,11 +44,11 @@ SystemInfo.prototype.refresh = function () {
     this.data.node.env = process.env;
     this.data.node.pid = process.pid;
 
-    this.data.node.memoryUsage.heapTotal = this.data.node.memoryUsage.heapTotal / 1024 / 1024;
-    this.data.node.memoryUsage.heapUsed = this.data.node.memoryUsage.heapUsed / 1024 / 1024;
-    this.data.node.memoryUsage.rss = this.data.node.memoryUsage.rss / 1024 / 1024;
+    this.data.node.memoryUsageInMB.heapTotal = this.data.node.memoryUsageInMB.heapTotal / 1024 / 1024;
+    this.data.node.memoryUsageInMB.heapUsed = this.data.node.memoryUsageInMB.heapUsed / 1024 / 1024;
+    this.data.node.memoryUsageInMB.rss = this.data.node.memoryUsageInMB.rss / 1024 / 1024;
 
-    this.data.node.memoryUsage.heapFree = this.data.node.memoryUsage.heapTotal - this.data.node.memoryUsage.heapUsed;
+    this.data.node.memoryUsageInMB.heapFree = this.data.node.memoryUsageInMB.heapTotal - this.data.node.memoryUsageInMB.heapUsed;
 
     return this.data;
 };
