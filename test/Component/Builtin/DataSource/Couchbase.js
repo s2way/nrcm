@@ -7,23 +7,25 @@ var expect = require('expect.js');
 
 describe('Couchbase.js', function () {
 
-    var instance;
+    var instance, core, logger;
+    core = {
+        'dataSources': {
+            'default': {
+                'host': 'localhost',
+                'port' : 9000
+            }
+        }
+    };
+    logger = {
+        'info': function () {
+            return;
+        }
+    };
 
     beforeEach(function () {
         instance = new Couchbase('default');
-        instance.logger = {
-            'info': function () {
-                return;
-            }
-        };
-        instance.core = {
-            'dataSources': {
-                'default': {
-                    'host': 'localhost',
-                    'port' : 9000
-                }
-            }
-        };
+        instance.logger = logger;
+        instance.core = core;
     });
 
     describe('init', function () {
@@ -42,29 +44,21 @@ describe('Couchbase.js', function () {
 
     describe('connect', function () {
         it('should return the bucket object', function (done) {
-            var bucket = { };
-            instance = new Couchbase();
-            instance.core = {
-                'dataSources' : {
-                    'default' : {
-                        'host' : 'localhost',
-                        'port' : 9000
+            var bucket = {
+                'on' : function (what, callback) {
+                    if (what === 'connect') {
+                        callback(null, bucket);
                     }
                 }
             };
-            instance.logger = {
-                'info': function () {
-                    return;
-                }
-            };
+            instance = new Couchbase();
+            instance.core = core;
+            instance.logger = logger;
             instance.init();
             instance._couchbase = {
                 'Cluster' : function () {
                     return {
-                        'openBucket' : function (bucketName, callback) {
-                            setImmediate(function () {
-                                callback(null, bucket);
-                            });
+                        'openBucket' : function () {
                             return bucket;
                         }
                     };
@@ -76,6 +70,33 @@ describe('Couchbase.js', function () {
             });
         });
 
+    });
+
+    it('should pass an error to the callback if an error occurs', function (done) {
+        var bucket = {
+            'on' : function (what, callback) {
+                if (what === 'error') {
+                    callback({});
+                }
+            }
+        };
+        instance = new Couchbase();
+        instance.core = core;
+        instance.logger = logger;
+        instance.init();
+        instance._couchbase = {
+            'Cluster' : function () {
+                return {
+                    'openBucket' : function () {
+                        return bucket;
+                    }
+                };
+            }
+        };
+        instance.connect(function (error) {
+            expect(error).to.ok();
+            done();
+        });
     });
 
 });
