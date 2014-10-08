@@ -287,11 +287,15 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
                 (function destroyComponents() {
                     var componentInstance, componentName;
                     var componentsCreated = $this.componentFactory.getComponents();
+                    var destroyComponentInstance = function () {
+                        $this.info('Destroying ' + componentName);
+                        componentInstance.destroy();
+                    };
                     for (componentName in componentsCreated) {
                         if (componentsCreated.hasOwnProperty(componentName)) {
                             componentInstance = componentsCreated[componentName];
                             if (typeof componentInstance.destroy === 'function') {
-                                componentInstance.destroy();
+                                setImmediate(destroyComponentInstance);
                             }
                         }
                     }

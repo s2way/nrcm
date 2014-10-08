@@ -104,7 +104,7 @@ describe('RequestHandler.js', function () {
     }
 
     function mockRequestHandler(controllers, components) {
-        if (controllers === undefined) {
+        if (!controllers) {
             controllers = {
                 MyController : function () {
                     this.models = ['MyModel'];
@@ -141,7 +141,7 @@ describe('RequestHandler.js', function () {
                 }
             };
         }
-        if (components === undefined) {
+        if (!components) {
             components = {
                 MyComponent : function () {
                     this.method = function (callback) {
@@ -238,10 +238,19 @@ describe('RequestHandler.js', function () {
             });
 
             it('should destroy all components by calling their destroy() method if defined', function (done) {
-                requestHandler.invokeController(instance, 'post', function () {
-                    expect(controlVars.componentDestroyCalled).to.be.ok();
-                    done();
-                });
+                var destroyed = false;
+                requestHandler.applications.app.components.MyComponent = function () {
+                    this.method = function (callback) {
+                        callback();
+                    };
+                    this.destroy = function () {
+                        if (!destroyed) {
+                            destroyed = true;
+                            done();
+                        }
+                    };
+                };
+                requestHandler.invokeController(instance, 'post');
             });
 
             it('should throw a MethodNotFound exception if the method passed is not implemented inside the controller', function () {
