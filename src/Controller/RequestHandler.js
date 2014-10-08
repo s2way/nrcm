@@ -6,6 +6,7 @@ var Router = require('./../Core/Router');
 var ComponentFactory = require('./../Component/ComponentFactory');
 var ModelFactory = require('./../Model/ModelFactory');
 var chalk = require('chalk');
+var XML = require('../Component/Builtin/XML');
 
 /**
  * The request handler object
@@ -245,11 +246,30 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
 
     this._endRequest(function () {
         $this.info('All data received');
+
+        var requestHeaders, requestContentType, isJSON, isXML, isUrlEncoded;
+        requestHeaders = $this._headers();
+        requestContentType = requestHeaders['Content-Type'] || 'application/json';
+
+        isJSON = requestContentType.indexOf('application/json') !== -1;
+        isXML = requestContentType.indexOf('text/xml') !== -1;
+        isUrlEncoded = requestContentType.indexOf('application/x-www-form-urlencoded') !== -1;
+
         try {
-            controllerInstance.payload = JSON.parse($this.payload);
+            if (isJSON) {
+                controllerInstance.payload = JSON.parse($this.payload);
+            } else if (isXML) {
+                controllerInstance.payload = new XML().toJSON($this.payload);
+            } else if (isUrlEncoded) {
+                controllerInstance.payload = querystring.parse($this.payload);
+            } else {
+                controllerInstance.payload = $this.payload;
+            }
         } catch (e) {
-            controllerInstance.payload = querystring.parse($this.payload);
+            $this.info('Error while parsing payload: ' + e);
+            controllerInstance.payload = null;
         }
+
         controllerInstance.segments = $this.segments;
         controllerInstance.query = $this.query;
         controllerInstance.prefixes = $this.prefixes;
@@ -257,7 +277,7 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
             'request' : $this.request,
             'response' : $this.response
         };
-        controllerInstance.requestHeaders = $this._headers();
+        controllerInstance.requestHeaders = requestHeaders;
         controllerInstance.responseHeaders = {
             'Server' : 'NRCM/' + $this.version
         };
@@ -438,7 +458,13 @@ RequestHandler.prototype.render = function (output, statusCode, contentType) {
         this.info('Content-Type: ' + contentType);
         this._writeHead(statusCode, contentType);
         if (typeof output === 'object') {
-            this.stringOutput = JSON.stringify(output);
+            if (contentType === 'application/json') {
+                this.stringOutput = JSON.stringify(output);
+            } else if (contentType === 'text/xml') {
+                this.stringOutput = new XML().fromJSON(output);
+            } else {
+                this.stringOutput = output;
+            }
         } else {
             this.stringOutput = output;
         }

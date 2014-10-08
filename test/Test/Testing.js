@@ -230,10 +230,10 @@ describe('Testing', function () {
 
         });
 
-        it('should access the payload as an empty string if it is not passed', function (done) {
+        it('should set the payload to null if it is not passed', function (done) {
             testing.loadComponent('MyComponent');
             testing.callController('MyController', 'post', { }, function (response) {
-                assert.equal(JSON.stringify({}), JSON.stringify(response.payload));
+                expect(response.payload).to.be(null);
                 done();
             });
         });

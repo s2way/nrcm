@@ -568,6 +568,94 @@ describe('RequestHandler.js', function () {
                 assert.equal('MethodNotFound', controlVars.exception);
             });
 
+            it('should render the output JSON as XML if the contentType is text/xml', function (done) {
+                var rh = mockRequestHandler({
+                    'MyController' : function () {
+                        this.get = function (callback) {
+                            this.contentType = 'text/xml';
+                            callback({
+                                'root' : { }
+                            });
+                        };
+                    }
+                });
+                rh._writeResponse = function (response) {
+                    var xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<root/>';
+                    expect(response).to.be(xml);
+                    done();
+                };
+                rh.process(mockRequest('/service/version/app/my_controller', 'GET'), mockResponse());
+            });
+
+            it('should parse the payload as XML if the request content type is text/xml', function (done) {
+                var xml, rh, request, expectedPayload;
+                xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<root/>';
+                expectedPayload = {
+                    'root' : ''
+                };
+                rh = mockRequestHandler({
+                    'MyController' : function () {
+                        this.get = function () {
+                            expect(
+                                JSON.stringify(this.payload)
+                            ).to.be(JSON.stringify(expectedPayload));
+                            done();
+                        };
+                    }
+                });
+                request =  {
+                    'method' : 'GET',
+                    'url' : '/service/version/app/my_controller',
+                    'headers' : {
+                        'Content-Type' : 'text/xml'
+                    },
+                    'on' : function (type, callback) {
+                        if (type === 'end') {
+                            callback();
+                        } else if (type === 'data') {
+                            callback(xml);
+                        }
+                    }
+                };
+                rh.process(request, mockResponse());
+
+            });
+
+
+            it('should parse the payload as a query string if the request content type is application/x-www-form-urlencoded', function (done) {
+                var urlEncoded, rh, request, expectedPayload;
+                urlEncoded = 'key=something%20with%20spaces&prop=1';
+                expectedPayload = {
+                    'key' : 'something with spaces',
+                    'prop' : '1'
+                };
+                rh = mockRequestHandler({
+                    'MyController' : function () {
+                        this.get = function () {
+                            expect(
+                                JSON.stringify(this.payload)
+                            ).to.be(JSON.stringify(expectedPayload));
+                            done();
+                        };
+                    }
+                });
+                request =  {
+                    'method' : 'GET',
+                    'url' : '/service/version/app/my_controller',
+                    'headers' : {
+                        'Content-Type' : 'application/x-www-form-urlencoded'
+                    },
+                    'on' : function (type, callback) {
+                        if (type === 'end') {
+                            callback();
+                        } else if (type === 'data') {
+                            callback(urlEncoded);
+                        }
+                    }
+                };
+                rh.process(request, mockResponse());
+            });
         });
+
     });
 });
