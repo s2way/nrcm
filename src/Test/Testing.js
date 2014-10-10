@@ -1,4 +1,4 @@
-/*jslint devel: true, node: true, indent: 4 */
+/*jslint devel: true, node: true, indent: 4, stupid: true */
 /*globals __dirname */
 'use strict';
 
@@ -51,6 +51,10 @@ function Testing(applicationPath, core) {
     this.modelFactory = new ModelFactory(logger, this.application, this.componentFactory);
 }
 
+Testing.prototype.mockConfigs = function (configs) {
+    this.applications.app.configs = configs;
+};
+
 /**
  * Call require
  * Necessary for mocking in the tests
@@ -79,9 +83,10 @@ Testing.prototype._exists = function (path) {
  * @returns {object} The model instance or null
  */
 Testing.prototype.createModel = function (modelName) {
-    var $this = this;
+    var $this, instance;
+    $this = this;
     this.loadModel(modelName);
-    var instance = this.modelFactory.create(modelName);
+    instance = this.modelFactory.create(modelName);
     instance.model = function (modelName) {
         return $this._model(modelName);
     };
@@ -97,9 +102,10 @@ Testing.prototype.createModel = function (modelName) {
  * @returns {object} The component instance or null
  */
 Testing.prototype.createComponent = function (componentName) {
-    var $this = this;
+    var $this, instance;
+    $this = this;
     this.loadComponent(componentName);
-    var instance = this.componentFactory.create(componentName);
+    instance = this.componentFactory.create(componentName);
     instance.component = function (componentName, params) {
         return $this._component(componentName, params);
     };
@@ -124,10 +130,11 @@ Testing.prototype.loadModel = function (modelName) {
  * @param {string} componentName The name of the component
  */
 Testing.prototype.loadComponent = function (componentName) {
-    var componentNameAsPath = componentName.replace(/\./g, path.sep);
+    var componentNameAsPath, applicationComponentPath, builtinComponentPath;
 
-    var applicationComponentPath = path.join(this.applicationPath, 'src', 'Component', componentNameAsPath);
-    var builtinComponentPath = path.join(__dirname, '..', 'Component', 'Builtin', componentNameAsPath);
+    componentNameAsPath = componentName.replace(/\./g, path.sep);
+    applicationComponentPath = path.join(this.applicationPath, 'src', 'Component', componentNameAsPath);
+    builtinComponentPath = path.join(__dirname, '..', 'Component', 'Builtin', componentNameAsPath);
 
     if (this._exists(applicationComponentPath + '.js')) {
         this.components[componentName] = this._require(applicationComponentPath);
@@ -162,10 +169,11 @@ Testing.prototype.mockComponent = function (componentName, methods) {
 };
 
 Testing.prototype._model = function (modelName) {
-    var $this = this;
-    var modelInstance = this.modelFactory.create(modelName);
-    var methods = this.mockedMethods.models[modelName];
-    var methodName;
+    var $this, modelInstance, methods, methodName;
+    $this = this;
+    modelInstance = this.modelFactory.create(modelName);
+    methods = this.mockedMethods.models[modelName];
+
     if (methods !== undefined) {
         for (methodName in methods) {
             if (methods.hasOwnProperty(methodName)) {
@@ -181,10 +189,11 @@ Testing.prototype._model = function (modelName) {
 };
 
 Testing.prototype._component = function (componentName, params) {
-    var $this = this;
-    var componentInstance = this.componentFactory.create(componentName, params);
-    var methods = this.mockedMethods.components[componentName];
-    var methodName;
+    var $this, componentInstance, methods, methodName;
+    $this = this;
+    componentInstance = this.componentFactory.create(componentName, params);
+    methods = this.mockedMethods.components[componentName];
+
     if (methods !== undefined) {
         for (methodName in methods) {
             if (methods.hasOwnProperty(methodName)) {
@@ -208,15 +217,16 @@ Testing.prototype._component = function (componentName, params) {
  * An object containing statusCode, headers, and contentType is passed to the callback.
  */
 Testing.prototype.callController = function (controllerName, httpMethod, options, callback) {
-    var $this = this;
-    var controllerPath = path.join(this.applicationPath, 'src', 'Controller', controllerName);
-    var responseStatusCode, responseContentType, responseHeaders = { }, instance;
-    var blankFunction = function () {
+    var $this, controllerPath, responseStatusCode, responseContentType, responseHeaders, instance, blankFunction, requestHandler;
+    $this = this;
+    controllerPath = path.join(this.applicationPath, 'src', 'Controller', controllerName);
+    responseHeaders = { };
+    blankFunction = function () {
         return;
     };
 
     this.controllers[controllerName] = this._require(controllerPath);
-    var requestHandler = new RequestHandler({
+    requestHandler = new RequestHandler({
         'debug' : blankFunction,
         'info' : blankFunction,
         'error' : blankFunction,

@@ -34,7 +34,6 @@ describe('Testing', function () {
         };
         testing._require = function (filePath) {
             if (filePath === path.join('app', 'src', 'Controller', 'MyController')) {
-                // Controller constructor
                 return function () {
                     this.post = function (callback) {
                         callback({
@@ -58,7 +57,6 @@ describe('Testing', function () {
                 };
             }
             if (filePath === path.join('app', 'src', 'Model', 'MyModel')) {
-                // Model constructor
                 return function () {
                     this.type = 'something';
                     this.myModelMethod = function (callback) {
@@ -67,19 +65,17 @@ describe('Testing', function () {
                 };
             }
             if (filePath === path.join('app', 'src', 'Model', 'AnotherModel')) {
-                // Model constructor
                 return function () {
                     this.type = 'something-else';
                     return;
                 };
             }
-            if (filePath === path.join('app', 'src', 'Component', 'MyComponent')) {                // Component constructor
+            if (filePath === path.join('app', 'src', 'Component', 'MyComponent')) {
                 return function () {
                     return;
                 };
             }
             if (filePath === path.join('app', 'src', 'Component', 'AnotherComponent')) {
-                // Component constructor
                 return function () {
                     return;
                 };
@@ -116,6 +112,7 @@ describe('Testing', function () {
             testing.loadModel('AnotherModel');
             assert.equal('AnotherModel', myModel.model('AnotherModel').name);
         });
+
     });
 
     describe('createComponent', function () {
@@ -165,6 +162,28 @@ describe('Testing', function () {
             var queryBuilder = testing.components[name];
             expect(queryBuilder).to.be.a('function');
         });
+    });
+
+    describe('mockConfigs', function () {
+
+        beforeEach(function () {
+            testing.mockConfigs({
+                'file' : {
+                    'prop' : 'value'
+                }
+            });
+        });
+
+        it('should inject the JSON into the models', function () {
+            var model = testing.createModel('MyModel');
+            expect(model.configs.file.prop).to.be('value');
+        });
+
+        it('should inject the JSON into the components', function () {
+            var component = testing.createComponent('MyComponent');
+            expect(component.configs.file.prop).to.be('value');
+        });
+
     });
 
     describe('callController', function () {
