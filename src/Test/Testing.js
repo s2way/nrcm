@@ -7,6 +7,7 @@ var fs = require('fs');
 var ComponentFactory = require('../Component/ComponentFactory');
 var ModelFactory = require('../Model/ModelFactory');
 var RequestHandler = require('../Controller/RequestHandler');
+var Cherries = require('../Util/Cherries');
 
 /**
  * Testing tool constructor
@@ -49,6 +50,8 @@ function Testing(applicationPath, core) {
     // When you are testing the Controllers, RequestHandler has its own ModelFactory and ComponentFactory
     this.componentFactory = new ComponentFactory(logger, this.application);
     this.modelFactory = new ModelFactory(logger, this.application, this.componentFactory);
+
+    this.cherries = new Cherries();
 }
 
 Testing.prototype.mockConfigs = function (configs) {
@@ -113,7 +116,7 @@ Testing.prototype.createComponent = function (componentName) {
 };
 
 Testing.prototype.loadModel = function (modelName) {
-    var modelsPath = path.join(this.applicationPath, 'src', 'Model', modelName);
+    var modelsPath = path.join(this.applicationPath, 'src', 'Model', this.cherries.elementNameToPath(modelName));
     if (this._exists(modelsPath + '.js')) {
         this.models[modelName] = this._require(modelsPath);
         return;
@@ -132,7 +135,7 @@ Testing.prototype.loadModel = function (modelName) {
 Testing.prototype.loadComponent = function (componentName) {
     var componentNameAsPath, applicationComponentPath, builtinComponentPath;
 
-    componentNameAsPath = componentName.replace(/\./g, path.sep);
+    componentNameAsPath = this.cherries.elementNameToPath(componentName);
     applicationComponentPath = path.join(this.applicationPath, 'src', 'Component', componentNameAsPath);
     builtinComponentPath = path.join(__dirname, '..', 'Component', 'Builtin', componentNameAsPath);
 
@@ -219,7 +222,7 @@ Testing.prototype._component = function (componentName, params) {
 Testing.prototype.callController = function (controllerName, httpMethod, options, callback) {
     var $this, controllerPath, responseStatusCode, responseContentType, responseHeaders, instance, blankFunction, requestHandler;
     $this = this;
-    controllerPath = path.join(this.applicationPath, 'src', 'Controller', controllerName);
+    controllerPath = path.join(this.applicationPath, 'src', 'Controller', this.cherries.elementNameToPath(controllerName));
     responseHeaders = { };
     blankFunction = function () {
         return;

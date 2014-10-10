@@ -33,7 +33,7 @@ describe('Testing', function () {
             return filePath.indexOf('InvalidComponent') === -1;
         };
         testing._require = function (filePath) {
-            if (filePath === path.join('app', 'src', 'Controller', 'MyController')) {
+            if (filePath === path.join('app', 'src', 'Controller', 'MyController') || filePath === path.join('app', 'src', 'Controller', 'Remote', 'MyController')) {
                 return function () {
                     this.post = function (callback) {
                         callback({
@@ -56,7 +56,7 @@ describe('Testing', function () {
                     };
                 };
             }
-            if (filePath === path.join('app', 'src', 'Model', 'MyModel')) {
+            if (filePath === path.join('app', 'src', 'Model', 'MyModel') || filePath === path.join('app', 'src', 'Model', 'Remote', 'MyModel')) {
                 return function () {
                     this.type = 'something';
                     this.myModelMethod = function (callback) {
@@ -70,7 +70,7 @@ describe('Testing', function () {
                     return;
                 };
             }
-            if (filePath === path.join('app', 'src', 'Component', 'MyComponent')) {
+            if (filePath === path.join('app', 'src', 'Component', 'MyComponent') || filePath === path.join('app', 'src', 'Component', 'Remote', 'MyComponent')) {
                 return function () {
                     return;
                 };
@@ -113,6 +113,11 @@ describe('Testing', function () {
             assert.equal('AnotherModel', myModel.model('AnotherModel').name);
         });
 
+        it('should be able to load sub models', function () {
+            var myModel = testing.createModel('Remote.MyModel');
+            expect(myModel.name).to.be('Remote.MyModel');
+        });
+
     });
 
     describe('createComponent', function () {
@@ -137,6 +142,12 @@ describe('Testing', function () {
             testing.loadComponent('AnotherComponent');
             assert.equal('AnotherComponent', myComponent.component('AnotherComponent').name);
         });
+
+        it('should be able to load sub components', function () {
+            var myComponent = testing.createComponent('Remote.MyComponent');
+            expect(myComponent.name).to.be('Remote.MyComponent');
+        });
+
     });
 
     describe('loadComponent', function () {
@@ -253,6 +264,12 @@ describe('Testing', function () {
             testing.loadComponent('MyComponent');
             testing.callController('MyController', 'post', { }, function (response) {
                 expect(response.payload).to.be(null);
+                done();
+            });
+        });
+
+        it('should be able to call sub controllers', function (done) {
+            testing.callController('Remote.MyController', 'post', { }, function () {
                 done();
             });
         });
