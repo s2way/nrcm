@@ -21,8 +21,8 @@ Logger.prototype.init = function (logsPath) {
     logsPath = logsPath || path.join(this.constants.logsPath);
     this._logger = new this._winston.Logger({
         transports: [
-            new (this._winston.transports.Console)({ json: false, timestamp: true, level: 'debug' }),
-            new this._winston.transports.File({ filename: path.join(logsPath, this.fileName), json: false })
+            new (this._winston.transports.Console)({ json: false, timestamp: true, level: 'debug' })
+            // new this._winston.transports.File({ filename: path.join(logsPath, this.fileName), json: false })
         ],
         exitOnError: false
     });
