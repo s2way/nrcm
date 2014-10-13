@@ -12,6 +12,7 @@ describe('RequestHandler.js', function () {
 
     RequestHandler.prototype.log = function () { return; };
     RequestHandler.prototype.debug = function () { return; };
+    RequestHandler.prototype.error = function () { return; };
     Router.prototype.info = function () { return; };
     ModelFactory.prototype.info = function () { return; };
     ComponentFactory.prototype.info = function () { return; };
