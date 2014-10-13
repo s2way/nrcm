@@ -26,7 +26,7 @@ describe('MySQL.js', function () {
             if (componentName === 'Logger') {
                 return {
                     'init' : function () { return; },
-                    'message' : function () { return; },
+                    'log' : function () { return; },
                     'info' : function () { return; }
                 };
             }
