@@ -20,29 +20,30 @@ var path = require('path');
 var http = require('http');
 var exceptions = require('./exceptions');
 var Sync = require('./Util/Sync');
-var Logger = require('./Util/Logger');
+var Logger = require('./Component/Builtin/Logger');
 var RequestHandler = require('./Controller/RequestHandler');
 var os = require('os');
 
 function WaferPie() {
-    this.version = require('./../package.json').version;
-    this.applications = {};
-    this.configs = {
-        'url' : '/$controller'
+    this._version = require('./../package.json').version;
+    this._applications = {};
+    this._configured = false;
+    this._configs = {
+        'console' : false,
+        'urlFormat' : '/$controller'
     };
     Sync.createDirIfNotExists('logs');
-    this.logger = new Logger('logs');
 }
 
 WaferPie.prototype.info = function (message) {
-    this.logger.info('[WaferPie] ' + message);
+    this._logger.info('[WaferPie] ' + message);
 };
 
 /**
  * Initiate an application inside the framework
  * Create the directory structure if it does not exist
  * It loads all application files on memory
- * It is possible to have more then one application running on the same NodeJS server
+ * It is possible to have more then one application running on the same NodeJS lserver
  * It is possible to have one core.json by each host that will run the server
  *
  * @method setUp
@@ -101,9 +102,8 @@ WaferPie.prototype.setUp = function (appName) {
     this._loadAllConfigJSONFiles(app, app.constants.configPath);
 
     this._validateCoreFile(app.core);
-    app.logger = new Logger(app.constants.logsPath);
 
-    this.applications[appName] = app;
+    this._applications[appName] = app;
 
     this.ExceptionsController = require('./Controller/Exceptions.js');
     var Controller, instance, methodsLength, methodName, j;
@@ -213,14 +213,24 @@ WaferPie.prototype._validateCoreFile = function (core) {
  * @param {string} configJSONFile The file name that contains your configuration object
  */
 WaferPie.prototype.configure = function (configJSONFile) {
-    try {
-        this.configs = Sync.fileToJSON(configJSONFile);
-    } catch (e) {
-        throw new exceptions.Fatal('Configuration file is not a valid JSON', e);
+    if (configJSONFile) {
+        try {
+            this._configs = Sync.fileToJSON(configJSONFile);
+        } catch (e) {
+            throw new exceptions.Fatal('Configuration file is not a valid JSON', e);
+        }
+        if ((typeof this._configs.urlFormat) !== 'string') {
+            throw new exceptions.Fatal('urlFormat has not been specified or it is not a string');
+        }
     }
-    if ((typeof this.configs.urlFormat) !== 'string') {
-        throw new exceptions.Fatal('urlFormat has not been specified or it is not a string');
-    }
+
+    this._logger = new Logger('server.log');
+    this._logger.config({
+        'path' : 'logs',
+        'console' : this._configs.debug
+    });
+    this._logger.init();
+    this._configured = true;
 };
 
 /**
@@ -231,15 +241,19 @@ WaferPie.prototype.configure = function (configJSONFile) {
  * @param {number} port The listening port of NodeJS http.createServer function
  */
 WaferPie.prototype.start = function (address, port) {
+    if (!this._configured) {
+        throw new exceptions.Fatal('Please call configure() before start()!');
+    }
+
     var $this = this;
     this.info('Starting...');
     http.createServer(function (request, response) {
         var requestHandler = new RequestHandler(
-            $this.logger,
-            $this.configs,
-            $this.applications,
+            $this._logger,
+            $this._configs,
+            $this._applications,
             $this.ExceptionsController,
-            $this.version
+            $this._version
         );
         requestHandler.process(request, response);
     }).listen(port, address);

@@ -10,7 +10,7 @@ var expect = require('expect.js');
 
 describe('RequestHandler.js', function () {
 
-    RequestHandler.prototype.info = function () { return; };
+    RequestHandler.prototype.log = function () { return; };
     RequestHandler.prototype.debug = function () { return; };
     Router.prototype.info = function () { return; };
     ModelFactory.prototype.info = function () { return; };
@@ -175,7 +175,7 @@ describe('RequestHandler.js', function () {
         };
 
         var rh = new RequestHandler({
-            'info' : function () { return; },
+            'log' : function () { return; },
             'debug' : function () { return; }
         }, {
             'urlFormat' : '/#service/#version/$application/$controller'

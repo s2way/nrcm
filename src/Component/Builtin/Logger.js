@@ -2,6 +2,7 @@
 
 var chalk = require('chalk');
 var path = require('path');
+var fs = require('fs');
 
 /**
  * Logger component constructor
@@ -9,63 +10,102 @@ var path = require('path');
  * @constructor
  */
 function Logger(fileName) {
-    this.fileName = fileName || 'default.log';
-    this._winston = require('winston');
+    this._fileName = fileName || 'default.log';
+    this._enabled = true;
+    this._stream = null;
+    this._configs = {
+        'console' : false
+    };
 }
 
 /**
- * Initializes the component
- * @param logsPath
+ * Set the logger configurations
+ * @param {object} configs
  */
-Logger.prototype.init = function (logsPath) {
-    logsPath = logsPath || path.join(this.constants.logsPath);
-    this._logger = new this._winston.Logger({
-        transports: [
-            new (this._winston.transports.Console)({ json: false, timestamp: true, level: 'debug' })
-            // new this._winston.transports.File({ filename: path.join(logsPath, this.fileName), json: false })
-        ],
-        exitOnError: false
+Logger.prototype.config = function (configs) {
+    this._configs = configs;
+};
+
+/**
+ * Initializes the component
+ * @param {string=} logsPath
+ */
+Logger.prototype.init = function () {
+    var fullPath, logsPath;
+
+    logsPath = this._configs.path || path.join(this.constants.logsPath);
+    fullPath = path.join(logsPath, this._fileName);
+
+    this._stream = fs.createWriteStream(fullPath, {
+        'flags' : 'a+',
+        'encoding': 'UTF8'
     });
 };
 
 /**
- * Blue information message
- * @param message
+ * Print the message to the buffer
+ * @private
  */
-Logger.prototype.info = function (message) {
-    this._logger.info(chalk.blue(message));
+Logger.prototype._print = function (message) {
+    this._stream.write(message + '\n');
+
+    if (this._configs.console === true) {
+        console.log(message);
+    }
 };
 
 /**
- * Normal debug message
- * @param message
+ * Format the message before printing it
+ * @param {string} message The message to be formatted
+ * @returns {string} The formatted message
+ * @private
  */
-Logger.prototype.debug = function (message) {
-    this._logger.debug(chalk.green(message));
+Logger.prototype._format = function (message) {
+    return new Date().toISOString() + ': ' + message;
 };
 
 /**
- * Normal information message
- * @param message
+ * Enable the logs
  */
-Logger.prototype.message = function (message) {
-    this._logger.info(message);
+Logger.prototype.enable = function () {
+    this._enabled = true;
 };
 
 /**
- * Red error message
- * @param message
+ * Disable the logs
  */
-Logger.prototype.error = function (message) {
-    this._logger.error(chalk.red(message));
+Logger.prototype.disable = function () {
+    this._enabled = false;
 };
 
-/**
- * Yellow warning message
- * @param message
- */
-Logger.prototype.warn = function (message) {
-    this._logger.warn(chalk.yellow(message));
-};
+(function () {
+    var loggingMethods, methodName, color, logFunction;
+    loggingMethods = {
+        'info' : 'blue',
+        'log' : null,
+        'trace' : null,
+        'error' : 'red',
+        'warn' : 'yellow',
+        'debug' : 'green'
+    };
+    logFunction = function (color) {
+        return function (message) {
+            var text = message;
+            if (this._enabled) {
+                if (color !== null) {
+                    text = chalk[color](message);
+                }
+                this._print(this._format(text));
+            }
+        };
+    };
+    for (methodName in loggingMethods) {
+        if (loggingMethods.hasOwnProperty(methodName)) {
+            color = loggingMethods[methodName];
+            Logger.prototype[methodName] = logFunction(color);
+        }
+    }
+}());
+
 
 module.exports = Logger;

@@ -17,52 +17,49 @@ describe('Logger.js', function () {
         instance.init();
     });
 
+    afterEach(function () {
+        fs.unlinkSync('default.log');
+    });
+
     describe('Logger()', function () {
 
         it('should use the default.log file name if none is specified', function () {
-            expect(instance.fileName).to.be('default.log');
+            expect(instance._fileName).to.be('default.log');
+        });
+
+    });
+
+    describe('enable', function () {
+
+        it('should enable logging if disable() was called before and info() should call print()', function (done) {
+            instance.disable();
+            instance.enable();
+            instance._print = function () {
+                done();
+            };
+            instance.info('!');
+        });
+
+    });
+
+    describe('disable', function () {
+
+        it('should disable logging and info() should not call print()', function () {
+            instance.disable();
+            instance._print = function () {
+                expect().fail();
+            };
+            instance.info('!');
         });
 
     });
 
     describe('info', function () {
         it('should call the logger info method', function (done) {
-            instance._logger.info = function () {
+            instance._print = function () {
                 done();
             };
             instance.info('!');
-        });
-    });
-    describe('debug', function () {
-        it('should call the logger debug method', function (done) {
-            instance._logger.debug = function () {
-                done();
-            };
-            instance.debug('!');
-        });
-    });
-    describe('message', function () {
-        it('should call the logger info method', function (done) {
-            instance._logger.info = function () {
-                done();
-            };
-            instance.message('!');
-        });
-    });
-    describe('error', function () {
-        it('should call the logger error method', function (done) {
-            instance._logger.error = function () {
-                done();
-            };
-            instance.error('!');
-        });
-    });
-    describe('warn', function () {
-        it('should call the logger warn method', function (done) {
-            instance._logger.warn = function () {
-                done();
-            };
-            instance.warn('!');
         });
     });
 

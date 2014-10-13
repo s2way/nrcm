@@ -1,11 +1,12 @@
 /*jslint devel: true, node: true, indent: 4 */
-/*globals describe, it */
+/*globals describe, it, beforeEach */
 'use strict';
 var WaferPie = require('./../src/WaferPie');
 var assert = require('assert');
 var path = require('path');
 var sync = require('./../src/Util/Sync');
 var fs = require('fs');
+var expect = require('expect.js');
 
 describe('WaferPie.js', function () {
 
@@ -28,11 +29,27 @@ describe('WaferPie.js', function () {
         fs.rmdirSync(dir);
     }
 
-    var wafer = new WaferPie();
-    wafer.logger = {
-        'info' : function () { return; },
-        'debug' : function () { return; }
-    };
+    var wafer;
+
+    beforeEach(function () {
+        wafer = new WaferPie();
+        wafer.logger = {
+            'info' : function () { return; },
+            'debug' : function () { return; }
+        };
+    });
+
+    describe('start', function () {
+
+        it('should throw a Fatal exception if configure() was not called before', function () {
+            expect(function () {
+                wafer.start();
+            }).to.throwException(function (e) {
+                expect(e.name).to.be('Fatal');
+            });
+        });
+
+    });
 
     describe('configure', function () {
 
@@ -97,6 +114,7 @@ describe('WaferPie.js', function () {
         sync.createFileIfNotExists(componentFile, 'module.exports = function () { };');
 
         wafer.setUp('testing1');
+        wafer.configure();
         wafer.start();
         fs.unlinkSync(path.join('testing1', 'src', 'Controller', 'MyController.js'));
         fs.unlinkSync(path.join('testing1', 'src', 'Component', 'MyComponent.js'));

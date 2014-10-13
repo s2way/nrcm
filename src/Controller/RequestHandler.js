@@ -24,7 +24,7 @@ function RequestHandler(serverLogger, configs, applications, ExceptionsControlle
     this.start = new Date();
     this.serverLogger = serverLogger;
     this.version = version;
-    this.info('RequestHandler created');
+    this.log('RequestHandler created');
 }
 
 /**
@@ -41,7 +41,7 @@ RequestHandler.prototype.process = function (request, response) {
     this.payload = '';
 
     var requestUrl = this.request.url;
-    this.info(chalk.bold.green('Request: ' + requestUrl));
+    this.log(chalk.bold.green('Request: ' + requestUrl));
 
     try {
         var router = new Router(this.serverLogger, this.configs.urlFormat);
@@ -65,19 +65,19 @@ RequestHandler.prototype.process = function (request, response) {
         this.prefixes = decomposedURL.prefixes;
         this.segments = decomposedURL.segments;
 
-        this.info('Application: ' + this.appName);
-        this.info('Method: ' + this.method);
-        this.info('URL type: ' + type);
-        this.info('Prefixes: ' + JSON.stringify(this.prefixes));
-        this.info('Query: ' + JSON.stringify(this.query));
+        this.log('Application: ' + this.appName);
+        this.log('Method: ' + this.method);
+        this.log('URL type: ' + type);
+        this.log('Prefixes: ' + JSON.stringify(this.prefixes));
+        this.log('Query: ' + JSON.stringify(this.query));
 
         if (type === 'controller') {
             var controllerInfo = router.findController(this.application.controllers, decomposedURL);
             var controllerNameCamelCase = controllerInfo.controller;
             this.segments = controllerInfo.segments;
 
-            this.info('Segments: ' + JSON.stringify(this.segments));
-            this.info('Controller: ' + controllerNameCamelCase);
+            this.log('Segments: ' + JSON.stringify(this.segments));
+            this.log('Controller: ' + controllerNameCamelCase);
 
             var controllerInstance = this.prepareController(controllerNameCamelCase);
             this.invokeController(controllerInstance, this.method);
@@ -115,11 +115,11 @@ RequestHandler.prototype.prepareController = function (controllerName) {
         throw new exceptions.ControllerNotFound();
     }
 
-    this.info('Creating factories');
+    this.log('Creating factories');
     this.componentFactory = new ComponentFactory(this.serverLogger, application);
     this.modelFactory = new ModelFactory(this.serverLogger, application, this.componentFactory);
 
-    this.info('Creating controller');
+    this.log('Creating controller');
     var ControllerConstructor = application.controllers[controllerName];
     var controllerInstance = new ControllerConstructor();
 
@@ -232,7 +232,7 @@ RequestHandler.prototype._sendResponse = function () {
  */
 RequestHandler.prototype.invokeController = function (controllerInstance, httpMethod, done) {
     var $this = this;
-    $this.info('Invoking controller');
+    $this.log('Invoking controller');
 
     var savedOutput = null;
     var application = this.applications[this.appName];
@@ -241,11 +241,11 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
         throw new exceptions.MethodNotFound();
     }
 
-    $this.info('Receiving payload');
+    $this.log('Receiving payload');
     this._receivePayload();
 
     this._endRequest(function () {
-        $this.info('All data received');
+        $this.log('All data received');
 
         var requestHeaders, requestContentType, isJSON, isXML, isUrlEncoded;
         requestHeaders = $this._headers();
@@ -266,7 +266,7 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
                 controllerInstance.payload = $this.payload;
             }
         } catch (e) {
-            $this.info('Error while parsing payload: ' + e);
+            $this.log('Error while parsing payload: ' + e);
             controllerInstance.payload = null;
         }
 
@@ -303,12 +303,12 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
                     }
                 }());
 
-                $this.info('Destroying components');
+                $this.log('Destroying components');
                 (function destroyComponents() {
                     var componentInstance, componentName;
                     var componentsCreated = $this.componentFactory.getComponents();
                     var destroyComponentInstance = function () {
-                        $this.info('Destroying ' + componentName);
+                        $this.log('Destroying ' + componentName);
                         componentInstance.destroy();
                     };
                     for (componentName in componentsCreated) {
@@ -375,7 +375,7 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
             }
         });
 
-        $this.info('Timeout timer started');
+        $this.log('Timeout timer started');
 
         (function startTimeoutTimer() {
             timer = setTimeout(function () {
@@ -386,8 +386,8 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
     });
 };
 
-RequestHandler.prototype.info = function (message) {
-    this.serverLogger.info('[RequestHandler] ' + message);
+RequestHandler.prototype.log = function (message) {
+    this.serverLogger.log('[RequestHandler] ' + message);
 };
 
 /**
@@ -397,20 +397,20 @@ RequestHandler.prototype.info = function (message) {
  * @param {object} e The error
  */
 RequestHandler.prototype.handleRequestException = function (e) {
-    this.info('Handling exception');
+    this.log('Handling exception');
 
     var knownException = e.name !== undefined;
     if (knownException) {
         var $this = this;
         var method = 'on' + e.name;
-        this.info('Creating ExceptionsController instance');
+        this.log('Creating ExceptionsController instance');
         var instance = new this.ExceptionsController();
         instance.statusCode = 200;
         var callback = function (output) {
             if (instance.statusCode === undefined) {
                 instance.statusCode = 200;
             }
-            $this.info('Rendering exception');
+            $this.log('Rendering exception');
             return $this.render(output, instance.statusCode);
         };
         if (typeof instance[method] === 'function') {
@@ -424,11 +424,11 @@ RequestHandler.prototype.handleRequestException = function (e) {
             }
             return;
         }
-        this.info(chalk.red('Exception ' + e.name + ' handled'));
+        this.log(chalk.red('Exception ' + e.name + ' handled'));
     } else {
-        this.info(chalk.red('Unknown Exception: ' + e));
+        this.log(chalk.red('Unknown Exception: ' + e));
         if (e.stack !== undefined) {
-            this.info(e.stack);
+            this.log(e.stack);
         }
     }
 };
@@ -454,8 +454,8 @@ RequestHandler.prototype.render = function (output, statusCode, contentType) {
     }
 
     if (this.stringOutput === undefined) {
-        this.info('Rendering');
-        this.info('Content-Type: ' + contentType);
+        this.log('Rendering');
+        this.log('Content-Type: ' + contentType);
         this._writeHead(statusCode, contentType);
         if (typeof output === 'object') {
             if (contentType === 'application/json') {
@@ -469,21 +469,21 @@ RequestHandler.prototype.render = function (output, statusCode, contentType) {
             this.stringOutput = output;
         }
         this._writeResponse(this.stringOutput);
-        this.info('Output: ' + chalk.cyan(this.stringOutput.length > 1000 ? this.stringOutput.substring(0, 1000) + '...' : this.stringOutput));
+        this.log('Output: ' + chalk.cyan(this.stringOutput.length > 1000 ? this.stringOutput.substring(0, 1000) + '...' : this.stringOutput));
 
         if (statusCode >= 200 && statusCode < 300) {
-            this.info(chalk.green('Response Status: ' + statusCode));
+            this.log(chalk.green('Response Status: ' + statusCode));
         } else if (statusCode >= 400 && statusCode < 500) {
-            this.info(chalk.yellow('Response Status: ' + statusCode));
+            this.log(chalk.yellow('Response Status: ' + statusCode));
         } else if (statusCode >= 500) {
-            this.info(chalk.red('Response Status: ' + statusCode));
+            this.log(chalk.red('Response Status: ' + statusCode));
         } else {
-            this.info(chalk.blue('Response Status: ' + statusCode));
+            this.log(chalk.blue('Response Status: ' + statusCode));
         }
 
         this._sendResponse();
         this.end = new Date();
-        this.info(chalk.cyan('Time: ' + (this.end.getTime() - this.start.getTime()) + 'ms'));
+        this.log(chalk.cyan('Time: ' + (this.end.getTime() - this.start.getTime()) + 'ms'));
     }
     return this.stringOutput;
 };
