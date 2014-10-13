@@ -390,6 +390,11 @@ RequestHandler.prototype.log = function (message) {
     this.serverLogger.log('[RequestHandler] ' + message);
 };
 
+RequestHandler.prototype.error = function (message) {
+    this.serverLogger.error('[RequestHandler] ' + message);
+};
+
+
 /**
  * It handles the exceptions
  *
@@ -418,17 +423,17 @@ RequestHandler.prototype.handleRequestException = function (e) {
         } else if (instance.onGeneral !== undefined) {
             instance.onGeneral(callback, e);
         } else {
-            console.log(e);
+            this.log(e);
             if (e.stack !== undefined) {
-                console.log(e.stack);
+                this.log(e.stack);
             }
             return;
         }
-        this.log(chalk.red('Exception ' + e.name + ' handled'));
+        this.error('Exception ' + e.name + ' handled');
     } else {
-        this.log(chalk.red('Unknown Exception: ' + e));
+        this.error('Unknown Exception: ' + e);
         if (e.stack !== undefined) {
-            this.log(e.stack);
+            this.error(e.stack);
         }
     }
 };

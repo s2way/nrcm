@@ -230,6 +230,7 @@ Testing.prototype.callController = function (controllerName, httpMethod, options
 
     this.controllers[controllerName] = this._require(controllerPath);
     requestHandler = new RequestHandler({
+        'log' : blankFunction,
         'debug' : blankFunction,
         'info' : blankFunction,
         'error' : blankFunction,
