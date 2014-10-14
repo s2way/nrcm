@@ -190,15 +190,15 @@ describe('Http.js', function () {
 
         it('should convert the JSON payload to an url-encoded if the content type is x-www-form-urlencoded', function (done) {
             instance = new Http({
-                'contentType' : 'application/x-www-form-urlencoded'
+                'contentType': 'application/x-www-form-urlencoded'
             });
             instance._protocol = mockHttp({
-                'requestFunction' : function () {
+                'requestFunction': function () {
                     return {
-                        'setHeader' : blankFunction,
-                        'end' : blankFunction,
-                        'on' : blankFunction,
-                        'write' : function (payload) {
+                        'setHeader': blankFunction,
+                        'end': blankFunction,
+                        'on': blankFunction,
+                        'write': function (payload) {
                             expect(payload).to.be('this%20is%20a%20bad%20key=this%20is%20a%20bad%20value');
                             done();
                         }
@@ -206,7 +206,7 @@ describe('Http.js', function () {
                 }
             });
             instance.post('/', {
-                'payload' : {
+                'payload': {
                     'this is a bad key': 'this is a bad value'
                 }
             }, blankFunction);
@@ -214,15 +214,15 @@ describe('Http.js', function () {
 
         it('should convert the JSON payload to a XML if the content type is text/xml', function (done) {
             instance = new Http({
-                'contentType' : 'text/xml'
+                'contentType': 'text/xml'
             });
             instance._protocol = mockHttp({
-                'requestFunction' : function () {
+                'requestFunction': function () {
                     return {
-                        'setHeader' : blankFunction,
-                        'end' : blankFunction,
-                        'on' : blankFunction,
-                        'write' : function (payload) {
+                        'setHeader': blankFunction,
+                        'end': blankFunction,
+                        'on': blankFunction,
+                        'write': function (payload) {
                             expect(payload).to.be('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<root></root>');
                             done();
                         }
@@ -230,8 +230,8 @@ describe('Http.js', function () {
                 }
             });
             instance.post('/', {
-                'payload' : {
-                    'root' : ''
+                'payload': {
+                    'root': ''
                 }
             }, blankFunction);
         });
@@ -239,15 +239,15 @@ describe('Http.js', function () {
 
         it('should convert the url encoded response to a JSON if the response content type is x-www-form-urlencoded', function (done) {
             instance = new Http({
-                'contentType' : 'application/json' // Body is JSON, response is x-www-form-urlencoded
+                'contentType': 'application/json' // Body is JSON, response is x-www-form-urlencoded
             });
             instance._protocol = mockHttp({
-                'response' : {
-                    'onData' : function (callback) {
+                'response': {
+                    'onData': function (callback) {
                         callback('this%20is%20a%20bad%20key=this%20is%20a%20bad%20value');
                     },
-                    'headers' : {
-                        'Content-Type' : 'application/x-www-form-urlencoded'
+                    'headers': {
+                        'Content-Type': 'application/x-www-form-urlencoded'
                     }
                 }
             });
@@ -261,15 +261,15 @@ describe('Http.js', function () {
 
         it('should convert the XML response to a JSON if the response content type is text/xml', function (done) {
             instance = new Http({
-                'contentType' : 'application/json' // Body is JSON, response is text/xml
+                'contentType': 'application/json' // Body is JSON, response is text/xml
             });
             instance._protocol = mockHttp({
-                'response' : {
-                    'onData' : function (callback) {
+                'response': {
+                    'onData': function (callback) {
                         callback('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><root></root>');
                     },
-                    'headers' : {
-                        'Content-Type' : 'text/xml'
+                    'headers': {
+                        'Content-Type': 'text/xml'
                     }
                 }
             });
@@ -280,7 +280,55 @@ describe('Http.js', function () {
             });
         });
 
+        it('should issue another post with the exact same data if the server response was 3xx', function (done) {
 
+            instance = new Http();
+            instance._protocol = mockHttp({
+                'response': {
+                    'onData': function (callback) {
+                        callback('{}');
+                    },
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Location': 'www.google.com'
+                    },
+                    'statusCode': 302
+                }
+            });
+            instance._redirect = function (location, options, callback, redirectCounter) {
+                expect(location).to.be('www.google.com');
+                expect(options).to.be.ok();
+                expect(callback).to.be.ok();
+                expect(redirectCounter).to.be(0);
+                done();
+            };
+            instance.post('/', {}, function () {
+                return;
+            });
+
+        });
+
+        it('should call the callback passing an error if too many redirects occur', function (done) {
+
+            instance = new Http();
+            instance._protocol = mockHttp({
+                'response': {
+                    'onData': function (callback) {
+                        callback('{}');
+                    },
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Location': 'www.google.com'
+                    },
+                    'statusCode': 302
+                }
+            });
+            instance.post('/', {}, function (error) {
+                expect(error.name).to.be('TooManyRedirects');
+                done();
+            });
+
+        });
     });
 
     describe('put', function () {

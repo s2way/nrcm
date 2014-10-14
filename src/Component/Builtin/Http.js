@@ -1,6 +1,7 @@
 'use strict';
 
 var XML = require('./XML');
+var url = require('url');
 
 /**
  * Http client constructor
@@ -13,6 +14,7 @@ function Http(options) {
     this._hostname = options.hostname;
     this._port = options.port || 80;
     this._contentType = options.contentType || 'application/json';
+    this._maxRedirects = options.maxRedirects || 100;
     this._protocol = require('http');
 }
 
@@ -98,16 +100,10 @@ Http.prototype._parseUrlEncoded = function (url) {
     return object;
 };
 
-/**
- * Perform a HTTP request
- * @param {object} options May include method, headers and resource
- * @param {function} callback
- */
-Http.prototype.request = function (options, callback) {
-    var $this, request, resource, headers, payload, isXML, isUrlEncoded;
-    payload = false;
-
+Http.prototype._parsePayload = function (options) {
+    var isXML, isUrlEncoded, payload = false;
     if (options.payload) {
+
         isUrlEncoded = this._contentType.indexOf('application/x-www-form-urlencoded') !== -1;
         isXML = this._contentType.indexOf('text/xml') !== -1;
 
@@ -119,6 +115,36 @@ Http.prototype.request = function (options, callback) {
             payload = options.payload;
         }
     }
+    return payload;
+};
+
+/**
+ * Perform a HTTP redirection overriding the options.host and incrementing the redirect counter
+ * @param {string} location Location header (host to direct)
+ * @param {object} options Http.request() options original parameter
+ * @param {function} callback Http.request() callback original parameter
+ * @param {number} redirectCounter Http.request() redirectCounter original parameter
+ * @private
+ */
+Http.prototype._redirect = function (location, options, callback, redirectCounter) {
+    var urlParts = url.parse(location);
+    options.host = urlParts.host;
+    delete options.hostname;
+    delete options.port;
+    this.request(options, callback, redirectCounter + 1);
+};
+
+/**
+ * Perform a HTTP request
+ * @param {object} options May include method, headers and resource
+ * @param {function} callback
+ * @param {number=} redirectCounter
+ */
+Http.prototype.request = function (options, callback, redirectCounter) {
+    var $this, request, resource, headers, payload;
+    redirectCounter = redirectCounter || 0;
+    payload = this._parsePayload(options);
+
     resource = options.resource;
     headers = options.headers || this._headers || {};
 
@@ -140,7 +166,7 @@ Http.prototype.request = function (options, callback) {
             responseBody += chunk;
         });
         response.on('end', function () {
-            var responseContentType, isJSON;
+            var responseContentType, isJSON, isUrlEncoded, isXML, isRedirect, locationHeader;
             responseContentType = response.headers['Content-Type'] || $this._contentType;
             isJSON = responseContentType.indexOf('application/json') !== -1;
             isUrlEncoded = responseContentType.indexOf('application/x-www-form-urlencoded') !== -1;
@@ -155,17 +181,32 @@ Http.prototype.request = function (options, callback) {
             } else {
                 responseObject = responseBody;
             }
-            callback(null, {
-                'statusCode': response.statusCode,
-                'body': responseObject,
-                'headers': response.headers
-            });
+
+            isRedirect = response.statusCode >= 300 && response.statusCode < 400;
+            locationHeader = response.headers.Location !== undefined ? response.headers.Location : false;
+
+            if (isRedirect && locationHeader) {
+                if (redirectCounter > $this._maxRedirects) {
+                    callback({
+                        'name' : 'TooManyRedirects'
+                    });
+                } else {
+                    $this._redirect(locationHeader, options, callback, redirectCounter);
+                }
+            } else {
+                callback(null, {
+                    'statusCode': response.statusCode,
+                    'body': responseObject,
+                    'headers': response.headers
+                });
+            }
         });
     });
     request.setHeader('Content-Type', $this._contentType);
     request.on('error', function (error) {
         callback(error);
     });
+
     if (payload) {
         if (typeof payload === 'object') {
             request.write(JSON.stringify(payload));
