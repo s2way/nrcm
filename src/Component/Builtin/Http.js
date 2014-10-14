@@ -10,8 +10,8 @@ function Http(options) {
     this._host = options.host || 'localhost';
     this._hostname = options.hostname;
     this._port = options.port || 80;
-    this._http = require('http');
     this._contentType = options.contentType || 'application/json';
+    this._protocol = require('http');
 }
 
 /**
@@ -29,12 +29,9 @@ Http.prototype.setHeaders = function (headers) {
  * @param {function} callback Function that will be called after completion. Two parameters are passed, error and response.
  */
 Http.prototype.get = function (resource, options, callback) {
-    this.request({
-        'method' : 'get',
-        'query' : options.query,
-        'headers' : options.headers,
-        'resource' : resource
-    }, callback);
+    options.method = 'get';
+    options.resource = resource;
+    this.request(options, callback);
 };
 
 /**
@@ -44,13 +41,9 @@ Http.prototype.get = function (resource, options, callback) {
  * @param {function} callback Function that will be called after completion. Two parameters are passed, error and response.
  */
 Http.prototype.put = function (resource, options, callback) {
-    this.request({
-        'method' : 'put',
-        'resource' : resource,
-        'payload' : options.payload,
-        'query' : options.query,
-        'headers' : options.headers
-    }, callback);
+    options.method = 'put';
+    options.resource = resource;
+    this.request(options, callback);
 };
 
 /**
@@ -60,13 +53,9 @@ Http.prototype.put = function (resource, options, callback) {
  * @param {function} callback Function that will be called after completion. Two parameters are passed, error and response.
  */
 Http.prototype.post = function (resource, options, callback) {
-    this.request({
-        'method' : 'post',
-        'resource' : resource,
-        'payload' : options.payload,
-        'query' : options.query,
-        'headers' : options.headers
-    }, callback);
+    options.method = 'post';
+    options.resource = resource;
+    this.request(options, callback);
 };
 
 /**
@@ -76,13 +65,9 @@ Http.prototype.post = function (resource, options, callback) {
  * @param {function} callback Function that will be called after completion. Two parameters are passed, error and response.
  */
 Http.prototype.delete = function (resource, options, callback) {
-    this.request({
-        'method' : 'delete',
-        'query' : options.query,
-        'payload' : options.payload,
-        'headers' : options.headers,
-        'resource' : resource
-    }, callback);
+    options.method = 'delete';
+    options.resource = resource;
+    this.request(options, callback);
 };
 
 Http.prototype._toUrlEncoded = function (object) {
@@ -134,7 +119,7 @@ Http.prototype.request = function (options, callback) {
     }
 
     $this = this;
-    request = this._http.request({
+    request = this._protocol.request({
         'hostname' : this._hostname,
         'host' : this._host,
         'port' : this._port,

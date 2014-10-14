@@ -77,7 +77,84 @@ describe('Http.js', function () {
 
     beforeEach(function () {
         instance = new Http();
-        instance._http = mockHttp();
+        instance._protocol = mockHttp();
+    });
+
+    describe('request options', function () {
+
+        var arbitratyRequestOptions = {
+            'secureProtocol': 'SSLv3_method',
+            'agent' : false,
+            'anotherOption' : 'optionValue',
+            'query' : '?key=value',
+            'headers' : 'some_header'
+        };
+
+        var expectedRequestOptions = {
+            'secureProtocol': 'SSLv3_method',
+            'agent' : false,
+            'anotherOption' : 'optionValue',
+            'query' : '?key=value',
+            'headers' : 'some_header',
+            'resource' : '/'
+        };
+
+        it('should allow user to set arbitraty request options on get', function (done) {
+
+            instance.request = function (options, callback) {
+                callback(options);
+            };
+
+            expectedRequestOptions.method = 'get';
+
+            instance.get('/', arbitratyRequestOptions, function (response) {
+                expect(response).to.be.eql(expectedRequestOptions);
+                done();
+            });
+        });
+
+        it('should allow user to set arbitraty request options on delete', function (done) {
+
+            instance.request = function (options, callback) {
+                callback(options);
+            };
+
+            expectedRequestOptions.method = 'delete';
+
+            instance.delete('/', arbitratyRequestOptions, function (response) {
+                expect(response).to.be.eql(expectedRequestOptions);
+                done();
+            });
+        });
+
+        it('should allow user to set arbitraty request options on put', function (done) {
+
+            instance.request = function (options, callback) {
+                callback(options);
+            };
+
+            expectedRequestOptions.method = 'put';
+
+            instance.put('/', arbitratyRequestOptions, function (response) {
+                expect(response).to.be.eql(expectedRequestOptions);
+                done();
+            });
+        });
+
+        it('should allow user to set arbitraty request options on post', function (done) {
+
+            instance.request = function (options, callback) {
+                callback(options);
+            };
+
+            expectedRequestOptions.method = 'post';
+
+            instance.post('/', arbitratyRequestOptions, function (response) {
+                expect(response).to.be.eql(expectedRequestOptions);
+                done();
+            });
+        });
+
     });
 
     describe('get', function () {
@@ -115,7 +192,7 @@ describe('Http.js', function () {
             instance = new Http({
                 'contentType' : 'application/x-www-form-urlencoded'
             });
-            instance._http = mockHttp({
+            instance._protocol = mockHttp({
                 'requestFunction' : function () {
                     return {
                         'setHeader' : blankFunction,
@@ -139,7 +216,7 @@ describe('Http.js', function () {
             instance = new Http({
                 'contentType' : 'application/json' // Body is JSON, response is x-www-form-urlencoded
             });
-            instance._http = mockHttp({
+            instance._protocol = mockHttp({
                 'response' : {
                     'onData' : function (callback) {
                         callback('this%20is%20a%20bad%20key=this%20is%20a%20bad%20value');
@@ -206,7 +283,7 @@ describe('Http.js', function () {
         it('should call the callback passing the error object if something wrong occurs', function (done) {
 
             var errorObject = {};
-            instance._http = mockHttp({
+            instance._protocol = mockHttp({
                 'response' : {
                     'onEnd' : blankFunction
                 },
@@ -230,7 +307,7 @@ describe('Http.js', function () {
         });
 
         it('should return a response object containing the response body', function (done) {
-            instance._http = mockHttp({
+            instance._protocol = mockHttp({
                 'response' : {
                     'onData' : function (callback) {
                         callback('{}');
