@@ -82,15 +82,15 @@ describe('Http.js', function () {
 
     describe('request options', function () {
 
-        var arbitratyRequestOptions = {
+        var arbitraryRequestOptions, expectedRequestOptions;
+        arbitraryRequestOptions = {
             'secureProtocol': 'SSLv3_method',
             'agent' : false,
             'anotherOption' : 'optionValue',
             'query' : '?key=value',
             'headers' : 'some_header'
         };
-
-        var expectedRequestOptions = {
+        expectedRequestOptions = {
             'secureProtocol': 'SSLv3_method',
             'agent' : false,
             'anotherOption' : 'optionValue',
@@ -99,7 +99,7 @@ describe('Http.js', function () {
             'resource' : '/'
         };
 
-        it('should allow user to set arbitraty request options on get', function (done) {
+        it('should allow user to set arbitrary request options on get', function (done) {
 
             instance.request = function (options, callback) {
                 callback(options);
@@ -107,13 +107,13 @@ describe('Http.js', function () {
 
             expectedRequestOptions.method = 'get';
 
-            instance.get('/', arbitratyRequestOptions, function (response) {
+            instance.get('/', arbitraryRequestOptions, function (response) {
                 expect(response).to.be.eql(expectedRequestOptions);
                 done();
             });
         });
 
-        it('should allow user to set arbitraty request options on delete', function (done) {
+        it('should allow user to set arbitrary request options on delete', function (done) {
 
             instance.request = function (options, callback) {
                 callback(options);
@@ -121,13 +121,13 @@ describe('Http.js', function () {
 
             expectedRequestOptions.method = 'delete';
 
-            instance.delete('/', arbitratyRequestOptions, function (response) {
+            instance.delete('/', arbitraryRequestOptions, function (response) {
                 expect(response).to.be.eql(expectedRequestOptions);
                 done();
             });
         });
 
-        it('should allow user to set arbitraty request options on put', function (done) {
+        it('should allow user to set arbitrary request options on put', function (done) {
 
             instance.request = function (options, callback) {
                 callback(options);
@@ -135,13 +135,13 @@ describe('Http.js', function () {
 
             expectedRequestOptions.method = 'put';
 
-            instance.put('/', arbitratyRequestOptions, function (response) {
+            instance.put('/', arbitraryRequestOptions, function (response) {
                 expect(response).to.be.eql(expectedRequestOptions);
                 done();
             });
         });
 
-        it('should allow user to set arbitraty request options on post', function (done) {
+        it('should allow user to set arbitrary request options on post', function (done) {
 
             instance.request = function (options, callback) {
                 callback(options);
@@ -149,7 +149,7 @@ describe('Http.js', function () {
 
             expectedRequestOptions.method = 'post';
 
-            instance.post('/', arbitratyRequestOptions, function (response) {
+            instance.post('/', arbitraryRequestOptions, function (response) {
                 expect(response).to.be.eql(expectedRequestOptions);
                 done();
             });
@@ -188,7 +188,7 @@ describe('Http.js', function () {
             });
         });
 
-        it('should convert the JSON payload to an url encoded string if the content type is x-www-form-urlencoded payload', function (done) {
+        it('should convert the JSON payload to an url-encoded if the content type is x-www-form-urlencoded', function (done) {
             instance = new Http({
                 'contentType' : 'application/x-www-form-urlencoded'
             });
@@ -212,7 +212,32 @@ describe('Http.js', function () {
             }, blankFunction);
         });
 
-        it('should convert the url encoded response to a JSON if the response content type is x-www-form-urlencoded payload', function (done) {
+        it('should convert the JSON payload to a XML if the content type is text/xml', function (done) {
+            instance = new Http({
+                'contentType' : 'text/xml'
+            });
+            instance._protocol = mockHttp({
+                'requestFunction' : function () {
+                    return {
+                        'setHeader' : blankFunction,
+                        'end' : blankFunction,
+                        'on' : blankFunction,
+                        'write' : function (payload) {
+                            expect(payload).to.be('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<root></root>');
+                            done();
+                        }
+                    };
+                }
+            });
+            instance.post('/', {
+                'payload' : {
+                    'root' : ''
+                }
+            }, blankFunction);
+        });
+
+
+        it('should convert the url encoded response to a JSON if the response content type is x-www-form-urlencoded', function (done) {
             instance = new Http({
                 'contentType' : 'application/json' // Body is JSON, response is x-www-form-urlencoded
             });
@@ -229,6 +254,28 @@ describe('Http.js', function () {
             instance.post('/', {}, function (error, response) {
                 expect(error).not.to.be.ok();
                 expect(response.body['this is a bad key']).to.be('this is a bad value');
+                done();
+            });
+        });
+
+
+        it('should convert the XML response to a JSON if the response content type is text/xml', function (done) {
+            instance = new Http({
+                'contentType' : 'application/json' // Body is JSON, response is text/xml
+            });
+            instance._protocol = mockHttp({
+                'response' : {
+                    'onData' : function (callback) {
+                        callback('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><root></root>');
+                    },
+                    'headers' : {
+                        'Content-Type' : 'text/xml'
+                    }
+                }
+            });
+            instance.post('/', {}, function (error, response) {
+                expect(error).not.to.be.ok();
+                expect(response.body.root).to.be('');
                 done();
             });
         });

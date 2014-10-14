@@ -1,5 +1,7 @@
 'use strict';
 
+var XML = require('./XML');
+
 /**
  * Http client constructor
  * @param {object} options Client options, including port, hostname and request contentType
@@ -102,17 +104,23 @@ Http.prototype._parseUrlEncoded = function (url) {
  * @param {function} callback
  */
 Http.prototype.request = function (options, callback) {
-    var $this, request, resource, headers, payload = false;
+    var $this, request, resource, headers, payload, isXML, isUrlEncoded;
+    payload = false;
 
     if (options.payload) {
-        if (this._contentType === 'application/x-www-form-urlencoded') {
+        isUrlEncoded = this._contentType.indexOf('application/x-www-form-urlencoded') !== -1;
+        isXML = this._contentType.indexOf('text/xml') !== -1;
+
+        if (isUrlEncoded) {
             payload = this._toUrlEncoded(options.payload);
+        } else if (isXML) {
+            payload = new XML().fromJSON(options.payload);
         } else {
             payload = options.payload;
         }
     }
     resource = options.resource;
-    headers = options.headers || this._headers;
+    headers = options.headers || this._headers || {};
 
     if (options.query) {
         resource += '?' + this._toUrlEncoded(options.query);
@@ -132,16 +140,18 @@ Http.prototype.request = function (options, callback) {
             responseBody += chunk;
         });
         response.on('end', function () {
-            var responseContentType, isJSON, isUrlEncoded;
-
+            var responseContentType, isJSON;
             responseContentType = response.headers['Content-Type'] || $this._contentType;
             isJSON = responseContentType.indexOf('application/json') !== -1;
             isUrlEncoded = responseContentType.indexOf('application/x-www-form-urlencoded') !== -1;
+            isXML = responseContentType.indexOf('text/xml') !== -1;
 
             if (isJSON) {
                 responseObject = responseBody === '' ? null : JSON.parse(responseBody);
             } else if (isUrlEncoded) {
                 responseObject = $this._parseUrlEncoded(responseBody);
+            } else if (isXML) {
+                responseObject = new XML().toJSON(responseBody);
             } else {
                 responseObject = responseBody;
             }
