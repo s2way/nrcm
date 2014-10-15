@@ -15,7 +15,7 @@ function XML() {
 
 /**
  * Convert a JSON object to a XML string
- * @param {json} json The JSON object
+ * @param {object} json The JSON object
  * @returns {string} The XML String
  */
 XML.prototype.fromJSON = function (json) {

@@ -256,14 +256,16 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
         isUrlEncoded = requestContentType.indexOf('application/x-www-form-urlencoded') !== -1;
 
         try {
-            if (isJSON) {
-                controllerInstance.payload = JSON.parse($this.payload);
-            } else if (isXML) {
-                controllerInstance.payload = new XML().toJSON($this.payload);
-            } else if (isUrlEncoded) {
-                controllerInstance.payload = querystring.parse($this.payload);
-            } else {
-                controllerInstance.payload = $this.payload;
+            if (controllerInstance.payload !== '') {
+                if (isJSON) {
+                    controllerInstance.payload = JSON.parse($this.payload);
+                } else if (isXML) {
+                    controllerInstance.payload = new XML().toJSON($this.payload);
+                } else if (isUrlEncoded) {
+                    controllerInstance.payload = querystring.parse($this.payload);
+                } else {
+                    controllerInstance.payload = $this.payload;
+                }
             }
         } catch (e) {
             $this.log('Error while parsing payload: ' + e);
@@ -279,7 +281,7 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
         };
         controllerInstance.requestHeaders = requestHeaders;
         controllerInstance.responseHeaders = {
-            'Server' : 'NRCM/' + $this.version
+            'Server' : 'WaferPie/' + $this.version
         };
 
         var timer;
@@ -446,6 +448,8 @@ RequestHandler.prototype.handleRequestException = function (e) {
  * @param {string|boolean=} contentType The text for the Content-Type http header
  */
 RequestHandler.prototype.render = function (output, statusCode, contentType) {
+    var isJSON, isXML;
+
     if (output !== '') {
         output = output || '{}';
     }
@@ -463,13 +467,17 @@ RequestHandler.prototype.render = function (output, statusCode, contentType) {
         this.log('content-type: ' + contentType);
         this._writeHead(statusCode, contentType);
         if (typeof output === 'object') {
-            if (contentType === 'application/json') {
+            isJSON = contentType.indexOf('application/json') !== -1;
+            isXML = contentType.indexOf('text/xml') !== -1;
+
+            if (isJSON) {
                 this.stringOutput = JSON.stringify(output);
-            } else if (contentType === 'text/xml') {
+            } else if (isXML) {
                 this.stringOutput = new XML().fromJSON(output);
             } else {
                 this.stringOutput = output;
             }
+
         } else {
             this.stringOutput = output;
         }

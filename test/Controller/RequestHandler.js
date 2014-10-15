@@ -412,6 +412,33 @@ describe('RequestHandler.js', function () {
                 };
             });
 
+            it('should not parse the payload if it is an empty string', function (done) {
+                var rh, request;
+                rh = mockRequestHandler({
+                    'MyController' : function () {
+                        this.get = function () {
+                            expect(this.payload).to.be(null);
+                            done();
+                        };
+                    }
+                });
+                request =  {
+                    'method' : 'GET',
+                    'url' : '/service/version/app/my_controller',
+                    'headers' : {
+                        'content-type' : 'application/json'
+                    },
+                    'on' : function (type, callback) {
+                        if (type === 'end') {
+                            callback();
+                        } else if (type === 'data') {
+                            callback('');
+                        }
+                    }
+                };
+                rh.process(request, mockResponse());
+            });
+
             it('should handle the InvalidUrl exception and render something', function () {
                 var rh = mockRequestHandler();
                 rh.process(mockRequest('/', 'get'), mockResponse());
@@ -485,7 +512,7 @@ describe('RequestHandler.js', function () {
                     'header' : 'value'
                 };
                 var expectedResponseHeaders = {
-                    'Server' : 'NRCM/0.0.1',
+                    'Server' : 'WaferPie/0.0.1',
                     'header' : 'value'
                 };
                 var rh = mockRequestHandler({
