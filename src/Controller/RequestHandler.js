@@ -210,7 +210,7 @@ RequestHandler.prototype._setHeader = function (name, value) {
 RequestHandler.prototype._writeHead = function (statusCode, contentType) {
     var headers = { };
     if (contentType) {
-        headers['Content-Type'] = contentType;
+        headers['content-type'] = contentType;
     }
     this.response.writeHead(statusCode, headers);
 };
@@ -249,7 +249,7 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
 
         var requestHeaders, requestContentType, isJSON, isXML, isUrlEncoded;
         requestHeaders = $this._headers();
-        requestContentType = requestHeaders['Content-Type'] || 'application/json';
+        requestContentType = requestHeaders['content-type'] || 'application/json';
 
         isJSON = requestContentType.indexOf('application/json') !== -1;
         isXML = requestContentType.indexOf('text/xml') !== -1;
@@ -460,7 +460,7 @@ RequestHandler.prototype.render = function (output, statusCode, contentType) {
 
     if (this.stringOutput === undefined) {
         this.log('Rendering');
-        this.log('Content-Type: ' + contentType);
+        this.log('content-type: ' + contentType);
         this._writeHead(statusCode, contentType);
         if (typeof output === 'object') {
             if (contentType === 'application/json') {

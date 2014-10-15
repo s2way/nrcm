@@ -76,7 +76,7 @@ describe('RequestHandler.js', function () {
             },
             'writeHead' : function (code, type) {
                 controlVars.code = code;
-                controlVars.contentType = type['Content-Type'];
+                controlVars.contentType = type['content-type'];
             },
             'write' : function () {
                 controlVars.writeCalled = true;
@@ -608,7 +608,7 @@ describe('RequestHandler.js', function () {
                     'method' : 'GET',
                     'url' : '/service/version/app/my_controller',
                     'headers' : {
-                        'Content-Type' : 'text/xml'
+                        'content-type' : 'text/xml'
                     },
                     'on' : function (type, callback) {
                         if (type === 'end') {
@@ -644,7 +644,7 @@ describe('RequestHandler.js', function () {
                     'method' : 'GET',
                     'url' : '/service/version/app/my_controller',
                     'headers' : {
-                        'Content-Type' : 'application/x-www-form-urlencoded'
+                        'content-type' : 'application/x-www-form-urlencoded'
                     },
                     'on' : function (type, callback) {
                         if (type === 'end') {

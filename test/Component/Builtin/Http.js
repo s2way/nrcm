@@ -247,7 +247,7 @@ describe('Http.js', function () {
                         callback('this%20is%20a%20bad%20key=this%20is%20a%20bad%20value');
                     },
                     'headers': {
-                        'Content-Type': 'application/x-www-form-urlencoded'
+                        'content-type': 'application/x-www-form-urlencoded'
                     }
                 }
             });
@@ -269,7 +269,7 @@ describe('Http.js', function () {
                         callback('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><root></root>');
                     },
                     'headers': {
-                        'Content-Type': 'text/xml'
+                        'content-type': 'text/xml'
                     }
                 }
             });
@@ -289,8 +289,8 @@ describe('Http.js', function () {
                         callback('{}');
                     },
                     'headers': {
-                        'Content-Type': 'application/json',
-                        'Location': 'www.google.com'
+                        'content-type': 'application/json',
+                        'location': 'www.google.com'
                     },
                     'statusCode': 302
                 }
@@ -317,8 +317,8 @@ describe('Http.js', function () {
                         callback('{}');
                     },
                     'headers': {
-                        'Content-Type': 'application/json',
-                        'Location': 'www.google.com'
+                        'content-type': 'application/json',
+                        'location': 'www.google.com'
                     },
                     'statusCode': 302
                 }

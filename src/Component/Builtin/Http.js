@@ -171,7 +171,7 @@ Http.prototype.request = function (options, callback, redirectCounter) {
         });
         response.on('end', function () {
             var responseContentType, isJSON, isUrlEncoded, isXML, isRedirect, locationHeader;
-            responseContentType = response.headers['Content-Type'] || $this._contentType;
+            responseContentType = response.headers['content-type'] || $this._contentType;
             isJSON = responseContentType.indexOf('application/json') !== -1;
             isUrlEncoded = responseContentType.indexOf('application/x-www-form-urlencoded') !== -1;
             isXML = responseContentType.indexOf('text/xml') !== -1;
@@ -187,7 +187,7 @@ Http.prototype.request = function (options, callback, redirectCounter) {
             }
 
             isRedirect = response.statusCode >= 300 && response.statusCode < 400;
-            locationHeader = response.headers.Location !== undefined ? response.headers.Location : false;
+            locationHeader = response.headers.location !== undefined ? response.headers.location : false;
 
             if (isRedirect && locationHeader) {
                 if (redirectCounter > $this._maxRedirects) {
@@ -206,7 +206,7 @@ Http.prototype.request = function (options, callback, redirectCounter) {
             }
         });
     });
-    request.setHeader('Content-Type', $this._contentType);
+    request.setHeader('content-type', $this._contentType);
     request.on('error', function (error) {
         callback(error);
     });
