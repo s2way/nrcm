@@ -31,11 +31,10 @@ Logger.prototype.config = function (configs) {
  * @param {string=} logsPath
  */
 Logger.prototype.init = function () {
-    var fullPath, logsPath;
+    var logsPath;
 
     logsPath = this._configs.path || path.join(this.constants.logsPath);
     this.fullPath = path.join(logsPath, this._fileName);
-
 };
 
 /**

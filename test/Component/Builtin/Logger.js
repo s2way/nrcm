@@ -17,10 +17,6 @@ describe('Logger.js', function () {
         instance.init();
     });
 
-    afterEach(function () {
-        fs.unlinkSync('default.log');
-    });
-
     describe('Logger()', function () {
 
         it('should use the default.log file name if none is specified', function () {

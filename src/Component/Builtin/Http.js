@@ -15,6 +15,8 @@ function Http(options) {
     this._port = options.port || 80;
     this._contentType = options.contentType || 'application/json';
     this._maxRedirects = options.maxRedirects || 100;
+    this._secureProtocol = options.secureProtocol || '';
+    this._agent = options.agent || '';
     this._protocol = require('http');
 }
 
@@ -159,7 +161,9 @@ Http.prototype.request = function (options, callback, redirectCounter) {
         'port' : this._port,
         'headers' : headers,
         'method' : options.method,
-        'path' : resource
+        'path' : resource,
+        'secureProtocol' : this._secureProtocol,
+        'agent' : this._agent
     }, function (response) {
         var responseObject, responseBody = '';
         response.on('data', function (chunk) {
