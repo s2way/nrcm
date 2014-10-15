@@ -48,6 +48,7 @@ Logger.prototype.init = function () {
  */
 Logger.prototype._print = function (message) {
     this._stream.write(message + '\n');
+    this._stream.end();
 
     if (this._configs.console === true) {
         console.log(message);
