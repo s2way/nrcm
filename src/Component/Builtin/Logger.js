@@ -34,12 +34,8 @@ Logger.prototype.init = function () {
     var fullPath, logsPath;
 
     logsPath = this._configs.path || path.join(this.constants.logsPath);
-    fullPath = path.join(logsPath, this._fileName);
+    this.fullPath = path.join(logsPath, this._fileName);
 
-    this._stream = fs.createWriteStream(fullPath, {
-        'flags' : 'a+',
-        'encoding': 'UTF8'
-    });
 };
 
 /**
@@ -47,6 +43,10 @@ Logger.prototype.init = function () {
  * @private
  */
 Logger.prototype._print = function (message) {
+    this._stream = fs.createWriteStream(this.fullPath, {
+        'flags' : 'a+',
+        'encoding': 'UTF8'
+    });
     this._stream.write(message + '\n');
     this._stream.end();
 
