@@ -6,11 +6,12 @@
  * @param application The application object
  * @constructor
  */
-function ComponentFactory(logger, application) {
+function ComponentFactory(logger, application, modelFactory) {
     this._application = application;
     this._logger = logger;
     this._dynamicComponents = [];
     this._staticComponents = {};
+    this._modelFactory = modelFactory;
     this.info('ComponentFactory created');
 }
 
@@ -65,6 +66,11 @@ ComponentFactory.prototype.create = function (componentName, params) {
 
         componentInstance.name = componentName;
         componentInstance.constants = this._application.constants;
+        componentInstance.model = function (modelName) {
+            var instance = $this._modelFactory.create(modelName);
+            $this._modelFactory.init(instance);
+            return instance;
+        };
         componentInstance.component = function (componentName, params) {
             var instance = $this.create(componentName, params);
             $this.init(componentName);

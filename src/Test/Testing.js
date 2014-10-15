@@ -109,6 +109,9 @@ Testing.prototype.createComponent = function (componentName) {
     $this = this;
     this.loadComponent(componentName);
     instance = this.componentFactory.create(componentName);
+    instance.model = function (modelName) {
+        return $this._model(modelName);
+    };
     instance.component = function (componentName, params) {
         return $this._component(componentName, params);
     };
@@ -184,6 +187,9 @@ Testing.prototype._model = function (modelName) {
             }
         }
     }
+    modelInstance.component = function (componentName, params) {
+        return $this._component(componentName, params);
+    };
     modelInstance.model = function (modelName) {
         return $this._model(modelName);
     };
@@ -206,6 +212,9 @@ Testing.prototype._component = function (componentName, params) {
     }
     componentInstance.component = function (componentName, params) {
         return $this._component(componentName, params);
+    };
+    componentInstance.model = function (modelName, params) {
+        return $this._model(modelName, params);
     };
     this.componentFactory.init(componentInstance);
     return componentInstance;

@@ -116,8 +116,11 @@ RequestHandler.prototype.prepareController = function (controllerName) {
     }
 
     this.log('Creating factories');
+    // THIS CYCLIC DEPENDENCY MUST BE REMOVED! MODEL AND COMPONENT FACTORY SHOULD BE UNIFIED
     this.componentFactory = new ComponentFactory(this.serverLogger, application);
-    this.modelFactory = new ModelFactory(this.serverLogger, application, this.componentFactory);
+    this.modelFactory = new ModelFactory(this.serverLogger, application);
+    this.componentFactory._modelFactory = this.modelFactory;
+    this.modelFactory._componentFactory = this.componentFactory;
 
     this.log('Creating controller');
     var ControllerConstructor = application.controllers[controllerName];
@@ -169,6 +172,7 @@ RequestHandler.prototype.prepareController = function (controllerName) {
         controllerInstance.model = retrieveModelMethod;
         controllerInstance.trace = automaticTraceImplementation;
         controllerInstance.options = automaticOptionsImplementation;
+        controllerInstance.method = $this.method;
         controllerInstance.head = controllerInstance.get;
     }());
 

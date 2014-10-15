@@ -8,12 +8,20 @@ var ComponentFactory = require('../../src/Component/ComponentFactory');
 
 describe('ComponentFactory.js', function () {
 
-    var factory, instance;
-    var blankFunction = function () { return; };
+    var factory, modelFactory, instance, blankFunction;
+    blankFunction = function () { return; };
 
     ComponentFactory.prototype.info = blankFunction;
 
     beforeEach(function () {
+        modelFactory = {
+            'create' : function () {
+                return null;
+            },
+            'init' : function () {
+                return;
+            }
+        };
         factory = new ComponentFactory({
             'info' : blankFunction,
             'debug' : blankFunction
@@ -25,7 +33,7 @@ describe('ComponentFactory.js', function () {
             'core' : { },
             'logger' : { },
             'constants' : { }
-        });
+        }, modelFactory);
         instance = factory.create('MyComponent');
     });
 
@@ -104,6 +112,10 @@ describe('ComponentFactory.js', function () {
 
         it('should inject the method for retrieving components inside the components retrieved by the component method', function () {
             expect(instance.component('MyComponent').component('MyComponent').name).to.be('MyComponent');
+        });
+
+        it('should inject the method for retrieving models', function () {
+            expect(instance.model('InvalidModel')).to.be(null);
         });
 
         it('should always return the same instance if the component is marked as singleInstance', function () {

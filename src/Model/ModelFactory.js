@@ -42,7 +42,6 @@ ModelFactory.prototype.create = function (modelName) {
             $this.init(instance);
             return instance;
         };
-
         modelInstance.component = function (componentName, params) {
             var instance = $this._componentFactory.create(componentName, params);
             $this._componentFactory.init(instance);

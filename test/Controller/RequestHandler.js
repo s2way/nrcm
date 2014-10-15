@@ -319,6 +319,7 @@ describe('RequestHandler.js', function () {
 
             beforeEach(function () {
                 requestHandler = mockRequestHandler();
+                requestHandler.method = 'post';
                 instance = requestHandler.prepareController('MyController');
             });
 
@@ -357,6 +358,10 @@ describe('RequestHandler.js', function () {
 
             it('should inject the name property', function () {
                 assert.equal('MyController', instance.name);
+            });
+
+            it('should inject the method (http) property', function () {
+                assert.equal('post', instance.method);
             });
 
             it('should inject the application property', function () {
