@@ -3,8 +3,6 @@
 'use strict';
 var RequestHandler = require('./../../src/Controller/RequestHandler.js');
 var Router = require('./../../src/Core/Router.js');
-var ModelFactory = require('./../../src/Model/ModelFactory.js');
-var ComponentFactory = require('./../../src/Component/ComponentFactory.js');
 var assert = require('assert');
 var expect = require('expect.js');
 
@@ -14,8 +12,6 @@ describe('RequestHandler.js', function () {
     RequestHandler.prototype.debug = function () { return; };
     RequestHandler.prototype.error = function () { return; };
     Router.prototype.info = function () { return; };
-    ModelFactory.prototype.info = function () { return; };
-    ComponentFactory.prototype.info = function () { return; };
 
     var controlVars = { };
 

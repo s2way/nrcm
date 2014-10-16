@@ -3,8 +3,7 @@
 var querystring = require('querystring');
 var exceptions = require('./../exceptions');
 var Router = require('./../Core/Router');
-var ComponentFactory = require('./../Component/ComponentFactory');
-var ModelFactory = require('./../Model/ModelFactory');
+var ElementFactory = require('./../Core/ElementFactory');
 var chalk = require('chalk');
 var XML = require('../Component/Builtin/XML');
 
@@ -115,12 +114,7 @@ RequestHandler.prototype.prepareController = function (controllerName) {
         throw new exceptions.ControllerNotFound();
     }
 
-    this.log('Creating factories');
-    // THIS CYCLIC DEPENDENCY MUST BE REMOVED! MODEL AND COMPONENT FACTORY SHOULD BE UNIFIED
-    this.componentFactory = new ComponentFactory(this.serverLogger, application);
-    this.modelFactory = new ModelFactory(this.serverLogger, application);
-    this.componentFactory._modelFactory = this.modelFactory;
-    this.modelFactory._componentFactory = this.componentFactory;
+    this.elementFactory = new ElementFactory(this.serverLogger, application);
 
     this.log('Creating controller');
     var ControllerConstructor = application.controllers[controllerName];
@@ -128,13 +122,13 @@ RequestHandler.prototype.prepareController = function (controllerName) {
 
     (function injectProperties() {
         var retrieveComponentMethod = function (componentName, params) {
-            var instance = $this.componentFactory.create(componentName, params);
-            $this.componentFactory.init(instance);
+            var instance = $this.elementFactory.create('component', componentName, params);
+            $this.elementFactory.init(instance);
             return instance;
         };
         var retrieveModelMethod = function (modelName) {
-            var instance = $this.modelFactory.create(modelName);
-            $this.modelFactory.init(instance);
+            var instance = $this.elementFactory.create('model', modelName);
+            $this.elementFactory.init(instance);
             return instance;
         };
         var automaticTraceImplementation = function (callback) {
@@ -312,7 +306,7 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
                 $this.log('Destroying components');
                 (function destroyComponents() {
                     var componentInstance, componentName;
-                    var componentsCreated = $this.componentFactory.getComponents();
+                    var componentsCreated = $this.elementFactory.getComponents();
                     var destroyComponentInstance = function () {
                         $this.log('Destroying ' + componentName);
                         componentInstance.destroy();

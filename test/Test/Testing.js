@@ -4,17 +4,13 @@
 
 var assert = require('assert');
 var Testing = require('../../src/Test/Testing');
-var ModelFactory = require('../../src/Model/ModelFactory');
-var ComponentFactory = require('../../src/Component/ComponentFactory');
 var RequestHandler = require('../../src/Controller/RequestHandler');
 var expect = require('expect.js');
 var path = require('path');
 
 describe('Testing', function () {
 
-    ModelFactory.prototype.info = function () { return; };
-    ComponentFactory.prototype.info = function () { return; };
-    RequestHandler.prototype.info = function () { return; };
+    RequestHandler.prototype.log = function () { return; };
 
     var testing = null;
     var payload = {

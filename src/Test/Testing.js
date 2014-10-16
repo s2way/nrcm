@@ -4,8 +4,7 @@
 
 var path = require('path');
 var fs = require('fs');
-var ComponentFactory = require('../Component/ComponentFactory');
-var ModelFactory = require('../Model/ModelFactory');
+var ElementFactory = require('../Core/ElementFactory');
 var RequestHandler = require('../Controller/RequestHandler');
 var Cherries = require('../Util/Cherries');
 
@@ -25,6 +24,7 @@ function Testing(applicationPath, core) {
     this.components = { };
     this.models = { };
     var logger = {
+        'log' : function () { return; },
         'info' : function () { return; },
         'debug' : function () { return; },
         'error' : function () { return; },
@@ -47,10 +47,8 @@ function Testing(applicationPath, core) {
     };
 
     // Necessary for testing Components and Models
-    // When you are testing the Controllers, RequestHandler has its own ModelFactory and ComponentFactory
-    this.componentFactory = new ComponentFactory(logger, this.application);
-    this.modelFactory = new ModelFactory(logger, this.application, this.componentFactory);
-
+    // When you are testing the Controllers, RequestHandler has its own ElementFactory
+    this.elementFactory = new ElementFactory(logger, this.application);
     this.cherries = new Cherries();
 }
 
@@ -89,7 +87,7 @@ Testing.prototype.createModel = function (modelName) {
     var $this, instance;
     $this = this;
     this.loadModel(modelName);
-    instance = this.modelFactory.create(modelName);
+    instance = this.elementFactory.create('model', modelName);
     instance.model = function (modelName) {
         return $this._model(modelName);
     };
@@ -108,7 +106,7 @@ Testing.prototype.createComponent = function (componentName) {
     var $this, instance;
     $this = this;
     this.loadComponent(componentName);
-    instance = this.componentFactory.create(componentName);
+    instance = this.elementFactory.create('component', componentName);
     instance.model = function (modelName) {
         return $this._model(modelName);
     };
@@ -177,7 +175,11 @@ Testing.prototype.mockComponent = function (componentName, methods) {
 Testing.prototype._model = function (modelName) {
     var $this, modelInstance, methods, methodName;
     $this = this;
-    modelInstance = this.modelFactory.create(modelName);
+    modelInstance = this.elementFactory.create('model', modelName);
+    if (modelInstance === null) {
+        return null;
+    }
+
     methods = this.mockedMethods.models[modelName];
 
     if (methods !== undefined) {
@@ -193,14 +195,18 @@ Testing.prototype._model = function (modelName) {
     modelInstance.model = function (modelName) {
         return $this._model(modelName);
     };
-    this.modelFactory.init(modelInstance);
+    this.elementFactory.init(modelInstance);
     return modelInstance;
 };
 
 Testing.prototype._component = function (componentName, params) {
     var $this, componentInstance, methods, methodName;
     $this = this;
-    componentInstance = this.componentFactory.create(componentName, params);
+    componentInstance = this.elementFactory.create('component', componentName, params);
+    if (componentInstance === null) {
+        return null;
+    }
+
     methods = this.mockedMethods.components[componentName];
 
     if (methods !== undefined) {
@@ -213,10 +219,10 @@ Testing.prototype._component = function (componentName, params) {
     componentInstance.component = function (componentName, params) {
         return $this._component(componentName, params);
     };
-    componentInstance.model = function (modelName, params) {
-        return $this._model(modelName, params);
+    componentInstance.model = function (modelName) {
+        return $this._model(modelName);
     };
-    this.componentFactory.init(componentInstance);
+    this.elementFactory.init(componentInstance);
     return componentInstance;
 };
 
@@ -293,8 +299,7 @@ Testing.prototype.callController = function (controllerName, httpMethod, options
 
     requestHandler.appName = 'app';
     instance = requestHandler.prepareController(controllerName);
-    requestHandler.modelFactory = this.modelFactory;
-    requestHandler.componentFactory = this.componentFactory;
+    requestHandler.elementFactory = this.elementFactory;
 
     instance.model = function (modelName) {
         return $this._model(modelName);
