@@ -17,7 +17,8 @@ function Http(options) {
     this._maxRedirects = options.maxRedirects || 100;
     this._secureProtocol = options.secureProtocol || '';
     this._agent = options.agent || '';
-    this._protocol = require('http');
+    this._ssl = options.ssl || false;
+    this._protocol = this._ssl === true ? require('https') : require('http');
 }
 
 /**
