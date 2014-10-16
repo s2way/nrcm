@@ -257,7 +257,6 @@ Testing.prototype.callController = function (controllerName, httpMethod, options
         setImmediate(callback);
     };
 
-
     requestHandler._headers = function () {
         return [];
     };
@@ -291,13 +290,10 @@ Testing.prototype.callController = function (controllerName, httpMethod, options
         responseHeaders[name] = value;
     };
 
-    if (options.query !== undefined) {
-        requestHandler.query = options.query;
-    } else {
-        requestHandler.query = { };
-    }
-
+    requestHandler.query = options.query || { };
+    requestHandler.prefixes = options.prefixes || { };
     requestHandler.appName = 'app';
+
     instance = requestHandler.prepareController(controllerName);
     requestHandler.elementFactory = this.elementFactory;
 

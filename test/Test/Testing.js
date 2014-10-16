@@ -10,18 +10,18 @@ var path = require('path');
 
 describe('Testing', function () {
 
+    var testing, payload, query, segments;
     RequestHandler.prototype.log = function () { return; };
-
-    var testing = null;
-    var payload = {
+    testing = null;
+    payload = {
         'this' : 'is',
         'a' : 'payload'
     };
-    var query = {
+    query = {
         'this' : 'is',
         'a' : 'query string'
     };
-    var segments = ['action', 'subaction'];
+    segments = ['action', 'subaction'];
 
     beforeEach(function () {
         testing = new Testing('app');
@@ -254,6 +254,26 @@ describe('Testing', function () {
                 done();
             });
 
+        });
+
+        it('should pass the options.prefixes to the controller.prefixes', function (done) {
+            testing._require = function (filePath) {
+                if (filePath === path.join('app', 'src', 'Controller', 'MyController')) {
+                    return function () {
+                        this.get = function (callback) {
+                            callback(this.prefixes);
+                        };
+                    };
+                }
+            };
+            testing.callController('MyController', 'get', {
+                'prefixes' : {
+                    'p1' : 'v1'
+                }
+            }, function (response) {
+                expect(response.p1).to.be('v1');
+                done();
+            });
         });
 
         it('should set the payload to null if it is not passed', function (done) {
