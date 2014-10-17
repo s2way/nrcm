@@ -523,8 +523,6 @@ describe('RequestHandler.js', function () {
                             callback({});
                         };
                         this.after = function (callback) {
-                            assert.equal(true, this.readonly.request !== undefined);
-                            assert.equal(true, this.readonly.response !== undefined);
                             assert.equal(true, this.query !== undefined);
                             assert.equal(true, this.payload !== undefined);
                             assert.equal(true, this.segments !== undefined);
@@ -540,9 +538,9 @@ describe('RequestHandler.js', function () {
                     }
                 });
                 rh.render = function (output, statusCode) {
-                    assert(statusCode === 200);
-                    assert(output !== null);
-                    assert(controlVars.headersSet);
+                    expect(statusCode).to.be(200);
+                    expect(output).to.be.ok();
+                    expect(controlVars.headersSet).to.be(true);
                     done();
                 };
                 rh.process(mockRequest(url, method), mockResponse());

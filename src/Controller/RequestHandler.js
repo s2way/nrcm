@@ -117,6 +117,7 @@ RequestHandler.prototype.prepareController = function (controllerName) {
     this.elementFactory = new ElementFactory(this.serverLogger, application);
 
     this.log('Creating controller');
+
     var ControllerConstructor = application.controllers[controllerName];
     var controllerInstance = new ControllerConstructor();
 
@@ -126,8 +127,8 @@ RequestHandler.prototype.prepareController = function (controllerName) {
             $this.elementFactory.init(instance);
             return instance;
         };
-        var retrieveModelMethod = function (modelName) {
-            var instance = $this.elementFactory.create('model', modelName);
+        var retrieveModelMethod = function (modelName, params) {
+            var instance = $this.elementFactory.create('model', modelName, params);
             $this.elementFactory.init(instance);
             return instance;
         };
@@ -221,6 +222,32 @@ RequestHandler.prototype._sendResponse = function () {
     this.response.end();
 };
 
+RequestHandler.prototype._parsePayload = function (contentType, payload) {
+    var isJSON, isXML, isUrlEncoded;
+
+    isJSON = contentType.indexOf('application/json') !== -1;
+    isXML = contentType.indexOf('text/xml') !== -1;
+    isUrlEncoded = contentType.indexOf('application/x-www-form-urlencoded') !== -1;
+
+    try {
+        if (payload !== '') {
+            if (isJSON) {
+                return JSON.parse(payload);
+            }
+            if (isXML) {
+                return new XML().toJSON(payload);
+            }
+            if (isUrlEncoded) {
+                return querystring.parse(payload);
+            }
+            return payload;
+        }
+    } catch (e) {
+        this.log('Error while parsing payload: ' + e);
+    }
+    return null;
+};
+
 /**
  * It executes a function within the controller
  *
@@ -229,11 +256,13 @@ RequestHandler.prototype._sendResponse = function () {
  * @param {string} method The controller`s method that should be invoked
  */
 RequestHandler.prototype.invokeController = function (controllerInstance, httpMethod, done) {
-    var $this = this;
+    var $this, savedOutput, application;
+    $this = this;
+
     $this.log('Invoking controller');
 
-    var savedOutput = null;
-    var application = this.applications[this.appName];
+    savedOutput = null;
+    application = this.applications[this.appName];
 
     if (controllerInstance[httpMethod] === undefined) {
         throw new exceptions.MethodNotFound();
@@ -243,40 +272,16 @@ RequestHandler.prototype.invokeController = function (controllerInstance, httpMe
     this._receivePayload();
 
     this._endRequest(function () {
-        $this.log('All data received');
+        var requestHeaders, requestContentType;
 
-        var requestHeaders, requestContentType, isJSON, isXML, isUrlEncoded;
+        $this.log('All data received');
         requestHeaders = $this._headers();
         requestContentType = requestHeaders['content-type'] || 'application/json';
 
-        isJSON = requestContentType.indexOf('application/json') !== -1;
-        isXML = requestContentType.indexOf('text/xml') !== -1;
-        isUrlEncoded = requestContentType.indexOf('application/x-www-form-urlencoded') !== -1;
-
-        try {
-            if (controllerInstance.payload !== '') {
-                if (isJSON) {
-                    controllerInstance.payload = JSON.parse($this.payload);
-                } else if (isXML) {
-                    controllerInstance.payload = new XML().toJSON($this.payload);
-                } else if (isUrlEncoded) {
-                    controllerInstance.payload = querystring.parse($this.payload);
-                } else {
-                    controllerInstance.payload = $this.payload;
-                }
-            }
-        } catch (e) {
-            $this.log('Error while parsing payload: ' + e);
-            controllerInstance.payload = null;
-        }
-
+        controllerInstance.payload = $this._parsePayload(requestContentType, $this.payload);
         controllerInstance.segments = $this.segments;
         controllerInstance.query = $this.query;
         controllerInstance.prefixes = $this.prefixes;
-        controllerInstance.readonly = {
-            'request' : $this.request,
-            'response' : $this.response
-        };
         controllerInstance.requestHeaders = requestHeaders;
         controllerInstance.responseHeaders = {
             'Server' : 'WaferPie/' + $this.version

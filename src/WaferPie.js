@@ -50,21 +50,28 @@ WaferPie.prototype.info = function (message) {
  * @param {string} appName The name of application, it will be also used as directory's name
  */
 WaferPie.prototype.setUp = function (appName) {
-    var app = {}, name;
-    app.constants = {};
-    app.constants.basePath = path.resolve(path.join(appName));
-    app.constants.srcPath = path.resolve(path.join(appName, 'src'));
-    app.constants.logsPath = path.resolve(path.join(appName, 'logs'));
-    app.constants.controllersPath = path.resolve(path.join(app.constants.srcPath, 'Controller'));
-    app.constants.componentsPath = path.resolve(path.join(app.constants.srcPath, 'Component'));
-    app.constants.modelsPath = path.resolve(path.join(app.constants.srcPath, 'Model'));
-    app.constants.configPath = path.resolve(path.join(app.constants.srcPath, 'Config'));
-    app.hostname = os.hostname();
+    var app, srcPath, testPath;
+    srcPath = path.resolve(path.join(appName, 'src'));
+    testPath = path.resolve(path.join(appName, 'test'));
+    app = {
+        'constants' : {
+            'basePath' : path.resolve(path.join(appName)),
+            'srcPath' : srcPath,
+            'logsPath' : path.resolve(path.join(appName, 'logs')),
+            'controllersPath' : path.resolve(path.join(srcPath, 'Controller')),
+            'componentsPath' : path.resolve(path.join(srcPath, 'Component')),
+            'configPath' : path.resolve(path.join(srcPath, 'Config')),
+            'modelsPath' : path.resolve(path.join(srcPath, 'Model')),
+            'filtersPath' : path.resolve(path.join(srcPath, 'Filter')),
+            'testPath' : testPath,
+            'controllersTestPath' : path.resolve(path.join(testPath, 'Controller')),
+            'componentsTestPath' : path.resolve(path.join(testPath, 'Component')),
+            'modelsTestPath' : path.resolve(path.join(testPath, 'Model')),
+            'filtersTestPath' : path.resolve(path.join(testPath, 'Filter'))
+        },
+        'hostname' : os.hostname()
+    };
 
-    app.constants.testPath = path.resolve(path.join(appName, 'test'));
-    app.constants.controllersTestPath = path.resolve(path.join(app.constants.testPath, 'Controller'));
-    app.constants.componentsTestPath = path.resolve(path.join(app.constants.testPath, 'Component'));
-    app.constants.modelsTestPath = path.resolve(path.join(app.constants.testPath, 'Model'));
 
     (function shouldPointCoreFileBasedOnHost() {
         if (Sync.isFile(path.join(app.constants.srcPath, 'Config', app.hostname, '.json'))) {
@@ -78,18 +85,21 @@ WaferPie.prototype.setUp = function (appName) {
     Sync.createDirIfNotExists(app.constants.srcPath);
     Sync.createDirIfNotExists(app.constants.controllersPath);
     Sync.createDirIfNotExists(app.constants.componentsPath);
+    Sync.createDirIfNotExists(app.constants.filtersPath);
     Sync.createDirIfNotExists(app.constants.modelsPath);
     Sync.createDirIfNotExists(app.constants.configPath);
     Sync.createDirIfNotExists(app.constants.testPath);
     Sync.createDirIfNotExists(app.constants.controllersTestPath);
     Sync.createDirIfNotExists(app.constants.modelsTestPath);
     Sync.createDirIfNotExists(app.constants.componentsTestPath);
+    Sync.createDirIfNotExists(app.constants.filtersTestPath);
     Sync.createDirIfNotExists(app.constants.logsPath);
 
     Sync.copyIfNotExists(path.join(__dirname, 'Copy', 'core.json'), app.coreFileName);
     Sync.copyIfNotExists(path.join(__dirname, 'Controller', 'Exceptions.js'), path.join('Exceptions.js'));
 
     app.controllers = this._loadElements(app.constants.controllersPath);
+    app.filters = this._loadElements(app.constants.filtersPath);
     app.components = this._loadComponents(app.constants.componentsPath);
     app.models = this._loadElements(app.constants.modelsPath);
 
@@ -100,18 +110,47 @@ WaferPie.prototype.setUp = function (appName) {
     }
 
     this._loadAllConfigJSONFiles(app, app.constants.configPath);
-
     this._validateCoreFile(app.core);
-
     this._applications[appName] = app;
-
     this.ExceptionsController = require('./Controller/Exceptions.js');
-    var Controller, instance, methodsLength, methodName, j;
-    var methods = ['before', 'after', 'put', 'delete', 'get', 'post', 'options', 'head', 'path'];
 
-    for (name in app.controllers) {
-        if (app.controllers.hasOwnProperty(name)) {
-            Controller = app.controllers[name];
+    this._validateControllers(app.controllers);
+    this._validateControllers(app.filters);
+    this._validateComponents(app.components);
+    this._validateModels(app.models);
+};
+
+WaferPie.prototype._validateModels = function (models) {
+    var Model, name;
+    for (name in models) {
+        if (models.hasOwnProperty(name)) {
+            Model = models[name];
+            if (!(Model instanceof Function)) {
+                throw new exceptions.Fatal('Model does not export a function: ' + name);
+            }
+        }
+    }
+};
+
+WaferPie.prototype._validateComponents = function (components) {
+    var name, Component;
+    for (name in components) {
+        if (components.hasOwnProperty(name)) {
+            Component = components[name];
+            if (!(Component instanceof Function)) {
+                throw new exceptions.Fatal('Component does not export a function: ' + name);
+            }
+        }
+    }
+};
+
+WaferPie.prototype._validateControllers = function (controllers) {
+    var methods, name, Controller, instance, methodsLength, methodName, j;
+    methods = ['before', 'after', 'put', 'delete', 'get', 'post', 'options', 'head', 'path'];
+
+    for (name in controllers) {
+        if (controllers.hasOwnProperty(name)) {
+            Controller = controllers[name];
             if (!(Controller instanceof Function)) {
                 throw new exceptions.Fatal('Controller does not export a function: ' + name);
             }
@@ -124,26 +163,6 @@ WaferPie.prototype.setUp = function (appName) {
                         throw new exceptions.Fatal(name + '.' + methodName + '() must be a function!');
                     }
                 }
-            }
-        }
-    }
-    // Validate the components format
-    var Component;
-    for (name in app.components) {
-        if (app.components.hasOwnProperty(name)) {
-            Component = app.components[name];
-            if (!(Component instanceof Function)) {
-                throw new exceptions.Fatal('Component does not export a function: ' + name);
-            }
-        }
-    }
-    // Validate the models format
-    var Model;
-    for (name in app.models) {
-        if (app.models.hasOwnProperty(name)) {
-            Model = app.models[name];
-            if (!(Model instanceof Function)) {
-                throw new exceptions.Fatal('Model does not export a function: ' + name);
             }
         }
     }

@@ -78,14 +78,14 @@ ElementFactory.prototype.create = function (type, elementName, params) {
 
     elementInstance.name = elementName;
     elementInstance.constants = this._application.constants;
-    elementInstance.model = function (modelName) {
-        var instance = $this.create('model', modelName);
+    elementInstance.model = function (modelName, params) {
+        var instance = $this.create('model', modelName, params);
         $this.init(instance);
         return instance;
     };
     elementInstance.component = function (componentName, params) {
         var instance = $this.create('component', componentName, params);
-        $this.init(componentName);
+        $this.init(instance);
         return instance;
     };
     elementInstance.core = this._application.core;

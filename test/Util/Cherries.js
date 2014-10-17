@@ -22,5 +22,24 @@ describe('Cherries.js', function () {
         });
     });
 
+    describe('copy', function () {
+
+        it('should perform a deep copy of a json object removing unserializable properties', function () {
+            var toCopy, copy;
+            toCopy = {
+                'a' : [1, 'one'],
+                'b' : ['two', 2],
+                'c' : function () {
+                    return 'three';
+                }
+            };
+            copy = instance.copy(toCopy);
+            expect(copy.a).to.be.an('array');
+            expect(copy.b[0]).to.be('two');
+            expect(copy.c).not.to.be.ok();
+            expect(copy.a !== toCopy.a).to.be(true);
+            expect(copy.b !== toCopy.b).to.be(true);
+        });
+    });
 
 });

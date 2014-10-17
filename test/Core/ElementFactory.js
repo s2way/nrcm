@@ -37,7 +37,6 @@ describe('ElementFactory.js', function () {
                         this.init = function () {
                             done();
                         };
-                        return;
                     }
                 },
                 'logger' : logger,
@@ -45,6 +44,25 @@ describe('ElementFactory.js', function () {
             });
             componentInstance = factory.create('component', 'MyComponent');
             factory.init(componentInstance);
+        });
+
+        it('should call the init method if the component() method is used to retrieve AnotherComponent', function (done) {
+            factory = new ElementFactory(logger, {
+                'components' : {
+                    'MyComponent' : function () {
+                        return;
+                    },
+                    'AnotherComponent' : function () {
+                        this.init = function () {
+                            done();
+                        };
+                    }
+                },
+                'logger' : logger,
+                'constants' : { }
+            });
+            componentInstance = factory.create('component', 'MyComponent');
+            componentInstance.component('AnotherComponent');
         });
 
     });

@@ -15,11 +15,13 @@ describe('WaferPie.js', function () {
         fs.rmdirSync(path.join(dir, 'src', 'Controller'));
         fs.unlinkSync(path.join(dir, 'src', 'Config', 'core.json'));
         fs.rmdirSync(path.join(dir, 'src', 'Config'));
+        fs.rmdirSync(path.join(dir, 'src', 'Filter'));
         fs.rmdirSync(path.join(dir, 'src', 'Model'));
         fs.rmdirSync(path.join(dir, 'src'));
 
         fs.rmdirSync(path.join(dir, 'test', 'Component'));
         fs.rmdirSync(path.join(dir, 'test', 'Controller'));
+        fs.rmdirSync(path.join(dir, 'test', 'Filter'));
         fs.rmdirSync(path.join(dir, 'test', 'Model'));
         fs.rmdirSync(path.join(dir, 'test'));
 
@@ -34,6 +36,7 @@ describe('WaferPie.js', function () {
     beforeEach(function () {
         wafer = new WaferPie();
         wafer.logger = {
+            'log' : function () { return; },
             'info' : function () { return; },
             'debug' : function () { return; }
         };
@@ -126,9 +129,11 @@ describe('WaferPie.js', function () {
         assert.equal(true, fs.existsSync(path.join('testing2', 'src', 'Controller')));
         assert.equal(true, fs.existsSync(path.join('testing2', 'src', 'Component')));
         assert.equal(true, fs.existsSync(path.join('testing2', 'src', 'Config', 'core.json')));
+        assert.equal(true, fs.existsSync(path.join('testing2', 'src', 'Filter')));
         assert.equal(true, fs.existsSync(path.join('testing2', 'src', 'Model')));
         assert.equal(true, fs.existsSync(path.join('testing2', 'test', 'Controller')));
         assert.equal(true, fs.existsSync(path.join('testing2', 'test', 'Component')));
+        assert.equal(true, fs.existsSync(path.join('testing2', 'test', 'Filter')));
         assert.equal(true, fs.existsSync(path.join('testing2', 'test', 'Model')));
         assert.equal(true, fs.existsSync(path.join('Exceptions.js')));
         clearStructure('testing2');
