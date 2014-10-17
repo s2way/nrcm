@@ -1,4 +1,4 @@
-var WaferPie = require('./src/WaferPie');
+var WaferPie = require('../server/src/WaferPie');
 var wafer = new WaferPie();
 wafer.configure('config.json');
 wafer.setUp('sample');

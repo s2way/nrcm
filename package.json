@@ -16,7 +16,7 @@
     "view",
     "controller"
   ],
-  "main": "./src/WaferPie.js",
+  "main": "./server/src/WaferPie.js",
   "license": "Apache2",
   "name": "waferpie",
   "dependencies": {
@@ -53,9 +53,9 @@
   },
   "version": "0.7.0",
   "scripts": {
-    "pretest": "jslint --node --vars --devel --nomen --stupid --indent 4 --maxlen 2048 `find src test -regex '.*\\.js$' -type f | tr '\\n' ' '`",
-    "test": "mocha test --recursive -R spec && mocha test --recursive -r blanket -R html-cov > report.html",
-    "posttest": "mocha test --recursive -r blanket -R travis-cov"
+    "pretest": "jslint --node --vars --devel --nomen --stupid --indent 4 --maxlen 2048 `find server -regex '.*\\.js$' -type f | tr '\\n' ' '`",
+    "test": "mocha server/test --recursive -R spec && mocha server/test --recursive -r blanket -R html-cov > report.html",
+    "posttest": "mocha server/test --recursive -r blanket -R travis-cov"
   },
   "contributors": [
     {
@@ -69,11 +69,11 @@
   ],
   "readme": "Please reade the README.md file.",
   "readmeFilename": "README.md",
-  "_id": "waferpie@0.7.0",
+  "_id": "waferpie@0.8.0",
   "_from": "waferpie@",
   "config": {
     "blanket": {
-      "pattern": "waferpie/src",
+      "pattern": "server/src",
       "data-cover-never": "node_modules"
     },
     "travis-cov": {

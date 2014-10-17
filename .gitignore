@@ -1,15 +1,15 @@
 *.bat
-report.html
-app
-config.json
-index.js
 node_modules/**
 lint.out
 testing*
 *.log
 *.swp
-/Exceptions.js
+
+docs/sample/Exceptions.js
+docs/sample/config.json
 report.html
 
 .idea/workspace.xml
 .idea/dictionaries
+
+dist

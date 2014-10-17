@@ -1,5 +1,0 @@
-var WaferPie = require('waferpie');
-var wafer = new WaferPie();
-wafer.configure('config.json');
-wafer.setUp('app');
-wafer.start('0.0.0.0', 3333);

@@ -25,7 +25,7 @@ var RequestHandler = require('./Controller/RequestHandler');
 var os = require('os');
 
 function WaferPie() {
-    this._version = require('./../package.json').version;
+    this._version = require('./../../package.json').version;
     this._applications = {};
     this._configured = false;
     this._configs = {
