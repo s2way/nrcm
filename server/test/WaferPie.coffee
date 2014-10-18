@@ -48,7 +48,7 @@ describe 'WaferPie.js', ->
     describe 'configure', ->
 
         it 'should load the configs without throwing an exception', ->
-            configFileName = 'config_test.json'
+            configFileName = 'invalid_config.json'
             sync.createFileIfNotExists(configFileName, '{ "urlFormat": "/$application/$controller" }')
             wafer.configure configFileName
             fs.unlinkSync(configFileName)

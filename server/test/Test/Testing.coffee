@@ -1,182 +1,294 @@
-Sync = require("./../../src/Util/Sync")
 assert = require("assert")
-fs = require("fs")
+Testing = require("../../src/Test/Testing")
+RequestHandler = require("../../src/Controller/RequestHandler")
+expect = require("expect.js")
 path = require("path")
 
-describe "Sync.js", ->
-    describe "isFile", ->
-        it "should return false if the file does not exist or if it exists but it is not a file", ->
-            assert.equal false, Sync.isFile("/this/path/must/not/exist/please")
+describe "Testing", ->
 
-        it "should return true if the file exists", ->
-            Sync.createFileIfNotExists "here.json", "{}"
-            assert.equal true, Sync.isFile("here.json")
-            fs.unlinkSync "here.json"
+    testing = null
+    payload = null
+    query = null
+    segments = null
 
+    RequestHandler::log = ->
 
-    describe "copyIfNotExists", ->
-        it "should copy the file if it does not exist", ->
-            Sync.createFileIfNotExists "here.json", "{}"
-            Sync.copyIfNotExists "here.json", "there.json"
-            assert.equal "{}", JSON.stringify(Sync.fileToJSON("there.json"))
-            fs.unlinkSync "here.json"
-            fs.unlinkSync "there.json"
+    testing = null
+    payload =
+        this: "is"
+        a: "payload"
 
-        it "should return false if the file exists", ->
-            Sync.createFileIfNotExists "here.json", "{}"
-            assert.equal false, Sync.copyIfNotExists("here.json", "here.json")
-            fs.unlinkSync "here.json"
+    query =
+        this: "is"
+        a: "query string"
 
-        it "should throw a Fatal exception if it is not a file", ->
-            Sync.createDirIfNotExists "here"
-            try
-                assert.equal false, Sync.copyIfNotExists("here", "here")
-                assert.fail()
-            catch _error
-                e = _error
-                assert.equal "Fatal", e.name
-            fs.rmdirSync "here"
+    segments = [
+        "action"
+        "subaction"
+    ]
 
+    beforeEach ->
+        testing = new Testing("app")
+        testing._exists = (filePath) ->
+            filePath.indexOf("InvalidComponent") is -1
 
-    describe "copy", ->
-        it "should copy the file Synchronously", ->
-            Sync.createFileIfNotExists "here.json", "{}"
-            Sync.copy "here.json", "there.json"
-            assert.equal "{}", JSON.stringify(Sync.fileToJSON("there.json"))
-            fs.unlinkSync "here.json"
-            fs.unlinkSync "there.json"
+        testing._require = (filePath) ->
+            if filePath is path.join("app", "src", "Controller", "MyController") or filePath is path.join("app", "src", "Controller", "Remote", "MyController")
+                return ->
+                    @post = (callback) ->
+                        callback
+                            payload: @payload
+                            query: @query
+                            segments: @segments
 
+                        return
 
-    describe "loadNodeFilesIntoArray", ->
-        it "should throw a Fatal exception if the param is not an array", ->
-            try
-                Sync.loadNodeFilesIntoArray()
-                return assert.fail()
-            catch _error
-                e = _error
-                return assert.equal("Fatal", e.name)
-            return
+                    @put = (callback) ->
+                        model = @model("MyModel")
+                        model.myModelMethod callback
+                        return
 
-        it "should the node files into an array", ->
-            files =
-                file0: "file0.js"
-                file1: "file1.js"
-                file2: "file2.js"
+                    this["delete"] = (callback) ->
+                        model = @model("MyModel")
+                        callback model.mockedMethod()
+                        return
 
-            try
-                for file of files
-                    if files.hasOwnProperty(file)
-                        fileName = files[file]
-                        Sync.createFileIfNotExists fileName, "module.exports = { };"
-                filesJSON = Sync.loadNodeFilesIntoArray(files)
-            finally
-                for file of files
-                    if files.hasOwnProperty(file)
-                        fileName = files[file]
-                        fs.unlinkSync fileName
-            for fileId of filesJSON
-                assert.equal JSON.stringify({}), JSON.stringify(filesJSON[fileId])    if filesJSON.hasOwnProperty(fileId)
-            return
+                    @get = (callback) ->
+                        component = @component("MyComponent")
+                        callback component.mockedMethod()
+                        return
 
-        return
+                    return
+            if filePath is path.join("app", "src", "Model", "MyModel") or filePath is path.join("app", "src", "Model", "Remote", "MyModel")
+                return ->
+                    @type = "something"
+                    @myModelMethod = (callback) ->
+                        callback {}
+                        return
 
-    describe "fileToJSON", ->
-        it "should return a valid JSON if the input file is a valid JSON file", ->
-            json =
-                prop: "value"
-                anotherProp: "anotherValue"
-
-            fileName = "fileToJSON.js"
-            fs.writeFileSync fileName, JSON.stringify(json)
-            assert.equal JSON.stringify(json), JSON.stringify(Sync.fileToJSON(fileName))
-            fs.unlinkSync fileName
-            return
+                    return
+            if filePath is path.join("app", "src", "Model", "AnotherModel")
+                return ->
+                    @type = "something-else"
+                    return
+            if filePath is path.join("app", "src", "Component", "MyComponent") or filePath is path.join("app", "src", "Component", "Remote", "MyComponent")
+                return ->
+                    return
+            if filePath is path.join("app", "src", "Component", "AnotherComponent")
+                return ->
+                    return
+            null
 
         return
 
-    describe "createDirIfNotExists", ->
-        it "create the directory if it does not exists", ->
-            dir = "path"
-            Sync.createDirIfNotExists dir
-            assert.equal true, fs.existsSync(dir)
-            fs.rmdirSync dir
-            return
+    describe "createModel", ->
+        it "should throw a ModelNotFound exception if the model does not exist", ->
+            expect(->
+                testing._exists = ->
+                    false
 
-        it "should work when called twice", ->
-            dir = "path"
-            Sync.createDirIfNotExists dir
-            Sync.createDirIfNotExists dir
-            assert.equal true, fs.existsSync(dir)
-            fs.rmdirSync dir
-            return
-
-        return
-
-    describe "createFileIfNotExists", ->
-        it "create the file if it does not exists", ->
-            dir = "file.txt"
-            Sync.createFileIfNotExists dir
-            assert.equal true, fs.existsSync(dir)
-            fs.unlinkSync dir
-            return
-
-        it "should work when called twice", ->
-            dir = "file.txt"
-            Sync.createFileIfNotExists dir
-            Sync.createFileIfNotExists dir
-            assert.equal true, fs.existsSync(dir)
-            fs.unlinkSync dir
-            return
-
-        it "should throw and exception if the file is a directory", ->
-            dir = "file"
-            fs.mkdirSync dir, parseInt("0777", 8)
-            try
-                Sync.createFileIfNotExists dir
-            catch _error
-                e = _error
-                assert.equal "Fatal", e.name
+                testing.createModel "InvalidModel"
                 return
-            finally
-                fs.rmdirSync dir
-            assert.fail()
+            ).to.throwException (e) ->
+                expect(e.name).to.be "ModelNotFound"
+                return
+
+            return
+
+        it "should return the instance of a model", ->
+            assert.equal "MyModel", testing.createModel("MyModel").name
+            return
+
+        it "should return the model and then it should be possible to access MyComponent", ->
+            myModel = testing.createModel("MyModel")
+            testing.loadComponent "MyComponent"
+            assert.equal "MyComponent", myModel.component("MyComponent").name
+            return
+
+        it "should return the model and then it should be possible to access AnotherModel", ->
+            myModel = testing.createModel("MyModel")
+            testing.loadModel "AnotherModel"
+            assert.equal "AnotherModel", myModel.model("AnotherModel").name
+            return
+
+        it "should be able to load sub models", ->
+            myModel = testing.createModel("Remote.MyModel")
+            expect(myModel.name).to.be "Remote.MyModel"
             return
 
         return
 
-    describe "listFilesFromDirRecursive", ->
-        it "should return a list of files separated by / when the dir is valid and there are files and folders", ->
-            fs.mkdirSync "dir", parseInt("0777", 8)
-            fs.mkdirSync "dir/sub", parseInt("0777", 8)
-            files = [
-                path.join("dir", "1.txt")
-                path.join("dir", "2.txt")
-                path.join("dir", "3.txt")
-                path.join("dir", "sub", "4.txt")
-            ]
-            i = 0
-            while i < files.length
-                fs.writeFileSync files[i], ""
-                i += 1
-            try
-                list = Sync.listFilesFromDir("dir")
-            finally
-                i = 0
-                while i < files.length
-                    fs.unlinkSync files[i]
-                    i += 1
-                fs.rmdirSync path.join("dir", "sub")
-                fs.rmdirSync "dir"
-            assert.equal JSON.stringify(files), JSON.stringify(list)
+    describe "createComponent", ->
+        it "should throw a ComponentNotFound exception if the model does not exist", ->
+            testing._exists = ->
+                false
+
+            expect(->
+                testing.createComponent "InvalidModel"
+                return
+            ).to.throwException (e) ->
+                expect(e.name).to.be "ComponentNotFound"
+                return
+
             return
 
-        it "should return an empty list when the dir is empty", ->
-            dir = "dir"
+        it "should return the instance of a component", ->
+            assert.equal "MyComponent", testing.createComponent("MyComponent").name
+            return
+
+        it "should return the component and then it should be possible to access AnotherComponent", ->
+            myComponent = testing.createComponent("MyComponent")
+            testing.loadComponent "AnotherComponent"
+            assert.equal "AnotherComponent", myComponent.component("AnotherComponent").name
+            return
+
+        it "should be able to load sub components", ->
+            myComponent = testing.createComponent("Remote.MyComponent")
+            expect(myComponent.name).to.be "Remote.MyComponent"
+            return
+
+        return
+
+    describe "loadComponent", ->
+        it "should throw an exception if the component cannot be found", ->
             try
-                fs.mkdirSync dir, parseInt("0777", 8)
-                assert.equal "[]", JSON.stringify(Sync.listFilesFromDir(dir))
-            finally
-                fs.rmdirSync dir
+                testing._exists = ->
+                    false
+
+                testing.loadComponent "InvalidComponent"
+                expect.fail()
+            catch e
+                expect(e.name).to.be.equal "ComponentNotFound"
+            return
+
+        it "should be able to retrieve builtin components, like QueryBuilder", ->
+            testing._exists = (filePath) ->
+                filePath.indexOf("QueryBuilder.js") isnt -1
+
+            testing._require = ->
+                require "../../src/Component/Builtin/QueryBuilder"
+
+            name = "QueryBuilder"
+            testing.loadComponent name
+            queryBuilder = testing.components[name]
+            expect(queryBuilder).to.be.a "function"
+            return
+
+        return
+
+    describe "mockConfigs", ->
+        beforeEach ->
+            testing.mockConfigs file:
+                prop: "value"
+
+            return
+
+        it "should inject the JSON into the models", ->
+            model = testing.createModel("MyModel")
+            expect(model.configs.file.prop).to.be "value"
+            return
+
+        it "should inject the JSON into the components", ->
+            component = testing.createComponent("MyComponent")
+            expect(component.configs.file.prop).to.be "value"
+            return
+
+        return
+
+    describe "callController", ->
+        it "should mock the Model methods passed to mockModel when callController is called", (done) ->
+            dummy = a: "json"
+            testing.mockModel "MyModel",
+                mockedMethod: ->
+                    dummy
+
+            testing.callController "MyController", "delete", {}, (response) ->
+                assert.equal JSON.stringify(dummy), JSON.stringify(response)
+                done()
+                return
+
+            return
+
+        it "should mock the Component methods passed to mockComponent when callController is called", (done) ->
+            dummy = a: "json"
+            testing.mockComponent "MyComponent",
+                mockedMethod: ->
+                    dummy
+
+            testing.callController "MyController", "get", {}, (response) ->
+                assert.equal JSON.stringify(dummy), JSON.stringify(response)
+                done()
+                return
+
+            return
+
+        it "should call the controller method", (done) ->
+            testing.callController "MyController", "post",
+                payload: payload
+                query: query
+            , (response) ->
+                assert.equal JSON.stringify(payload), JSON.stringify(response.payload)
+                assert.equal JSON.stringify(query), JSON.stringify(response.query)
+                done()
+                return
+
+            return
+
+        it "should call the controller method passing the URL segments", (done) ->
+            testing.callController "MyController", "post",
+                segments: segments
+            , (response) ->
+                assert.equal JSON.stringify(segments), JSON.stringify(response.segments)
+                done()
+                return
+
+            return
+
+        it "should pass the status code, headers and content type to the callback function", (done) ->
+            testing.callController "MyController", "post", {}, (response, info) ->
+                assert response
+                assert.equal 200, info.statusCode
+                assert.equal "application/json", info.contentType
+                assert.equal "object", typeof info.headers
+                done()
+                return
+
+            return
+
+        it "should pass the options.prefixes to the controller.prefixes", (done) ->
+            testing._require = (filePath) ->
+                if filePath is path.join("app", "src", "Controller", "MyController")
+                    ->
+                        @get = (callback) ->
+                            callback @prefixes
+                            return
+
+                        return
+
+            testing.callController "MyController", "get",
+                prefixes:
+                    p1: "v1"
+            , (response) ->
+                expect(response.p1).to.be "v1"
+                done()
+                return
+
+            return
+
+        it "should set the payload to null if it is not passed", (done) ->
+            testing.loadComponent "MyComponent"
+            testing.callController "MyController", "post", {}, (response) ->
+                expect(response.payload).to.be null
+                done()
+                return
+
+            return
+
+        it "should be able to call sub controllers", (done) ->
+            testing.callController "Remote.MyController", "post", {}, ->
+                done()
+                return
+
             return
 
         return

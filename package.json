@@ -58,8 +58,8 @@
   "version": "0.8.0",
   "scripts": {
     "pretest": "jslint --node --vars --devel --nomen --stupid --indent 4 --maxlen 2048 `find server -regex '.*\\.js$' -type f | tr '\\n' ' '`",
-    "test": "mocha server/test --recursive -R spec && mocha server/test --recursive -r blanket -R html-cov > report.html",
-    "posttest": "mocha server/test --recursive -r blanket -R travis-cov"
+    "test": "mocha server/test --recursive -R progress -r blanket --compilers coffee:coffee-script/register ; mocha server/test --recursive -R html-cov -r blanket --compilers coffee:coffee-script/register > report.html",
+    "posttest": "mocha server/test --recursive -r blanket -R travis-cov --compilers coffee:coffee-script/register"
   },
   "contributors": [
     {
@@ -79,7 +79,7 @@
     "blanket": {
         "loader": "./node-loaders/coffee-script",
         "pattern": "server/src",
-      "data-cover-never": "node_modules"
+        "data-cover-never": "node_modules"
     },
     "travis-cov": {
       "threshold": 95,
