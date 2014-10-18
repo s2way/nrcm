@@ -67,13 +67,13 @@ Validator.prototype._validate = function (data, validatedFields, fieldErrors, va
     for (n in validate) {
         if (validate.hasOwnProperty(n)) {
             if (typeof validate[n] === 'function') {
-                validate[n](data[n], originalData, validateFunctionCallback);
+                validate[n](data === undefined ? undefined : data[n], originalData, validateFunctionCallback);
             } else {
                 if (fieldErrors[n] === undefined) {
                     fieldErrors[n] = {};
                 }
                 if (validate[n] !== undefined) {
-                    this._validate(data[n], validatedFields, fieldErrors[n], validate[n], originalData);
+                    this._validate(data === undefined ? undefined : data[n], validatedFields, fieldErrors[n], validate[n], originalData);
                 }
             }
         }
