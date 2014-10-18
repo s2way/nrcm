@@ -5,13 +5,26 @@ module.exports = function (grunt) {
     // Load grunt tasks automatically
     require('load-grunt-tasks')(grunt);
 
-    var jslintCommand = "jslint --node --vars --devel --nomen --stupid --indent 4 --maxlen 2048 `find server -regex '.*\\.js$' -type f | tr '\\n' ' '` > lint.out || (cat lint.out && exit 1)";
+    var lint = '', build = '', clean = '', test = '';
+
+    clean += 'rm -rf dist';
+    lint += "jslint --node --vars --devel --nomen --stupid --indent 4 --maxlen 2048 `find server -regex '.*\\.js$' -type f | tr '\\n' ' '` > lint.out || (cat lint.out && exit 1) ;";
+    lint += "coffeelint server";
+
+    build += 'mkdir -p dist ; ';
+    build += '(cp -r server/* dist/ && find dist -type f ! -iname "*.js" -delete) ; ';
+    build += 'coffee --compile --output dist server';
+
+    test += 'mocha server/test --recursive -R progress ; ';
+    test += 'mocha server/test/**/*.coffee --recursive --compilers coffee:coffee-script/register -R progress'
 
     // Define the configuration for all the tasks
     grunt.initConfig({
         exec: {
-            'jslint' : jslintCommand,
-            'test': 'mocha server/test --recursive -R progress',
+            'clean' : clean,
+            'lint' : lint,
+            'build': build,
+            'test': test,
             'html-cov': 'mocha server/test --recursive -r blanket -R html-cov > report.html',
             'travis-cov': 'mocha server/test --recursive -r blanket -R travis-cov '
         },
@@ -33,7 +46,9 @@ module.exports = function (grunt) {
             'watch'
         ]);
     });
-    grunt.registerTask('lint', 'JSLint', 'exec:jslint');
+    grunt.registerTask('lint', 'Linting...', 'exec:lint');
     grunt.registerTask('test', 'Testing...', 'exec');
+    grunt.registerTask('build', 'Building...', 'exec:build');
+    grunt.registerTask('clean', 'Cleaning...', 'exec:clean');
 
 };

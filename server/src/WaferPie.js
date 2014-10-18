@@ -16,6 +16,10 @@
 /*jslint devel: true, node: true, indent: 4, vars: true, maxlen: 256 */
 /*globals __dirname*/
 'use strict';
+
+require('coffee-script/register');
+require('better-require')();
+
 var path = require('path');
 var http = require('http');
 var exceptions = require('./exceptions');
@@ -25,7 +29,7 @@ var RequestHandler = require('./Controller/RequestHandler');
 var os = require('os');
 
 function WaferPie() {
-    this._version = require('./../../package.json').version;
+    this._version = '0.8.0';
     this._applications = {};
     this._configured = false;
     this._configs = {
@@ -229,16 +233,16 @@ WaferPie.prototype._validateCoreFile = function (core) {
  * data sources, etc...
  *
  * @method configure
- * @param {string} configJSONFile The file name that contains your configuration object
+ * @param {string} configFile The file name that contains your configuration object
  */
-WaferPie.prototype.configure = function (configJSONFile) {
-    if (configJSONFile) {
+WaferPie.prototype.configure = function (configFile) {
+    if (configFile) {
         try {
-            this._configs = Sync.fileToJSON(configJSONFile);
+            this._configs = require(path.resolve('./' + configFile));
         } catch (e) {
-            throw new exceptions.Fatal('Configuration file is not a valid JSON', e);
+            throw new exceptions.Fatal('Configuration file is not a valid configuration file', e);
         }
-        if ((typeof this._configs.urlFormat) !== 'string') {
+        if (typeof this._configs.urlFormat !== 'string') {
             throw new exceptions.Fatal('urlFormat has not been specified or it is not a string');
         }
     }

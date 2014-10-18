@@ -1,6 +1,6 @@
 /*jslint devel: true, node: true, indent: 4, vars: true, maxlen: 256 */
 'use strict';
-var exceptions = require('./../../exceptions');
+var exceptions = require('./../../exceptions.coffee');
 
 /**
  * @param {object} acl The ACL JSON Object that contains the privileges for groups and controllers
