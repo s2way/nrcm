@@ -38,7 +38,7 @@ Execute the triggers, if the operation fails it will not execute the after trigg
 ModelTrigger::execute = ->
     that = this
     @before (continueOperation) ->
-        if continueOperation is `undefined` or not continueOperation
+        if continueOperation is undefined or not continueOperation
             that.callback new Exceptions.OperationInterrupted()
         else
             that.operation (err, result) ->

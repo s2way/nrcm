@@ -47,9 +47,9 @@ ElementFactory::create = (type, elementName, params) ->
     alreadyInstantiated = undefined
     ElementConstructor = undefined
     elementInstance = undefined
-    if type is "model" and @_application.models[elementName] isnt `undefined`
+    if type is "model" and @_application.models[elementName] isnt undefined
         ElementConstructor = @_application.models[elementName]
-    else if type is "component" and @_application.components[elementName] isnt `undefined`
+    else if type is "component" and @_application.components[elementName] isnt undefined
         ElementConstructor = @_application.components[elementName]
     else
         @log "[" + elementName + "] Component not found"
@@ -58,7 +58,7 @@ ElementFactory::create = (type, elementName, params) ->
     elementInstance = new ElementConstructor(params)
     if type is "component"
         if elementInstance.singleInstance is true
-            alreadyInstantiated = @_staticComponents[elementName] isnt `undefined`
+            alreadyInstantiated = @_staticComponents[elementName] isnt undefined
             if alreadyInstantiated
                 @log "[" + elementName + "] Recycling component"
                 return @_staticComponents[elementName]

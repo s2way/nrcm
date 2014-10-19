@@ -1,14 +1,9 @@
 Exceptions = require("../../Util/Exceptions")
 
-###*
-The validator object
-
-@constructor
-@method Validator
-@param {object} params Must contain the validation rules (validate property) and may contain the timeout (in millis)
-###
-
 class Validator
+    # @constructor
+    # @method Validator
+    # @param {object} params Must contain the validation rules (validate property) and may contain the timeout (in millis)
     constructor: (params) ->
         params = params or {}
         @_timeout = params.timeout or 10000
@@ -32,9 +27,9 @@ class Validator
         for key of validate
             if validate.hasOwnProperty(key)
                 if typeof validate[key] isnt "object" or validate[key] instanceof Array
-                    return false  if fieldErrors[key] is `undefined`
+                    return false  if fieldErrors[key] is undefined
                 else
-                    fieldErrors[key] = {}  if fieldErrors[key] is `undefined`
+                    fieldErrors[key] = {}  if fieldErrors[key] is undefined
                     return false  unless @_hasValidatedAllFields(fieldErrors[key], validate[key])
         true
 
@@ -49,20 +44,18 @@ class Validator
         for n of validate
             if validate.hasOwnProperty(n)
                 if typeof validate[n] is "function"
-                    validate[n] (if data is `undefined` then `undefined` else data[n]), originalData, validateFunctionCallback
+                    validate[n] (if data is undefined then undefined else data[n]), originalData, validateFunctionCallback
                 else
-                    fieldErrors[n] = {}  if fieldErrors[n] is `undefined`
-                    @_validate (if data is `undefined` then `undefined` else data[n]), validatedFields, fieldErrors[n], validate[n], originalData  if validate[n] isnt `undefined`
+                    fieldErrors[n] = {}  if fieldErrors[n] is undefined
+                    if validate[n] isnt undefined
+                        @_validate (if data is undefined then undefined else data[n]), validatedFields, fieldErrors[n], validate[n], originalData
         return
 
 
-    ###*
-    Validate all properties of a json
-
-    @method validate
-    @param {object} data The json object to be validated
-    @param {function} callback
-    ###
+    # Validate all properties of a json
+    # @method validate
+    # @param {object} data The json object to be validated
+    # @param {function} callback
     validate: (data, callback) ->
         validate = @_rules
         fieldErrors = {}
@@ -106,7 +99,7 @@ class Validator
     _matchAgainst: (data, level, validate) ->
         n = undefined
         test = undefined
-        if level is `undefined`
+        if level is undefined
             level = 1
             validate = @_rules
         else
@@ -117,7 +110,7 @@ class Validator
             if data.hasOwnProperty(n)
 
                 # schema for this field was not set, block
-                if validate[n] is `undefined`
+                if validate[n] is undefined
                     return (
                         field: n
                         level: level
@@ -132,7 +125,7 @@ class Validator
         # check for required fields
         for n of validate
             if validate.hasOwnProperty(n)
-                if validate[n] is true and data[n] is `undefined`
+                if validate[n] is true and data[n] is undefined
 
                     # required field not present
                     return (
@@ -144,7 +137,7 @@ class Validator
 
     _isJSONValid: (jsonOb) ->
         newJSON = undefined
-        return false  if jsonOb is `undefined` or jsonOb is null
+        return false  if jsonOb is undefined or jsonOb is null
         try
             newJSON = JSON.parse(JSON.stringify(jsonOb))
         catch e

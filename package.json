@@ -54,10 +54,10 @@
     "type": "git",
     "url": "http://github.com/s2way/waferpie.git"
   },
-  "version": "0.8.0",
+  "version": "0.8.1",
   "scripts": {
     "postinstall" : "rm -rf dist ; mkdir -p dist ; (cp -r server/* dist/ && find dist -type f ! -iname '*.js' -delete) ; coffee --compile --output dist server",
-    "pretest": "jslint --node --vars --devel --nomen --stupid --indent 4 --maxlen 2048 `find server -regex '.*\\.js$' -type f | tr '\\n' ' '`",
+    "pretest": "coffeelint server",
     "test": "mocha server/test --recursive -R progress -r blanket --compilers coffee:coffee-script/register ; mocha server/test --recursive -R html-cov -r blanket --compilers coffee:coffee-script/register > report.html",
     "posttest": "mocha server/test --recursive -r blanket -R travis-cov --compilers coffee:coffee-script/register"
   },
@@ -73,7 +73,7 @@
   ],
   "readme": "Please reade the README.md file.",
   "readmeFilename": "README.md",
-  "_id": "waferpie@0.8.0",
+  "_id": "waferpie@0.8.1",
   "_from": "waferpie@",
   "config": {
     "blanket": {

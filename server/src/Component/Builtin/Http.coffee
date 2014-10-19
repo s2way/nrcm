@@ -32,8 +32,11 @@ class Http
 
     # Perform a PUT request
     # @param {string} resource URL resource (must start with /)
-    # @param {object} options Object that may contain a payload property (will be sent urlencoded if the contentType is application/x-www-form-urlencoded) and the query property (query string that will be appended to the resource)
-    # @param {function} callback Function that will be called after completion. Two parameters are passed, error and response.
+    # @param {object} options Object that may contain a payload property
+    #   (will be sent urlencoded if the contentType is application/x-www-form-urlencoded)
+    #   and the query property (query string that will be appended to the resource)
+    # @param {function} callback Function that will be called after completion.
+    #   Two parameters are passed, error and response.
     put: (resource, options, callback) ->
         options.method = "put"
         options.resource = resource
@@ -42,7 +45,8 @@ class Http
     # Perform a POST request
     # @param {string} resource URL resource (must start with /)
     # @param {object} options
-    # @param {function} callback Function that will be called after completion. Two parameters are passed, error and response.
+    # @param {function} callback Function that will be called after completion.
+    #   Two parameters are passed, error and response.
     post: (resource, options, callback) ->
         options.method = "post"
         options.resource = resource
@@ -52,7 +56,8 @@ class Http
     # Perform a DELETE request
     # @param {string} resource URL resource (must start with /)
     # @param {object} options
-    # @param {function} callback Function that will be called after completion. Two parameters are passed, error and response.
+    # @param {function} callback Function that will be called after completion.
+    #   Two parameters are passed, error and response.
 
     delete: (resource, options, callback) ->
         options.method = "delete"
@@ -151,7 +156,7 @@ class Http
                 else
                     responseObject = responseBody
                 isRedirect = response.statusCode >= 300 and response.statusCode < 400
-                locationHeader = (if response.headers.location isnt `undefined` then response.headers.location else false)
+                locationHeader = (if response.headers.location isnt undefined then response.headers.location else false)
                 if isRedirect and locationHeader
                     if redirectCounter > $this._maxRedirects
                         callback name: "TooManyRedirects"

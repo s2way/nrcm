@@ -40,7 +40,7 @@ describe "RequestHandler.js", ->
         @onGeneral = (callback, exception) ->
             controlVars.exception = exception.name
             @statusCode = 500
-            console.log exception.stack    if exception.stack isnt `undefined`
+            console.log exception.stack    if exception.stack isnt undefined
             callback
                 name: "General"
                 cause: exception
@@ -408,7 +408,7 @@ describe "RequestHandler.js", ->
                     @post = (callback) ->
                         myComponent = @component("MyComponent")
                         myComponent.method callback
-                        assert myComponent.component("MyComponent") isnt `undefined`
+                        assert myComponent.component("MyComponent") isnt undefined
                         return
 
                     return
@@ -475,10 +475,10 @@ describe "RequestHandler.js", ->
                         return
 
                     @after = (callback) ->
-                        assert.equal true, @query isnt `undefined`
-                        assert.equal true, @payload isnt `undefined`
-                        assert.equal true, @segments isnt `undefined`
-                        assert.equal true, @name isnt `undefined`
+                        assert.equal true, @query isnt undefined
+                        assert.equal true, @payload isnt undefined
+                        assert.equal true, @segments isnt undefined
+                        assert.equal true, @name isnt undefined
                         assert.equal true, typeof @component is "function"
                         assert.equal JSON.stringify(expectedRequestHeaders), JSON.stringify(@requestHeaders)
                         assert.equal JSON.stringify(expectedResponseHeaders), JSON.stringify(@responseHeaders)

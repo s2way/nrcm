@@ -48,7 +48,7 @@ RequestHandler::process = (request, response) ->
         @appName = decomposedURL.application
         if type isnt "root"
             @application = (if @appName then @applications[@appName] else null)
-            throw new Exceptions.ApplicationNotFound(@appName)  if @applications[@appName] is `undefined`
+            throw new Exceptions.ApplicationNotFound(@appName)  if @applications[@appName] is undefined
         @query = decomposedURL.query
         @prefixes = decomposedURL.prefixes
         @segments = decomposedURL.segments
@@ -95,7 +95,7 @@ Controller dependency injection happens here
 RequestHandler::prepareController = (controllerName) ->
     $this = this
     application = @applications[@appName]
-    throw new Exceptions.ControllerNotFound()  if controllerName is false or application.controllers[controllerName] is `undefined`
+    throw new Exceptions.ControllerNotFound()  if controllerName is false or application.controllers[controllerName] is undefined
     @elementFactory = new ElementFactory(@serverLogger, application)
     @log "Creating controller"
     ControllerConstructor = application.controllers[controllerName]
@@ -113,9 +113,9 @@ RequestHandler::prepareController = (controllerName) ->
 
         automaticTraceImplementation = (callback) ->
             controllerInstance.contentType = false
-            headerName = undefined
             for headerName of controllerInstance.requestHeaders
-                controllerInstance.responseHeaders[headerName] = controllerInstance.requestHeaders[headerName]  if controllerInstance.requestHeaders.hasOwnProperty(headerName)
+                if controllerInstance.requestHeaders.hasOwnProperty headerName
+                    controllerInstance.responseHeaders[headerName] = controllerInstance.requestHeaders[headerName]
             callback ""
             return
 
@@ -131,7 +131,7 @@ RequestHandler::prepareController = (controllerName) ->
             ]
             allowString = ""
             methods.forEach (method) ->
-                if controllerInstance[method] isnt `undefined`
+                if controllerInstance[method] isnt undefined
                     allowString += ","  if allowString isnt ""
                     allowString += method.toUpperCase()
                 return
@@ -237,7 +237,7 @@ RequestHandler::invokeController = (controllerInstance, httpMethod, done) ->
     $this.log "Invoking controller"
     savedOutput = null
     application = @applications[@appName]
-    throw new Exceptions.MethodNotFound()  if controllerInstance[httpMethod] is `undefined`
+    throw new Exceptions.MethodNotFound()  if controllerInstance[httpMethod] is undefined
     $this.log "Receiving payload"
     @_receivePayload()
     @_endRequest ->
@@ -256,7 +256,7 @@ RequestHandler::invokeController = (controllerInstance, httpMethod, done) ->
         afterCallback = ->
             clearTimeout timer
             try
-                controllerInstance.statusCode = 200  if controllerInstance.statusCode is `undefined`
+                controllerInstance.statusCode = 200  if controllerInstance.statusCode is undefined
                 (setHeaders = ->
                     name = undefined
                     value = undefined
@@ -293,7 +293,7 @@ RequestHandler::invokeController = (controllerInstance, httpMethod, done) ->
             savedOutput = output
             try
                 (callAfterIfDefined = ->
-                    if controllerInstance.after isnt `undefined`
+                    if controllerInstance.after isnt undefined
                         controllerInstance.after afterCallback
                     else
                         afterCallback()
@@ -319,7 +319,7 @@ RequestHandler::invokeController = (controllerInstance, httpMethod, done) ->
         controllerMethodImmediate = setImmediate(->
             try
                 (callBefore = ->
-                    if controllerInstance.before isnt `undefined`
+                    if controllerInstance.before isnt undefined
                         controllerInstance.before beforeCallback
                     else
                         beforeCallback()
@@ -362,7 +362,7 @@ It handles the exceptions
 ###
 RequestHandler::handleRequestException = (e) ->
     @log "Handling exception"
-    knownException = e.name isnt `undefined`
+    knownException = e.name isnt undefined
     if knownException
         $this = this
         method = "on" + e.name
@@ -370,22 +370,22 @@ RequestHandler::handleRequestException = (e) ->
         instance = new @ExceptionsController()
         instance.statusCode = 200
         callback = (output) ->
-            instance.statusCode = 200  if instance.statusCode is `undefined`
+            instance.statusCode = 200  if instance.statusCode is undefined
             $this.log "Rendering exception"
             $this.render output, instance.statusCode
 
         if typeof instance[method] is "function"
             instance[method] callback
-        else if instance.onGeneral isnt `undefined`
+        else if instance.onGeneral isnt undefined
             instance.onGeneral callback, e
         else
             @log e
-            @log e.stack  if e.stack isnt `undefined`
+            @log e.stack  if e.stack isnt undefined
             return
         @error "Exception " + e.name + " handled"
     else
         @error "Unknown Exception: " + e
-        @error e.stack  if e.stack isnt `undefined`
+        @error e.stack  if e.stack isnt undefined
     return
 
 
@@ -405,7 +405,7 @@ RequestHandler::render = (output, statusCode, contentType) ->
     if @method is "head"
         output = ""
         contentType = false
-    if @stringOutput is `undefined`
+    if @stringOutput is undefined
         @log "Rendering"
         @log "content-type: " + contentType
         @_writeHead statusCode, contentType

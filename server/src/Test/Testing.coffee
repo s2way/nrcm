@@ -171,7 +171,7 @@ Testing::_model = (modelName) ->
     modelInstance = @elementFactory.create("model", modelName)
     return null  if modelInstance is null
     methods = @mockedMethods.models[modelName]
-    if methods isnt `undefined`
+    if methods isnt undefined
         for methodName of methods
             modelInstance[methodName] = methods[methodName]  if methods.hasOwnProperty(methodName)
     modelInstance.component = (componentName, params) ->
@@ -192,7 +192,7 @@ Testing::_component = (componentName, params) ->
     componentInstance = @elementFactory.create("component", componentName, params)
     return null  if componentInstance is null
     methods = @mockedMethods.components[componentName]
-    if methods isnt `undefined`
+    if methods isnt undefined
         for methodName of methods
             componentInstance[methodName] = methods[methodName]  if methods.hasOwnProperty(methodName)
     componentInstance.component = (componentName, params) ->
@@ -245,7 +245,7 @@ Testing::callController = (controllerName, httpMethod, options, callback) ->
         []
 
     requestHandler._receivePayload = ->
-        if options.payload is `undefined`
+        if options.payload is undefined
             @payload = ""
         else if typeof options.payload is "object"
             @payload = (if options.payload is null then "" else JSON.stringify(options.payload))

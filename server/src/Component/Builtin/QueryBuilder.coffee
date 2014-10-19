@@ -17,7 +17,7 @@ class QueryBuilder
         commaList
 
     selectStarFrom: (table) ->
-        throw new Exceptions.IllegalArgument()  if table is `undefined`
+        throw new Exceptions.IllegalArgument()  if table is undefined
         @query += "SELECT * FROM " + table + " "
         this
 
@@ -65,15 +65,15 @@ class QueryBuilder
         this
 
     limit: (p1, p2) ->
-        throw new Exceptions.IllegalArgument()  if p1 is `undefined`
-        if p2 is `undefined`
+        throw new Exceptions.IllegalArgument()  if p1 is undefined
+        if p2 is undefined
             @query += "LIMIT " + p1 + " "
         else
             @query += "LIMIT " + p1 + ", " + p2 + " "
         this
 
     in: (field, params) ->
-        throw new Exceptions.IllegalArgument()  if params is `undefined` or params.length is 0
+        throw new Exceptions.IllegalArgument()  if params is undefined or params.length is 0
         throw new Exceptions.IllegalArgument()  if field is null or typeof field isnt "string"
         field + " IN (" + @_fieldsToCommaList(params, true) + ")"
 
@@ -116,33 +116,33 @@ class QueryBuilder
         this
 
     equal: (left, right) ->
-        throw new Exceptions.IllegalArgument()  if left is `undefined` or right is `undefined`
+        throw new Exceptions.IllegalArgument()  if left is undefined or right is undefined
         return left + " IS NULL"  if right is null
         left + " = " + right
 
     notEqual: (left, right) ->
-        throw new Exceptions.IllegalArgument()  if left is `undefined` or right is `undefined`
+        throw new Exceptions.IllegalArgument()  if left is undefined or right is undefined
         return left + " IS NOT NULL"  if right is null
         left + " <> " + right
 
     less: (left, right) ->
-        throw new Exceptions.IllegalArgument()  if left is `undefined` or right is `undefined`
+        throw new Exceptions.IllegalArgument()  if left is undefined or right is undefined
         left + " < " + right
 
     lessOrEqual: (left, right) ->
-        throw new Exceptions.IllegalArgument()  if left is `undefined` or right is `undefined`
+        throw new Exceptions.IllegalArgument()  if left is undefined or right is undefined
         left + " <= " + right
 
     greater: (left, right) ->
-        throw new Exceptions.IllegalArgument()  if left is `undefined` or right is `undefined`
+        throw new Exceptions.IllegalArgument()  if left is undefined or right is undefined
         left + " > " + right
 
     greaterOrEqual: (left, right) ->
-        throw new Exceptions.IllegalArgument()  if left is `undefined` or right is `undefined`
+        throw new Exceptions.IllegalArgument()  if left is undefined or right is undefined
         left + " >= " + right
 
     between: (value, comp1, comp2) ->
-        throw new Exceptions.IllegalArgument()  if value is `undefined` or comp1 is `undefined` or comp2 is `undefined`
+        throw new Exceptions.IllegalArgument()  if value is undefined or comp1 is undefined or comp2 is undefined
         value + " BETWEEN " + comp1 + " AND " + comp2
 
     and: ->

@@ -78,7 +78,7 @@ Router::findController = (controllers, decomposedUrl) ->
         if controllersArrayReverted.hasOwnProperty(i)
             controllerName = controllersArrayReverted[i]
             controllerNameCamelCase = StringUtils.lowerCaseUnderscoredToCamelCase(controllerName.replace(/\//g, "."))
-            if controllers[controllerNameCamelCase] isnt `undefined`
+            if controllers[controllerNameCamelCase] isnt undefined
                 return (
                     controller: controllerNameCamelCase
                     segments: decomposedUrl.controllers[controllerName].segments
@@ -109,7 +109,7 @@ Router::decompose = (requestUrl) ->
     parts.forEach (part) ->
         if part
             urlFormatPart = $this.urlFormatParts[i]
-            if urlFormatPart isnt `undefined`
+            if urlFormatPart isnt undefined
                 formatPartFirstChar = urlFormatPart.charAt(0)
                 if formatPartFirstChar is "#"
                     prefixes[urlFormatPart.substring(1)] = part

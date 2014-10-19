@@ -281,7 +281,20 @@ describe "QueryBuilder.js", ->
 
     describe "Integration Tests", ->
         it "should output: SELECT c1, c2, c3 FROM sky WHERE y = :y AND z < :z AND x BETWEEN NOW() AND AAAA AND (y = 10 OR z > 20 OR x BETWEEN 10 AND 200)", ->
-            sql = $.select("c1", "c2", "c3").from("sky").where($.equal("y", ":y"), $.less("z", ":z"), $.between("x", "NOW()", "AAAA"), $.or($.equal("y", $.value(10)), $.greater("z", $.value(20)), $.between("x", $.value(10), $.value(200)))).build()
+            sql = $.select("c1", "c2", "c3")
+            .from("sky")
+            .where(
+                $.equal("y", ":y"),
+                $.less("z", ":z"),
+                $.between("x", "NOW()", "AAAA"),
+                $.or(
+                    $.equal("y", $.value(10)),
+                    $.greater("z", $.value(20)),
+                    $.between("x", $.value(10),
+                        $.value(200)
+                    )
+                )
+            ).build()
             expected = "SELECT c1, c2, c3 FROM sky WHERE y = :y AND z < :z AND x BETWEEN NOW() AND AAAA AND (y = 10 OR z > 20 OR x BETWEEN 10 AND 200)"
             assert.equal expected, sql
 

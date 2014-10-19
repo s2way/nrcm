@@ -22,12 +22,10 @@ describe "Validator.js", ->
             preferences: preferences
 
         it "should validate an empty object and return that it has failed", (done) ->
-            validate = undefined
-            validator = undefined
-            validate = field: (value, fields, callback) ->
-                callback {}
-
-            validator = new Validator(validate: validate)
+            validator = new Validator(
+                validate:
+                    field: (value, fields, callback) -> callback {}
+            )
             validator.validate {}, (error) ->
                 expect(error.name).to.be "ValidationFailed"
                 done()

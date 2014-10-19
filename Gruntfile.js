@@ -1,3 +1,4 @@
+/*jslint node: true*/
 'use strict';
 
 module.exports = function (grunt) {
@@ -8,11 +9,11 @@ module.exports = function (grunt) {
     var lint = '', build = '', clean = '', test = '', cc = '';
 
     clean += 'rm -rf dist';
-    lint += "jslint --node --vars --devel --nomen --stupid --indent 4 --maxlen 2048 `find server -regex '.*\\.js$' -type f | tr '\\n' ' '` > lint.out || (cat lint.out && exit 1) ;";
+    //lint += "jslint --node --vars --devel --nomen --stupid --indent 4 --maxlen 2048 `find server -regex '.*\\.js$' -type f | tr '\\n' ' '` > lint.out || (cat lint.out && exit 1) ; rm -rf lint.out ; ";
     lint += "coffeelint server";
 
     build += 'mkdir -p dist ; ';
-    build += '(cp -r server/* dist/ && find dist -type f ! -iname "*.js" -delete) ; ';
+    //build += '(cp -r server/* dist/ && find dist -type f ! -iname "*.js" -delete) ; ';
     build += 'coffee --compile --output dist server';
 
     test += 'mocha server/test --recursive -R progress -r blanket --compilers coffee:coffee-script/register ';
