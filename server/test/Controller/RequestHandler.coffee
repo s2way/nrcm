@@ -1,5 +1,5 @@
-RequestHandler = require("./../../src/Controller/RequestHandler.js")
-Router = require("./../../src/Core/Router.js")
+RequestHandler = require("./../../src/Controller/RequestHandler")
+Router = require("./../../src/Core/Router")
 assert = require("assert")
 expect = require("expect.js")
 

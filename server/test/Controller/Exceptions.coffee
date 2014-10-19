@@ -1,8 +1,12 @@
 assert = require 'assert'
 Exceptions = require './../../src/Controller/Exceptions'
-instance = new Exceptions()
 
 describe "Exceptions.js", ->
+    instance = null
+
+    beforeEach ->
+        instance = new Exceptions()
+
     describe "onControllerNotFound", ->
         it "should return a JSON object", ->
             instance.onControllerNotFound ->

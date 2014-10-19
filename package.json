@@ -16,7 +16,7 @@
     "view",
     "controller"
   ],
-  "main": "./server/src/WaferPie.js",
+  "main": "./dist/src/WaferPie.coffee",
   "license": "Apache2",
   "name": "waferpie",
   "dependencies": {
@@ -48,8 +48,7 @@
     "load-grunt-tasks": "^0.6.0",
     "mocha": "1.13.0",
     "should": "^4.0.4",
-    "travis-cov": "^0.2.5",
-    "yamljs": "^0.2.0"
+    "travis-cov": "^0.2.5"
   },
   "repository": {
     "type": "git",
@@ -57,6 +56,7 @@
   },
   "version": "0.8.0",
   "scripts": {
+    "postinstall" : "rm -rf dist ; mkdir -p dist ; (cp -r server/* dist/ && find dist -type f ! -iname '*.js' -delete) ; coffee --compile --output dist server",
     "pretest": "jslint --node --vars --devel --nomen --stupid --indent 4 --maxlen 2048 `find server -regex '.*\\.js$' -type f | tr '\\n' ' '`",
     "test": "mocha server/test --recursive -R progress -r blanket --compilers coffee:coffee-script/register ; mocha server/test --recursive -R html-cov -r blanket --compilers coffee:coffee-script/register > report.html",
     "posttest": "mocha server/test --recursive -r blanket -R travis-cov --compilers coffee:coffee-script/register"

@@ -3,11 +3,8 @@ Router = require("./../../src/Core/Router")
 
 describe "Router.js", ->
     logger =
-        info: ->
-            return
-
-        debug: ->
-            return
+        info: -> return
+        debug: -> return
 
     describe "isValid", ->
         router = new Router(logger, "/#prefix1/#prefix2/$application/$controller")
