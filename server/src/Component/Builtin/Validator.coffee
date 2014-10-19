@@ -1,5 +1,7 @@
 Exceptions = require("../../Util/Exceptions")
 
+
+
 class Validator
     # @constructor
     # @method Validator
@@ -39,7 +41,6 @@ class Validator
         validateFunctionCallback = (validationErrorObject) ->
             fieldErrors[n] = validationErrorObject or true
             validatedFields[n] = (if validationErrorObject then false else true)
-            return
 
         for n of validate
             if validate.hasOwnProperty(n)
@@ -49,7 +50,6 @@ class Validator
                     fieldErrors[n] = {}  if fieldErrors[n] is undefined
                     if validate[n] isnt undefined
                         @_validate (if data is undefined then undefined else data[n]), validatedFields, fieldErrors[n], validate[n], originalData
-        return
 
 
     # Validate all properties of a json
@@ -83,22 +83,17 @@ class Validator
                 clearTimeout timer
                 succeeded = that._succeeded(validatedFields)
                 unless succeeded
-                    callback
+                    return callback
                         name: "ValidationFailed"
                         fields: fieldErrors
                     , fieldErrors
-                    return
                 callback null, fieldErrors
             else
                 setTimeout timeoutFunc, that.timeout / 500
-            return
 
         timeoutFunc()
-        return
 
     _matchAgainst: (data, level, validate) ->
-        n = undefined
-        test = undefined
         if level is undefined
             level = 1
             validate = @_rules
@@ -142,7 +137,7 @@ class Validator
             newJSON = JSON.parse(JSON.stringify(jsonOb))
         catch e
             return false
-        return newJSON  if Object.getOwnPropertyNames(newJSON).length > 0
+        return newJSON if Object.getOwnPropertyNames(newJSON).length > 0
         false
 
 
