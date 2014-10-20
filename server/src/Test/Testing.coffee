@@ -4,12 +4,10 @@ ElementFactory = require("../Core/ElementFactory")
 RequestHandler = require("../Controller/RequestHandler")
 Cherries = require("../Util/Cherries")
 
-###*
-Testing tool constructor
-@constructor
-@param {string} applicationPath The path of your application
-@param {json} core Mocked core.json object
-###
+# Testing tool constructor
+# @constructor
+# @param {string} applicationPath The path of your application
+# @param {json} core Mocked core.json object
 Testing = (applicationPath, core) ->
     @core = core or {}
     @core.requestTimeout = @core.requestTimeout or 1000
@@ -48,31 +46,25 @@ Testing::mockConfigs = (configs) ->
     @applications.app.configs = configs
     return
 
-###*
-Call require
-Necessary for mocking in the tests
-@param path
-@returns {Object|*}
-@private
-###
+# Call require
+# Necessary for mocking in the tests
+# @param path
+# @returns {Object|*}
+# @private
 Testing::_require = (path) ->
     require path
 
-###*
-Call fs.existsSync
-Necessary for mocking in the tests
-@param path
-@returns {*}
-@private
-###
+# Call fs.existsSync
+# Necessary for mocking in the tests
+# @param path
+# @returns {*}
+# @private
 Testing::_exists = (path) ->
     fs.existsSync path
 
-###*
-Loads, creates and returns the model instance or null if not found
-@param {string} modelName The model name
-@returns {object} The model instance or null
-###
+# Loads, creates and returns the model instance or null if not found
+# @param {string} modelName The model name
+# @returns {object} The model instance or null
 Testing::createModel = (modelName) ->
     $this = undefined
     instance = undefined
@@ -88,11 +80,9 @@ Testing::createModel = (modelName) ->
     instance
 
 
-###*
-Loads, creates, and returns the component instance or null if not found
-@param {string} componentName The name of the component
-@returns {object} The component instance or null
-###
+# Loads, creates, and returns the component instance or null if not found
+# @param {string} componentName The name of the component
+# @returns {object} The component instance or null
 Testing::createComponent = (componentName) ->
     $this = undefined
     instance = undefined
@@ -109,20 +99,19 @@ Testing::createComponent = (componentName) ->
 
 Testing::loadModel = (modelName) ->
     modelsPath = path.join(@applicationPath, "src", "Model", @cherries.elementNameToPath(modelName))
-    if @_exists(modelsPath + ".js")
-        @models[modelName] = @_require(modelsPath)
-        return
+    allowedExtensions = ['coffee', 'js']
+    for ext in allowedExtensions
+        if @_exists(modelsPath + '.' + ext)
+            @models[modelName] = @_require(modelsPath)
+            return
     throw
     name: "ModelNotFound"
     model: modelName
-    return
 
 
-###*
-Loads a component
-You have to load all dependent components that you do not want to mock in your tests, including built-ins (QueryBuilder, etc)
-@param {string} componentName The name of the component
-###
+# Loads a component
+# You have to load all dependent components that you do not want to mock in your tests, including built-ins (QueryBuilder, etc)
+# @param {string} componentName The name of the component
 Testing::loadComponent = (componentName) ->
     componentNameAsPath = undefined
     applicationComponentPath = undefined
@@ -130,33 +119,32 @@ Testing::loadComponent = (componentName) ->
     componentNameAsPath = @cherries.elementNameToPath(componentName)
     applicationComponentPath = path.join(@applicationPath, "src", "Component", componentNameAsPath)
     builtinComponentPath = path.join(__dirname, "..", "Component", "Builtin", componentNameAsPath)
-    if @_exists(applicationComponentPath + ".js")
-        @components[componentName] = @_require(applicationComponentPath)
-    else if @_exists(builtinComponentPath + ".js")
-        @components[componentName] = @_require(builtinComponentPath)
-    else
-        throw
-        name: "ComponentNotFound"
-        component: componentName
-    return
 
+    allowedExtensions = ['coffee', 'js']
+    for ext in allowedExtensions
+        if @_exists(applicationComponentPath + '.' + ext)
+            @components[componentName] = @_require(applicationComponentPath)
+            return
+        if @_exists(builtinComponentPath + '.' + ext)
+            @components[componentName] = @_require(builtinComponentPath)
+            return
 
-###*
-Loads a model an then mocks its methods
-@param {string} modelName The name of the model
-@param {object} methods A JSON containing methods that will be injected into the model instance
-###
+    throw
+    name: "ComponentNotFound"
+    component: componentName
+
+# Loads a model an then mocks its methods
+# @param {string} modelName The name of the model
+# @param {object} methods A JSON containing methods that will be injected into the model instance
 Testing::mockModel = (modelName, methods) ->
     @loadModel modelName
     @mockedMethods.models[modelName] = methods
     return
 
 
-###*
-Loads a component an then mocks its components
-@param {string} componentName The name of the component
-@param {object} methods A JSON containing methods taht will be injected into the component instance
-###
+# Loads a component an then mocks its components
+# @param {string} componentName The name of the component
+# @param {object} methods A JSON containing methods taht will be injected into the component instance
 Testing::mockComponent = (componentName, methods) ->
     @loadComponent componentName
     @mockedMethods.components[componentName] = methods
@@ -205,14 +193,12 @@ Testing::_component = (componentName, params) ->
     componentInstance
 
 
-###*
-Call a controller method for testing
-@param {string} controllerName The name of the controller to be called
-@param {string} httpMethod HTTP method
-@param {object} options Some options, including payload, query, and segments
-@param {function} callback Function that will be called when the call is complete.
-An object containing statusCode, headers, and contentType is passed to the callback.
-###
+# Call a controller method for testing
+# @param {string} controllerName The name of the controller to be called
+# @param {string} httpMethod HTTP method
+# @param {object} options Some options, including payload, query, and segments
+# @param {function} callback Function that will be called when the call is complete.
+# An object containing statusCode, headers, and contentType is passed to the callback.
 Testing::callController = (controllerName, httpMethod, options, callback) ->
     $this = undefined
     controllerPath = undefined
