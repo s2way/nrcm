@@ -1,38 +1,22 @@
 class Exceptions
-    @Fatal: (message, cause) ->
+    @Fatal: (@message = null, @cause = null) ->
         @name = 'Fatal'
-        @cause = cause
-        @message = message
         @stack = new Error().stack
-    @ApplicationNotFound: (message, cause) ->
+    @ApplicationNotFound: (@message = null, @cause = null) ->
         @name = 'ApplicationNotFound'
-        @cause = cause
-        @message = message
-    @ControllerNotFound: (message, cause) ->
+    @ControllerNotFound: (@message = null, @cause = null) ->
         @name = 'ControllerNotFound'
-        @cause = cause
-        @message = message
-    @InvalidUrl: (message, cause) ->
+    @InvalidUrl: (@message = null, @cause = null) ->
         @name = 'InvalidUrl'
-        @cause = cause
-        @message = message
-    @InvalidMethod: (message, cause) ->
+    @InvalidMethod: (@message = null, @cause = null) ->
         @name = 'InvalidMethod'
-        @cause = cause
-        @message = message
-    @MethodNotFound: (message, cause) ->
+    @MethodNotFound: (@message = null, @cause = null) ->
         @name = 'MethodNotFound'
-        @cause = cause
-        @message = message
-    @Timeout: (message, cause) ->
+    @Timeout: (@message = null, @cause = null) ->
         @name = 'Timeout'
-        @cause = cause
-        @message = message
-    @IllegalArgument: (message) ->
+    @IllegalArgument: (@message = null, @cause = null) ->
         @name = 'IllegalArgument'
-        @message = message
-    @OperationInterrupted: (message) ->
+    @OperationInterrupted: (@message = null, @cause = null) ->
         @name = 'OperationInterrupted'
-        @message = message
 
 module.exports = Exceptions

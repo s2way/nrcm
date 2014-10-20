@@ -1,9 +1,9 @@
-querystring = require("querystring")
-Exceptions = require("./../Util/Exceptions")
-Router = require("./../Core/Router")
-ElementFactory = require("./../Core/ElementFactory")
-chalk = require("chalk")
-XML = require("../Component/Builtin/XML")
+querystring = require('querystring')
+Exceptions = require('./../Util/Exceptions')
+Router = require('./../Core/Router')
+ElementFactory = require('./../Core/ElementFactory')
+chalk = require('chalk')
+XML = require('../Component/Builtin/XML')
 
 # The request handler object
 # @constructor
@@ -19,7 +19,7 @@ class RequestHandler
         @start = new Date()
         @serverLogger = serverLogger
         @version = version
-        @log "RequestHandler created"
+        @log 'RequestHandler created'
 
     # It processes every request received
     # @method process
@@ -29,36 +29,36 @@ class RequestHandler
         $this = this
         @request = request
         @response = response
-        @payload = ""
+        @payload = ''
         requestUrl = @request.url
-        @log chalk.bold.green("Request: " + requestUrl)
+        @log chalk.bold.green('Request: ' + requestUrl)
         try
             router = new Router(@serverLogger, @configs.urlFormat)
-            throw new Exceptions.InvalidUrl()  unless router.isValid(requestUrl)
+            throw new Exceptions.InvalidUrl() unless router.isValid(requestUrl)
             decomposedURL = router.decompose(requestUrl)
             type = decomposedURL.type
             @method = @request.method.toLowerCase()
             @appName = decomposedURL.application
-            if type isnt "root"
+            if type isnt 'root'
                 @application = (if @appName then @applications[@appName] else null)
                 throw new Exceptions.ApplicationNotFound(@appName)  if @applications[@appName] is undefined
             @query = decomposedURL.query
             @prefixes = decomposedURL.prefixes
             @segments = decomposedURL.segments
-            @log "Application: " + @appName
-            @log "Method: " + @method
-            @log "URL type: " + type
-            @log "Prefixes: " + JSON.stringify(@prefixes)
-            @log "Query: " + JSON.stringify(@query)
-            if type is "controller"
+            @log 'Application: ' + @appName
+            @log 'Method: ' + @method
+            @log 'URL type: ' + type
+            @log 'Prefixes: ' + JSON.stringify(@prefixes)
+            @log 'Query: ' + JSON.stringify(@query)
+            if type is 'controller'
                 controllerInfo = router.findController(@application.controllers, decomposedURL)
                 controllerNameCamelCase = controllerInfo.controller
                 @segments = controllerInfo.segments
-                @log "Segments: " + JSON.stringify(@segments)
-                @log "Controller: " + controllerNameCamelCase
+                @log 'Segments: ' + JSON.stringify(@segments)
+                @log 'Controller: ' + controllerNameCamelCase
                 controllerInstance = @prepareController(controllerNameCamelCase)
                 @invokeController controllerInstance, @method
-            else if type is "appRoot"
+            else if type is 'appRoot'
                 @_receivePayload()
                 @_endRequest ->
                     $this.render
@@ -66,7 +66,7 @@ class RequestHandler
                         version: $this.application.core.version
                     , 200
 
-            else if type is "root"
+            else if type is 'root'
                 @_receivePayload()
                 @_endRequest ->
                     $this.render
@@ -85,17 +85,17 @@ class RequestHandler
         application = @applications[@appName]
         throw new Exceptions.ControllerNotFound()  if controllerName is false or application.controllers[controllerName] is undefined
         @elementFactory = new ElementFactory(@serverLogger, application)
-        @log "Creating controller"
+        @log 'Creating controller'
         ControllerConstructor = application.controllers[controllerName]
         controllerInstance = new ControllerConstructor()
         (injectProperties = ->
             retrieveComponentMethod = (componentName, params) ->
-                instance = $this.elementFactory.create("component", componentName, params)
+                instance = $this.elementFactory.create('component', componentName, params)
                 $this.elementFactory.init instance
                 instance
 
             retrieveModelMethod = (modelName, params) ->
-                instance = $this.elementFactory.create("model", modelName, params)
+                instance = $this.elementFactory.create('model', modelName, params)
                 $this.elementFactory.init instance
                 instance
 
@@ -104,27 +104,19 @@ class RequestHandler
                 for headerName of controllerInstance.requestHeaders
                     if controllerInstance.requestHeaders.hasOwnProperty headerName
                         controllerInstance.responseHeaders[headerName] = controllerInstance.requestHeaders[headerName]
-                callback ""
+                callback ''
 
             automaticOptionsImplementation = (callback) ->
-                methods = [
-                    "head"
-                    "trace"
-                    "options"
-                    "get"
-                    "post"
-                    "put"
-                    "delete"
-                ]
-                allowString = ""
+                methods = ['head', 'trace', 'options', 'get', 'post', 'put', 'delete']
+                allowString = ''
                 methods.forEach (method) ->
                     if controllerInstance[method] isnt undefined
-                        allowString += ","  if allowString isnt ""
+                        allowString += ','  if allowString isnt ''
                         allowString += method.toUpperCase()
 
                 controllerInstance.responseHeaders.Allow = allowString
                 controllerInstance.contentType = false
-                callback ""
+                callback ''
 
             controllerInstance.responseHeaders = {}
             controllerInstance.name = controllerName
@@ -140,56 +132,46 @@ class RequestHandler
         )()
         controllerInstance
 
-    _receivePayload: ->
-        $this = this
-        @request.on "data", (data) ->
-            $this.payload += data
+    _receivePayload: -> @request.on 'data', (data) => @payload += data
 
-    _endRequest: (callback) ->
-        @request.on "end", callback
-
+    _endRequest: (callback) -> @request.on 'end', callback
 
     # Return the request headers
     # This method is mocked in tests
     # @returns {object}
     # @private
-    _headers: ->
-        @request.headers
-
+    _headers: -> @request.headers
 
     # Set a response header
     # @param {string} name Header name
     # This method is mocked in tests
     # @param {string} value Header value
     # @private
-    _setHeader: (name, value) ->
-        @response.setHeader name, value
+    _setHeader: (name, value) -> @response.setHeader name, value
 
     _writeHead: (statusCode, contentType) ->
         headers = {}
-        headers["content-type"] = contentType  if contentType
+        headers['content-type'] = contentType  if contentType
         @response.writeHead statusCode, headers
 
-    _writeResponse: (output) ->
-        @response.write output
+    _writeResponse: (output) -> @response.write output
 
-    _sendResponse: ->
-        @response.end()
+    _sendResponse: -> @response.end()
 
     _parsePayload: (contentType, payload) ->
-        isJSON = contentType.indexOf("application/json") isnt -1
-        isXML = contentType.indexOf("text/xml") isnt -1
-        isUrlEncoded = contentType.indexOf("application/x-www-form-urlencoded") isnt -1
+        return null if payload is null or payload is undefined or payload is ''
+        isJSON = contentType.indexOf('application/json') isnt -1
+        isXML = contentType.indexOf('text/xml') isnt -1
+        isUrlEncoded = contentType.indexOf('application/x-www-form-urlencoded') isnt -1
         try
-            if payload isnt ""
-                return JSON.parse(payload)  if isJSON
-                return new XML().toJSON(payload)  if isXML
-                return querystring.parse(payload)  if isUrlEncoded
+            if payload isnt ''
+                return JSON.parse(payload) if isJSON
+                return new XML().toJSON(payload) if isXML
+                return querystring.parse(payload) if isUrlEncoded
                 return payload
         catch e
-            @log "Error while parsing payload: " + e
+            @log 'Error while parsing payload: ' + e
         null
-
 
     # It executes a function within the controller
     # @method invokeController
@@ -197,48 +179,50 @@ class RequestHandler
     # @param {string} method The controller`s method that should be invoked
     invokeController: (controllerInstance, httpMethod, done) ->
         $this = this
-        $this.log "Invoking controller"
+        $this.log 'Invoking controller'
         savedOutput = null
         application = @applications[@appName]
-        throw new Exceptions.MethodNotFound()  if controllerInstance[httpMethod] is undefined
-        $this.log "Receiving payload"
+        throw new Exceptions.MethodNotFound() if controllerInstance[httpMethod] is undefined
+        $this.log 'Receiving payload'
         @_receivePayload()
         @_endRequest ->
-            $this.log "All data received"
+            $this.log 'All data received'
             requestHeaders = $this._headers()
-            requestContentType = requestHeaders["content-type"] or "application/json"
+            requestContentType = requestHeaders['content-type'] or 'application/json'
+
             controllerInstance.payload = $this._parsePayload(requestContentType, $this.payload)
             controllerInstance.segments = $this.segments
             controllerInstance.query = $this.query
             controllerInstance.prefixes = $this.prefixes
             controllerInstance.requestHeaders = requestHeaders
-            controllerInstance.responseHeaders = Server: "WaferPie/" + $this.version
+            controllerInstance.responseHeaders = Server: 'WaferPie/' + $this.version
+
             timer = null
             afterCallback = ->
                 clearTimeout timer
                 try
                     controllerInstance.statusCode = 200  if controllerInstance.statusCode is undefined
                     (setHeaders = ->
-                        if typeof controllerInstance.responseHeaders is "object"
+                        if typeof controllerInstance.responseHeaders is 'object'
                             for name of controllerInstance.responseHeaders
                                 if controllerInstance.responseHeaders.hasOwnProperty(name)
                                     value = controllerInstance.responseHeaders[name]
                                     $this._setHeader name, value
                     )()
-                    $this.log "Destroying components"
+                    $this.log 'Destroying components'
                     (destroyComponents = ->
                         componentsCreated = $this.elementFactory.getComponents()
                         destroyComponentInstance = ->
-                            $this.log "Destroying " + componentName
+                            $this.log 'Destroying ' + componentName
                             componentInstance.destroy()
 
                         for componentName of componentsCreated
                             if componentsCreated.hasOwnProperty(componentName)
                                 componentInstance = componentsCreated[componentName]
-                                setImmediate destroyComponentInstance  if typeof componentInstance.destroy is "function"
+                                setImmediate destroyComponentInstance  if typeof componentInstance.destroy is 'function'
                     )()
                     $this.render savedOutput, controllerInstance.statusCode, controllerInstance.contentType
-                    done()  if typeof done is "function"
+                    done?()
                 catch e
                     $this.handleRequestException e
 
@@ -280,7 +264,7 @@ class RequestHandler
                     clearTimeout timer
                     $this.handleRequestException e
             )
-            $this.log "Timeout timer started"
+            $this.log 'Timeout timer started'
             (startTimeoutTimer = ->
                 timer = setTimeout(->
                     clearImmediate controllerMethodImmediate
@@ -288,28 +272,28 @@ class RequestHandler
                 , application.core.requestTimeout)
             )()
 
-    log: (message) -> @serverLogger.log "[RequestHandler] " + message
+    log: (message) -> @serverLogger.log '[RequestHandler] ' + message
 
-    error: (message) -> @serverLogger.error "[RequestHandler] " + message
+    error: (message) -> @serverLogger.error '[RequestHandler] ' + message
 
     # It handles the exceptions
     # @method handleRequestException
     # @param {object} e The error
     handleRequestException: (e) ->
-        @log "Handling exception"
+        @log 'Handling exception'
         knownException = e.name isnt undefined
         if knownException
             $this = this
-            method = "on" + e.name
-            @log "Creating ExceptionsController instance"
+            method = 'on' + e.name
+            @log 'Creating ExceptionsController instance'
             instance = new @ExceptionsController()
             instance.statusCode = 200
             callback = (output) ->
                 instance.statusCode = 200  if instance.statusCode is undefined
-                $this.log "Rendering exception"
+                $this.log 'Rendering exception'
                 $this.render output, instance.statusCode
 
-            if typeof instance[method] is "function"
+            if typeof instance[method] is 'function'
                 instance[method] callback
             else if instance.onGeneral isnt undefined
                 instance.onGeneral callback, e
@@ -317,31 +301,28 @@ class RequestHandler
                 @log e
                 @log e.stack if e.stack isnt undefined
                 return
-            @error "Exception " + e.name + " handled"
+            @error 'Exception ' + e.name + ' handled'
         else
-            @error "Unknown Exception: " + e
+            @error 'Unknown Exception: ' + e
             @error e.stack if e.stack isnt undefined
-        return
-
 
     # The callback function that sends the response back to the client
     # @method render
     # @param {object=} output The body/payload data
     # @param {number=} statusCode The status code for http response
     # @param {string|boolean=} contentType The text for the Content-Type http header
-    render: (output, statusCode, contentType) ->
-        output = output or "{}"  if output isnt ""
-        contentType = contentType or "application/json"  if contentType isnt false
-        if @method is "head"
-            output = ""
+    render: (output = {}, statusCode = 200, contentType = 'application/json') ->
+        if @method is 'head'
+            output = ''
             contentType = false
+
         if @stringOutput is undefined
-            @log "Rendering"
-            @log "content-type: " + contentType
+            @log 'Rendering'
+            @log 'content-type: ' + contentType
             @_writeHead statusCode, contentType
-            if typeof output is "object"
-                isJSON = contentType.indexOf("application/json") isnt -1
-                isXML = contentType.indexOf("text/xml") isnt -1
+            if typeof output is 'object'
+                isJSON = contentType.indexOf('application/json') isnt -1
+                isXML = contentType.indexOf('text/xml') isnt -1
                 if isJSON
                     @stringOutput = JSON.stringify(output)
                 else if isXML
@@ -351,18 +332,19 @@ class RequestHandler
             else
                 @stringOutput = output
             @_writeResponse @stringOutput
-            @log "Output: " + chalk.cyan((if @stringOutput.length > 1000 then @stringOutput.substring(0, 1000) + "..." else @stringOutput))
+            @log 'Output: ' + chalk.cyan((if @stringOutput.length > 1000 then @stringOutput.substring(0, 1000) + '...' else @stringOutput))
             if statusCode >= 200 and statusCode < 300
-                @log chalk.green("Response Status: " + statusCode)
+                @log chalk.green('Response Status: ' + statusCode)
             else if statusCode >= 400 and statusCode < 500
-                @log chalk.yellow("Response Status: " + statusCode)
+                @log chalk.yellow('Response Status: ' + statusCode)
             else if statusCode >= 500
-                @log chalk.red("Response Status: " + statusCode)
+                @log chalk.red('Response Status: ' + statusCode)
             else
-                @log chalk.blue("Response Status: " + statusCode)
+                @log chalk.blue('Response Status: ' + statusCode)
             @_sendResponse()
             @end = new Date()
-            @log chalk.cyan("Time: " + (@end.getTime() - @start.getTime()) + "ms")
+            @log chalk.cyan('Time: ' + (@end.getTime() - @start.getTime()) + 'ms')
+
         @stringOutput
 
 module.exports = RequestHandler
