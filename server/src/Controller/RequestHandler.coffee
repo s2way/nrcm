@@ -212,14 +212,13 @@ class RequestHandler
                     $this.log 'Destroying components'
                     (destroyComponents = ->
                         componentsCreated = $this.elementFactory.getComponents()
-                        destroyComponentInstance = ->
-                            $this.log 'Destroying ' + componentName
-                            componentInstance.destroy()
 
-                        for componentName of componentsCreated
-                            if componentsCreated.hasOwnProperty(componentName)
-                                componentInstance = componentsCreated[componentName]
-                                setImmediate destroyComponentInstance  if typeof componentInstance.destroy is 'function'
+                        for componentInstance in componentsCreated
+                            destroyComponent = (componentInstance) ->
+                                $this.log 'Destroying ' + componentInstance.name
+                                componentInstance.destroy?()
+
+                            setImmediate destroyComponent, componentInstance
                     )()
                     $this.render savedOutput, controllerInstance.statusCode, controllerInstance.contentType
                     done?()

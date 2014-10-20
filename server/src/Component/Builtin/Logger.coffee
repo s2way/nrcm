@@ -13,7 +13,7 @@ class Logger
         @_enabled = true
         @_stream = null
         @_configs = console: false
-
+        @singleInstance = true
 
     ###*
     Set the logger configurations

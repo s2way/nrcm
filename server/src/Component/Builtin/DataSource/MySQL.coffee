@@ -10,7 +10,7 @@ class MySQL
         @_connections = {}
         @_databaseSelected = {}
         @_dataSourceName = "default"  unless dataSourceName
-    @singleInstance = true
+        @singleInstance = true
 
     # Component initialization
     # Validates if the DataSource exists
