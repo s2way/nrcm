@@ -149,7 +149,7 @@ class Validator
     ###
     match: (data) ->
         newData = @_isJSONValid(data)
-        throw new Exceptions.IllegalArgument("The data is invalid!")  unless newData
+        throw new Exceptions.IllegalArgument("The data is invalid!") unless newData
         @_matchAgainst data
 
 module.exports = Validator

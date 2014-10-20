@@ -137,6 +137,11 @@ describe 'Rules', ->
             expect(instance.alphaNumeric 'thisIS_alpha_Numeric').to.be true
         it 'should return false if the string is not alphanumeric', ->
             expect(instance.alphaNumeric 'this is not alpha numeric :(').to.be false
+    describe 'email', ->
+        it 'should return true if the email address is valid', ->
+            expect(instance.email 'davi.gbr@gmail.com').to.be true
+        it 'should return false if the email address is not valid', ->
+            expect(instance.email 'this is not an email').to.be false
 
     describe 'date', ->
         it 'should return true if it is a valid string date', ->
@@ -153,3 +158,23 @@ describe 'Rules', ->
             expect(instance.time '2014-01-01').to.be false
             expect(instance.time '00:00').to.be false
             expect(instance.time '2014-01-01T00:11:22').to.be false
+
+    describe 'test', ->
+
+        it 'should validate the field if the rules are passed as an object and return the rules that did not pass', ->
+            rules =
+                notEmpty:
+                    rule: 'notEmpty'
+                    message: 'This field cannot be empty'
+                maxLength:
+                    rule: 'maxLength'
+                    message: 'This field has exceeded the max length'
+                    params: [4]
+
+            result = instance.test 'A field', rules
+            expect(result).to.be.an 'object'
+            expect(result).to.have.property('maxLength')
+            expect(result).not.to.have.property('notEmpty')
+
+        it 'should throw an IllegalArgument exception if the rule does not exist'
+        it 'should throw an IllegalArgument exception if the rule key is not passed to the rules object'
