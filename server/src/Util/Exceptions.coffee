@@ -16,6 +16,7 @@ class Exceptions
         @name = 'Timeout'
     @IllegalArgument: (@message = null, @cause = null) ->
         @name = 'IllegalArgument'
+        @stack = new Error().stack
     @OperationInterrupted: (@message = null, @cause = null) ->
         @name = 'OperationInterrupted'
 

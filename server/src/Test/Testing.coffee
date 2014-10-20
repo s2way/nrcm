@@ -59,22 +59,24 @@ class Testing
 
     # Loads, creates and returns the model instance or null if not found
     # @param {string} modelName The model name
+    # @param {object} params Parameters to be passed to the model constructor
     # @returns {object} The model instance or null
-    createModel: (modelName) ->
+    createModel: (modelName, params) ->
         self = this
         @loadModel modelName
-        instance = @elementFactory.create('model', modelName)
+        instance = @elementFactory.create('model', modelName, params)
         instance.model = (modelName) -> self._model modelName
         instance.component = (componentName, params) -> self._component componentName, params
         instance
 
     # Loads, creates, and returns the component instance or null if not found
     # @param {string} componentName The name of the component
+    # @params {object} params Parameters that will be passed to the component constructor
     # @returns {object} The component instance or null
-    createComponent: (componentName) ->
+    createComponent: (componentName, params) ->
         self = this
         @loadComponent componentName
-        instance = @elementFactory.create('component', componentName)
+        instance = @elementFactory.create('component', componentName, params)
         instance.model = (modelName) ->
             self._model modelName
 
