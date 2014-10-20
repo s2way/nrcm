@@ -1,4 +1,4 @@
-Exceptions = require("./../../Util/Exceptions.coffee")
+Exceptions = require("./../../Util/Exceptions")
 
 # @param {object} acl The ACL JSON Object that contains the privileges for groups and controllers
 # @constructor

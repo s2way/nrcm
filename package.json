@@ -16,7 +16,7 @@
         "view",
         "controller"
     ],
-    "main": "./dist/src/WaferPie.coffee",
+    "main": "./dist/src/WaferPie.js",
     "license": "Apache2",
     "name": "waferpie",
     "dependencies": {

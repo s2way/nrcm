@@ -1,4 +1,4 @@
-Exceptions = require './../../src/Util/Exceptions.coffee'
+Exceptions = require './../../src/Util/Exceptions'
 expect = require 'expect.js'
 
 describe 'Exceptions.js', ->
