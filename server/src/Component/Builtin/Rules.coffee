@@ -121,16 +121,19 @@ class Rules
     time: (value, formats = ['HH:mm:ss']) ->
         return @regex(value, /^\d{2}\:\d{2}\:\d{2}$/) and moment(value, formats).isValid()
     datetime: (value, formats = ['YYYY-MM-DDTHH:mm:ss']) ->
-        return @regex(value, /^\d{4}\-\d{2}\-\d{2}T\d{2}\-\d{2}\-\d{2}$/) and moment(value, formats).isValid()
+        return @regex(value, /^\d{4}\-\d{2}\-\d{2}[T]\d{2}\:\d{2}\:\d{2}$/) and moment(value, formats).isValid()
 
-
+    # Test if a value will pass a set of validation rules specified in the rulese parameter
+    # @value The value to be validated
+    # @rules {object} A JSON containing the rules to be tested against the fields
+    # See the tests for examples
     test: (value, rules) ->
         failureCounter = 0
         failedRules = {}
         for key of rules
             rule = rules[key]
-            throw new Exceptions.IllegalArgument 'All rules must contain the rule property' unless rule.rule?
-            ruleMethod = rule.rule
+            rule = {} unless rule?
+            ruleMethod = rule.rule ? key
             ruleMethodParams = rule.params
             ruleExists = @[ruleMethod]?
             throw new Exceptions.IllegalArgument 'Rule ' + ruleMethod + ' not found' unless ruleExists

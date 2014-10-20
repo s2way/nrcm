@@ -63,6 +63,15 @@ describe 'Rules', ->
         it 'should return false when it is not null', ->
             expect(instance.isNull false).to.be false
 
+    describe 'isBoolean()', ->
+        it 'should return true when it is true or false', ->
+            expect(instance.isBoolean true).to.be true
+            expect(instance.isBoolean false).to.be true
+        it 'should return false when it is true or false', ->
+            expect(instance.isBoolean new Boolean(true)).to.be false
+            expect(instance.isBoolean null).to.be false
+            expect(instance.isBoolean undefined).to.be false
+
     describe 'isUndefined()', ->
         it 'should return true if it is undefined', ->
             expect(instance.isUndefined undefined).to.be true
@@ -159,6 +168,14 @@ describe 'Rules', ->
             expect(instance.time '00:00').to.be false
             expect(instance.time '2014-01-01T00:11:22').to.be false
 
+    describe 'datetime', ->
+        it 'should return true if it is a valid string datetime', ->
+            expect(instance.datetime '2014-01-01T00:11:22').to.be true
+        it 'should return false if it is not a valid string datetime', ->
+            expect(instance.datetime '2014-01-01').to.be false
+            expect(instance.datetime '2014-01').to.be false
+            expect(instance.datetime '2014-01-123-').to.be false
+
     describe 'test', ->
 
         it 'should validate the field if the rules are passed as an object and return the rules that did not pass', ->
@@ -167,7 +184,6 @@ describe 'Rules', ->
                     rule: 'notEmpty'
                     message: 'This field cannot be empty'
                 maxLength:
-                    rule: 'maxLength'
                     message: 'This field has exceeded the max length'
                     params: [4]
 
@@ -176,5 +192,14 @@ describe 'Rules', ->
             expect(result).to.have.property('maxLength')
             expect(result).not.to.have.property('notEmpty')
 
-        it 'should throw an IllegalArgument exception if the rule does not exist'
-        it 'should throw an IllegalArgument exception if the rule key is not passed to the rules object'
+        it 'should return null when all fields have passed the validation', ->
+            rules =
+                notEmpty: {}
+            result = instance.test 'A field', rules
+            expect(result).to.be null
+
+        it 'should throw an IllegalArgument exception if the rule does not exist', ->
+            rules = invalidRule: null
+            expect(->
+                instance.test 'nothing', rules
+            ).to.throwException((e) -> expect(e.name).to.be 'IllegalArgument')
