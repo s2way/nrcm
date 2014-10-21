@@ -1,7 +1,7 @@
 expect = require("expect.js")
-ElementFactory = require("../../src/Core/ElementFactory")
+ElementManager = require("../../src/Core/ElementManager")
 
-describe "ElementFactory.js", ->
+describe "ElementManager.js", ->
     factory = null
     componentInstance = null
     modelInstance = null
@@ -12,7 +12,7 @@ describe "ElementFactory.js", ->
 
     logger = log: blankFunction
     beforeEach ->
-        factory = new ElementFactory(logger,
+        factory = new ElementManager(logger,
             components:
                 MyComponent: blankFunction
 
@@ -30,7 +30,7 @@ describe "ElementFactory.js", ->
 
     describe "init", ->
         it "should call the init method if defined", (done) ->
-            factory = new ElementFactory(logger,
+            factory = new ElementManager(logger,
                 components:
                     MyComponent: ->
                         @init = ->
@@ -47,7 +47,7 @@ describe "ElementFactory.js", ->
             return
 
         it "should call the init method if the component() method is used to retrieve AnotherComponent", (done) ->
-            factory = new ElementFactory(logger,
+            factory = new ElementManager(logger,
                 components:
                     MyComponent: ->
                         return
@@ -104,7 +104,7 @@ describe "ElementFactory.js", ->
 
         describe "component", ->
             it "should pass the params to the component constructor", (done) ->
-                factory = new ElementFactory(logger,
+                factory = new ElementManager(logger,
                     components:
                         MyComponent: (params) ->
                             expect(params.key).to.be "value"
@@ -154,7 +154,7 @@ describe "ElementFactory.js", ->
                 return
 
             it "should always return the same componentInstance if the component is marked as singleInstance", ->
-                factory = new ElementFactory(logger,
+                factory = new ElementManager(logger,
                     components:
                         MyComponent: ->
                             @singleInstance = true
@@ -170,7 +170,7 @@ describe "ElementFactory.js", ->
                 return
 
             it "should always return a different componentInstance if the component is not marked as singleInstance", ->
-                factory = new ElementFactory(logger,
+                factory = new ElementManager(logger,
                     components:
                         MyComponent: ->
                             return

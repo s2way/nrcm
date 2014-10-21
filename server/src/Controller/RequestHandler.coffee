@@ -1,9 +1,9 @@
 querystring = require('querystring')
 Exceptions = require('./../Util/Exceptions')
 Router = require('./../Core/Router')
-ElementFactory = require('./../Core/ElementFactory')
 chalk = require('chalk')
 XML = require('../Component/Builtin/XML')
+ControllerFactory = require './ControllerFactory'
 
 # The request handler object
 # @constructor
@@ -26,7 +26,7 @@ class RequestHandler
     # @param {object} request The NodeJS request object
     # @param {object} response The NodeJS response object
     process: (request, response) ->
-        $this = this
+        self = this
         @request = request
         @response = response
         @payload = ''
@@ -35,23 +35,23 @@ class RequestHandler
         try
             router = new Router(@serverLogger, @configs.urlFormat)
             throw new Exceptions.InvalidUrl() unless router.isValid(requestUrl)
-            decomposedURL = router.decompose(requestUrl)
-            type = decomposedURL.type
+            @decomposedURL = router.decompose(requestUrl)
+            type = @decomposedURL.type
             @method = @request.method.toLowerCase()
-            @appName = decomposedURL.application
+            @appName = @decomposedURL.application
             if type isnt 'root'
                 @application = (if @appName then @applications[@appName] else null)
                 throw new Exceptions.ApplicationNotFound(@appName)  if @applications[@appName] is undefined
-            @query = decomposedURL.query
-            @prefixes = decomposedURL.prefixes
-            @segments = decomposedURL.segments
+            @query = @decomposedURL.query
+            @prefixes = @decomposedURL.prefixes
+            @segments = @decomposedURL.segments
             @log 'Application: ' + @appName
             @log 'Method: ' + @method
             @log 'URL type: ' + type
             @log 'Prefixes: ' + JSON.stringify(@prefixes)
             @log 'Query: ' + JSON.stringify(@query)
             if type is 'controller'
-                controllerInfo = router.findController(@application.controllers, decomposedURL)
+                controllerInfo = router.findController(@application.controllers, @decomposedURL)
                 controllerNameCamelCase = controllerInfo.controller
                 @segments = controllerInfo.segments
                 @log 'Segments: ' + JSON.stringify(@segments)
@@ -61,16 +61,16 @@ class RequestHandler
             else if type is 'appRoot'
                 @_receivePayload()
                 @_endRequest ->
-                    $this.render
-                        application: $this.appName
-                        version: $this.application.core.version
+                    self.render
+                        application: self.appName
+                        version: self.application.core.version
                     , 200
 
             else if type is 'root'
                 @_receivePayload()
                 @_endRequest ->
-                    $this.render
-                        version: $this.version
+                    self.render
+                        version: self.version
                     , 200
 
         catch e
@@ -81,56 +81,8 @@ class RequestHandler
     # Controller dependency injection happens here
     # @return {object|boolean} The controller instance that should be passed to invokeController
     prepareController: (controllerName) ->
-        $this = this
-        application = @applications[@appName]
-        throw new Exceptions.ControllerNotFound()  if controllerName is false or application.controllers[controllerName] is undefined
-        @elementFactory = new ElementFactory(@serverLogger, application)
-        @log 'Creating controller'
-        ControllerConstructor = application.controllers[controllerName]
-        controllerInstance = new ControllerConstructor()
-        (injectProperties = ->
-            retrieveComponentMethod = (componentName, params) ->
-                instance = $this.elementFactory.create('component', componentName, params)
-                $this.elementFactory.init instance
-                instance
-
-            retrieveModelMethod = (modelName, params) ->
-                instance = $this.elementFactory.create('model', modelName, params)
-                $this.elementFactory.init instance
-                instance
-
-            automaticTraceImplementation = (callback) ->
-                controllerInstance.contentType = false
-                for headerName of controllerInstance.requestHeaders
-                    if controllerInstance.requestHeaders.hasOwnProperty headerName
-                        controllerInstance.responseHeaders[headerName] = controllerInstance.requestHeaders[headerName]
-                callback ''
-
-            automaticOptionsImplementation = (callback) ->
-                methods = ['head', 'trace', 'options', 'get', 'post', 'put', 'delete']
-                allowString = ''
-                methods.forEach (method) ->
-                    if controllerInstance[method] isnt undefined
-                        allowString += ','  if allowString isnt ''
-                        allowString += method.toUpperCase()
-
-                controllerInstance.responseHeaders.Allow = allowString
-                controllerInstance.contentType = false
-                callback ''
-
-            controllerInstance.responseHeaders = {}
-            controllerInstance.name = controllerName
-            controllerInstance.application = $this.appName
-            controllerInstance.core = application.core
-            controllerInstance.configs = application.configs
-            controllerInstance.component = retrieveComponentMethod
-            controllerInstance.model = retrieveModelMethod
-            controllerInstance.trace = automaticTraceImplementation
-            controllerInstance.options = automaticOptionsImplementation
-            controllerInstance.method = $this.method
-            controllerInstance.head = controllerInstance.get
-        )()
-        controllerInstance
+        @_controllerFactory = new ControllerFactory @serverLogger, @applications[@appName]
+        @_controllerFactory.create(controllerName, @method, @decomposedUrl)
 
     _receivePayload: -> @request.on 'data', (data) => @payload += data
 
@@ -173,103 +125,91 @@ class RequestHandler
             @log 'Error while parsing payload: ' + e
         null
 
+    _startTimeout: ->
+        @log 'Timeout timer started'
+        @_timeoutTimer = setTimeout(=>
+            clearImmediate @_controllerMethodImmediate
+            @handleRequestException new Exceptions.Timeout()
+        , @applications[@appName].core.requestTimeout)
+
     # It executes a function within the controller
     # @method invokeController
     # @param {string} controller The controller's name
     # @param {string} method The controller`s method that should be invoked
     invokeController: (controllerInstance, httpMethod, done) ->
-        $this = this
-        $this.log 'Invoking controller'
+        self = this
+        self.log 'Invoking controller'
         savedOutput = null
-        application = @applications[@appName]
         throw new Exceptions.MethodNotFound() if controllerInstance[httpMethod] is undefined
-        $this.log 'Receiving payload'
+        self.log 'Receiving payload'
         @_receivePayload()
         @_endRequest ->
-            $this.log 'All data received'
-            requestHeaders = $this._headers()
+            self.log 'All data received'
+            requestHeaders = self._headers()
             requestContentType = requestHeaders['content-type'] or 'application/json'
 
-            controllerInstance.payload = $this._parsePayload(requestContentType, $this.payload)
-            controllerInstance.segments = $this.segments
-            controllerInstance.query = $this.query
-            controllerInstance.prefixes = $this.prefixes
+            controllerInstance.payload = self._parsePayload(requestContentType, self.payload)
+            controllerInstance.segments = self.segments
+            controllerInstance.query = self.query
+            controllerInstance.prefixes = self.prefixes
             controllerInstance.requestHeaders = requestHeaders
-            controllerInstance.responseHeaders = Server: 'WaferPie/' + $this.version
+            controllerInstance.responseHeaders = Server: 'WaferPie/' + self.version
+            controllerInstance.method = self.method
 
-            timer = null
-            afterCallback = ->
-                clearTimeout timer
+            self._timeoutTimer= null
+            self._afterCallback = ->
+                clearTimeout self._timeoutTimer
                 try
-                    controllerInstance.statusCode = 200  if controllerInstance.statusCode is undefined
-                    (setHeaders = ->
-                        if typeof controllerInstance.responseHeaders is 'object'
-                            for name of controllerInstance.responseHeaders
-                                if controllerInstance.responseHeaders.hasOwnProperty(name)
-                                    value = controllerInstance.responseHeaders[name]
-                                    $this._setHeader name, value
-                    )()
-                    $this.log 'Destroying components'
-                    (destroyComponents = ->
-                        componentsCreated = $this.elementFactory.getComponents()
+                    controllerInstance.statusCode = 200 if !controllerInstance.statusCode
+                    # Set Headers
+                    if typeof controllerInstance.responseHeaders is 'object'
+                        for name of controllerInstance.responseHeaders
+                            if controllerInstance.responseHeaders.hasOwnProperty(name)
+                                value = controllerInstance.responseHeaders[name]
+                                self._setHeader name, value
 
-                        for componentInstance in componentsCreated
-                            destroyComponent = (componentInstance) ->
-                                $this.log 'Destroying ' + componentInstance.name
-                                componentInstance.destroy?()
-
-                            setImmediate destroyComponent, componentInstance
-                    )()
-                    $this.render savedOutput, controllerInstance.statusCode, controllerInstance.contentType
+                    # Destroy components
+                    @_controllerFactory.destroy()
+                    self.render savedOutput, controllerInstance.statusCode, controllerInstance.contentType
                     done?()
                 catch e
-                    $this.handleRequestException e
+                    self.handleRequestException e
 
             controllerMethodCallback = (output) ->
                 savedOutput = output
                 try
-                    (callAfterIfDefined = ->
-                        if controllerInstance.after isnt undefined
-                            controllerInstance.after afterCallback
-                        else
-                            afterCallback()
-                    )()
+                    # callAfterIfDefined
+                    if controllerInstance.after isnt undefined
+                        controllerInstance.after self._afterCallback
+                    else
+                        self._afterCallback()
                 catch e
-                    clearTimeout timer
-                    $this.handleRequestException e
+                    clearTimeout self._timeoutTimer
+                    self.handleRequestException e
 
-            beforeCallback = ->
+            beforeCallback = () ->
                 try
-
-                # Call the controller method (put, get, delete, post, etc)
+                    # Call the controller method (put, get, delete, post, etc)
                     savedOutput = controllerInstance[httpMethod](controllerMethodCallback)
                 catch e
-                    clearTimeout timer
-                    $this.handleRequestException e
+                    clearTimeout self._timeoutTimer
+                    self.handleRequestException e
 
 
             # Encapsulate the method in a immediate so it can be killed
-            controllerMethodImmediate = setImmediate(->
+            self._controllerMethodImmediate = setImmediate(->
                 try
-                    (callBefore = ->
-                        if controllerInstance.before isnt undefined
-                            controllerInstance.before beforeCallback
-                        else
-                            beforeCallback()
-                    )()
+                    # callBefore
+                    if controllerInstance.before isnt undefined
+                        controllerInstance.before beforeCallback
+                    else
+                        beforeCallback()
                 catch e
-
-                # Catch exceptions that may occur in the controller before method
-                    clearTimeout timer
-                    $this.handleRequestException e
+                    # Catch exceptions that may occur in the controller before method
+                    clearTimeout self._timeoutTimer
+                    self.handleRequestException e
             )
-            $this.log 'Timeout timer started'
-            (startTimeoutTimer = ->
-                timer = setTimeout(->
-                    clearImmediate controllerMethodImmediate
-                    $this.handleRequestException new Exceptions.Timeout()
-                , application.core.requestTimeout)
-            )()
+            self._startTimeout()
 
     log: (message) -> @serverLogger.log '[RequestHandler] ' + message
 
@@ -282,15 +222,15 @@ class RequestHandler
         @log 'Handling exception'
         knownException = e.name isnt undefined
         if knownException
-            $this = this
+            self = this
             method = 'on' + e.name
             @log 'Creating ExceptionsController instance'
             instance = new @ExceptionsController()
             instance.statusCode = 200
             callback = (output) ->
                 instance.statusCode = 200  if instance.statusCode is undefined
-                $this.log 'Rendering exception'
-                $this.render output, instance.statusCode
+                self.log 'Rendering exception'
+                self.render output, instance.statusCode
 
             if typeof instance[method] is 'function'
                 instance[method] callback

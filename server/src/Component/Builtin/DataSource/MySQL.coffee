@@ -39,8 +39,6 @@ class MySQL
             @info "[" + @_dataSourceName + "] Recycling connection"
             callback null, @_connections[@_dataSourceName]
             return
-        connection = undefined
-        $this = undefined
         $this = this
         @info "[" + @_dataSourceName + "] Connecting to " + @_dataSource.host + ":" + @_dataSource.port
         connection = @_mysql.createConnection(
