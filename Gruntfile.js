@@ -10,15 +10,15 @@ module.exports = function (grunt) {
 
     clean += 'rm -rf dist';
     //lint += "jslint --node --vars --devel --nomen --stupid --indent 4 --maxlen 2048 `find server -regex '.*\\.js$' -type f | tr '\\n' ' '` > lint.out || (cat lint.out && exit 1) ; rm -rf lint.out ; ";
-    lint += "coffeelint server";
+    lint += "node_modules/.bin/coffeelint server";
 
     build += 'mkdir -p dist ; ';
     //build += '(cp -r server/* dist/ && find dist -type f ! -iname "*.js" -delete) ; ';
-    build += 'coffee --compile --output dist server';
+    build += 'node_modules/.bin/coffee --compile --output dist server';
 
-    test += 'mocha server/test --recursive -R progress --compilers coffee:coffee-script/register ';
+    test += 'node_modules/.bin/mocha server/test --recursive -R progress --compilers coffee:coffee-script/register ';
 
-    cc += 'mocha server/test --recursive -R html-cov -r blanket --compilers coffee:coffee-script/register > report.html';
+    cc += 'node_modules/.bin/mocha server/test --recursive -R html-cov -r blanket --compilers coffee:coffee-script/register > report.html';
 
     // Define the configuration for all the tasks
     grunt.initConfig({
@@ -28,7 +28,7 @@ module.exports = function (grunt) {
             'build': build,
             'test': test,
             'cc': cc,
-            'travis-cov': 'mocha server/test --recursive -r blanket -R travis-cov '
+            'travis-cov': 'node_modules/.bin/mocha server/test --recursive -r blanket -R travis-cov '
         },
 
         // Watches files for changes and runs tasks based on the changed files

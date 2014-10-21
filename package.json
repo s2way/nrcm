@@ -57,11 +57,10 @@
     },
     "version": "0.8.1",
     "scripts": {
-        "preinstall" : "npm install -g grunt-cli coffeelint mocha blanket",
-        "postinstall": "rm -rf dist ; mkdir -p dist ; (cp -r server/* dist/ && find dist -type f ! -iname '*.js' -delete) ; coffee --compile --output dist server",
-        "pretest": "coffeelint server",
-        "test": "mocha server/test --recursive -R progress --compilers coffee:coffee-script/register ; mocha server/test --recursive -R html-cov -r blanket --compilers coffee:coffee-script/register > report.html",
-        "posttest": "mocha server/test --recursive -r blanket -R travis-cov --compilers coffee:coffee-script/register"
+        "pretest": "node_modules/.bin/coffeelint server",
+        "postinstall": "rm -rf dist ; mkdir -p dist ; (cp -r server/* dist/ && find dist -type f ! -iname '*.js' -delete) ; node_modules/.bin/coffee --compile --output dist server",
+        "test": "node_modules/.bin/mocha server/test --recursive -R progress --compilers coffee:coffee-script/register ; node_modules/.bin/mocha server/test --recursive -R html-cov -r blanket --compilers coffee:coffee-script/register > report.html",
+        "posttest": "node_modules/.bin/mocha server/test --recursive -r blanket -R travis-cov --compilers coffee:coffee-script/register"
     },
     "contributors": [
         {
