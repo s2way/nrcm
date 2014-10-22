@@ -1,8 +1,6 @@
-querystring = require('querystring')
 Exceptions = require('./../Util/Exceptions')
 Router = require('./../Core/Router')
 chalk = require('chalk')
-XML = require('../Component/Builtin/XML')
 ControllerFactory = require './ControllerFactory'
 
 # The request handler object
@@ -25,19 +23,17 @@ class RequestHandler
     # @method process
     # @param {object} request The NodeJS request object
     # @param {object} response The NodeJS response object
-    process: (request, response) ->
+    process: (@_request, @response) ->
         self = this
-        @request = request
-        @response = response
-        @payload = ''
-        requestUrl = @request.url
+
+        requestUrl = @_request.url
         @log chalk.bold.green('Request: ' + requestUrl)
         try
             router = new Router(@serverLogger, @configs.urlFormat)
             throw new Exceptions.InvalidUrl() unless router.isValid(requestUrl)
             @decomposedURL = router.decompose(requestUrl)
             type = @decomposedURL.type
-            @method = @request.method.toLowerCase()
+            @method = @_request.method
             @appName = @decomposedURL.application
 
             if type isnt 'root'
@@ -60,16 +56,14 @@ class RequestHandler
                 controllerInstance = @prepareController(controllerNameCamelCase)
                 @invokeController controllerInstance, @method
             else if type is 'appRoot'
-                @_receivePayload()
-                @_endRequest ->
+                @request.receive ->
                     self.render
                         application: self.appName
                         version: self.application.core.version
                     , 200
 
             else if type is 'root'
-                @_receivePayload()
-                @_endRequest ->
+                @request.receive ->
                     self.render
                         version: self.version
                     , 200
@@ -83,47 +77,6 @@ class RequestHandler
     # @return {object|boolean} The controller instance that should be passed to invokeController
     prepareController: (controllerName) ->
         @_controllerFactory.create(controllerName, @method, @decomposedUrl)
-
-    _receivePayload: -> @request.on 'data', (data) => @payload += data
-
-    _endRequest: (callback) -> @request.on 'end', callback
-
-    # Return the request headers
-    # This method is mocked in tests
-    # @returns {object}
-    # @private
-    _headers: -> @request.headers
-
-    # Set a response header
-    # @param {string} name Header name
-    # This method is mocked in tests
-    # @param {string} value Header value
-    # @private
-    _setHeader: (name, value) -> @response.setHeader name, value
-
-    _writeHead: (statusCode, contentType) ->
-        headers = {}
-        headers['content-type'] = contentType  if contentType
-        @response.writeHead statusCode, headers
-
-    _writeResponse: (output) -> @response.write output
-
-    _sendResponse: -> @response.end()
-
-    _parsePayload: (contentType, payload) ->
-        return null if payload is null or payload is undefined or payload is ''
-        isJSON = contentType.indexOf('application/json') isnt -1
-        isXML = contentType.indexOf('text/xml') isnt -1
-        isUrlEncoded = contentType.indexOf('application/x-www-form-urlencoded') isnt -1
-        try
-            if payload isnt ''
-                return JSON.parse(payload) if isJSON
-                return new XML().toJSON(payload) if isXML
-                return querystring.parse(payload) if isUrlEncoded
-                return payload
-        catch e
-            @log 'Error while parsing payload: ' + e
-        null
 
     _startTimeout: ->
         @log 'Timeout timer started'
@@ -142,22 +95,18 @@ class RequestHandler
         savedOutput = null
         throw new Exceptions.MethodNotFound() if controllerInstance[httpMethod] is undefined
         self.log 'Receiving payload'
-        @_receivePayload()
 
         @_controllerFactory.prepare controllerInstance, httpMethod, @decomposedUrl, @segments
 
-        @_endRequest ->
-
+        @_request.receive (payload) =>
             self.log 'All data received'
-            requestHeaders = self._headers()
-            controllerInstance.payload = self._parsePayload(requestHeaders, self.payload)
 
-            requestContentType = requestHeaders['content-type']? 'application/json'
-            @_controllerFactory.invoke requestHeaders, self.payload
+            controllerInstance.payload = payload
+            controllerInstance.requestHeaders = @request.headers
 
+            @_controllerFactory.invoke @_request.headers, payload
 
-            controllerInstance.requestHeaders = requestHeaders
-            controllerInstance.responseHeaders = Server: 'WaferPie/' + self.version
+            controllerInstance.responseHeaders = {}
 
             self._timeoutTimer= null
             self._afterCallback = ->
@@ -261,19 +210,13 @@ class RequestHandler
         if @stringOutput is undefined
             @log 'Rendering'
             @log 'content-type: ' + contentType
+
+
             @_writeHead statusCode, contentType
-            if typeof output is 'object'
-                isJSON = contentType.indexOf('application/json') isnt -1
-                isXML = contentType.indexOf('text/xml') isnt -1
-                if isJSON
-                    @stringOutput = JSON.stringify(output)
-                else if isXML
-                    @stringOutput = new XML().fromJSON(output)
-                else
-                    @stringOutput = output
-            else
-                @stringOutput = output
-            @_writeResponse @stringOutput
+
+            @_sendResponse @stringOutput
+            @_response.send @stringOutput, headers, contentType, statusCode
+
             @log 'Output: ' + chalk.cyan((if @stringOutput.length > 1000 then @stringOutput.substring(0, 1000) + '...' else @stringOutput))
             if statusCode >= 200 and statusCode < 300
                 @log chalk.green('Response Status: ' + statusCode)
@@ -283,7 +226,7 @@ class RequestHandler
                 @log chalk.red('Response Status: ' + statusCode)
             else
                 @log chalk.blue('Response Status: ' + statusCode)
-            @_sendResponse()
+
             @end = new Date()
             @log chalk.cyan('Time: ' + (@end.getTime() - @start.getTime()) + 'ms')
 
