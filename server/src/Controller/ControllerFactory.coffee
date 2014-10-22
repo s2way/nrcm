@@ -4,11 +4,13 @@ ElementManager = require '../Core/ElementManager'
 # Responsible for creating controllers and performing injection
 class ControllerFactory
 
-    constructor: (@logger, @application) -> return
+    constructor: (@application, @logger = null) ->
+        return
 
-    log: (message) -> @logger?.log?('[ControllerFactory] ' + message)
+    log: (message) ->
+        @logger?.log?('[ControllerFactory] ' + message)
 
-    create: (controllerName, method, url) ->
+    create: (controllerName) ->
         @log 'Creating controller'
         throw new Exceptions.ControllerNotFound() if controllerName is false or @application.controllers[controllerName] is undefined
 
@@ -52,12 +54,13 @@ class ControllerFactory
 
         controllerInstance.trace = automaticTraceImplementation
         controllerInstance.options = automaticOptionsImplementation
-        controllerInstance.head = controllerInstance.get
-        controllerInstance.method = method
-        controllerInstance.url = url
+        controllerInstance.head = (callback) ->
+            controllerInstance.get callback
         controllerInstance
 
-    prepare: (instance) -> return
+    invoke: (instance, method, url) ->
+        instance.method = method
+        instance.url = url
 
     destroy: (instance) ->
         @log 'Destroying controller'

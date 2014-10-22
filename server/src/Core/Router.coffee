@@ -105,6 +105,11 @@ class Router
             return
 
         @info 'URL decomposed'
+        host: parsedUrl.host
+        hostname: parsedUrl.hostname
+        port: parsedUrl.port
+        protocol: parsedUrl.protocol
+        url: requestUrl
         type: type
         controllers: controllers
         application: application

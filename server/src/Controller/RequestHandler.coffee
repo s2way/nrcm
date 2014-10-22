@@ -50,7 +50,9 @@ class RequestHandler
             @log 'URL type: ' + type
             @log 'Prefixes: ' + JSON.stringify(@prefixes)
             @log 'Query: ' + JSON.stringify(@query)
+
             if type is 'controller'
+                @_controllerFactory = new ControllerFactory @applications[@appName], @serverLogger
                 controllerInfo = router.findController(@application.controllers, @decomposedURL)
                 controllerNameCamelCase = controllerInfo.controller
                 @segments = controllerInfo.segments
@@ -81,7 +83,6 @@ class RequestHandler
     # Controller dependency injection happens here
     # @return {object|boolean} The controller instance that should be passed to invokeController
     prepareController: (controllerName) ->
-        @_controllerFactory = new ControllerFactory @serverLogger, @applications[@appName]
         @_controllerFactory.create(controllerName, @method, @decomposedUrl)
 
     _receivePayload: -> @request.on 'data', (data) => @payload += data
@@ -146,7 +147,7 @@ class RequestHandler
         @_endRequest ->
             self.log 'All data received'
             requestHeaders = self._headers()
-            requestContentType = requestHeaders['content-type'] or 'application/json'
+            requestContentType = requestHeaders['content-type']? 'application/json'
 
             controllerInstance.payload = self._parsePayload(requestContentType, self.payload)
             controllerInstance.segments = self.segments

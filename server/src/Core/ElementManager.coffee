@@ -12,7 +12,7 @@ class ElementManager
         @_staticComponents = {}
         @log 'ElementManager created'
 
-    log: (msg) -> @_logger.log?('[ElementManager] ' + msg)
+    log: (msg) -> @_logger?.log?('[ElementManager] ' + msg)
 
     # Return all components instantiated by this factory (both dynamic and static)
     # @returns {{}|*}
