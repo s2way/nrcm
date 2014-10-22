@@ -316,7 +316,6 @@ class RequestHandler
         if @stringOutput is undefined
             @log 'Rendering'
             @log 'content-type: ' + contentType
-            @_writeHead statusCode, contentType
             if typeof output is 'object'
                 isJSON = contentType.indexOf('application/json') isnt -1
                 isXML = contentType.indexOf('text/xml') isnt -1
@@ -330,6 +329,7 @@ class RequestHandler
                 @stringOutput = output
 
             @_setHeader 'Content-Length', @stringOutput.length
+            @_writeHead statusCode, contentType
             @_sendResponse(@stringOutput)
 
             @log 'Output: ' + chalk.cyan((if @stringOutput.length > 1000 then @stringOutput.substring(0, 1000) + '...' else @stringOutput))
