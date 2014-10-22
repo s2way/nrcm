@@ -198,29 +198,21 @@ class RequestHandler
             @error e.stack if e.stack isnt undefined
 
     # The callback function that sends the response back to the client
-    # @method render
-    # @param {object=} output The body/payload data
-    # @param {number=} statusCode The status code for http response
-    # @param {string|boolean=} contentType The text for the Content-Type http header
-    render: (output = {}, statusCode = 200, contentType = 'application/json') ->
+    render: (@body = {}, headers = {}, statusCode = 200, contentType = 'application/json') ->
         if @method is 'head'
-            output = ''
+            @body = ''
             contentType = false
 
-        if @stringOutput is undefined
+        if @body is undefined
             @log 'Rendering'
-            @log 'content-type: ' + contentType
 
+            @_response.send @body, headers, contentType, statusCode
 
-            @_writeHead statusCode, contentType
+            @log 'Output: ' + chalk.cyan((if @body.length > 1000 then @body.substring(0, 1000) + '...' else @body))
 
-            @_sendResponse @stringOutput
-            @_response.send @stringOutput, headers, contentType, statusCode
-
-            @log 'Output: ' + chalk.cyan((if @stringOutput.length > 1000 then @stringOutput.substring(0, 1000) + '...' else @stringOutput))
-            if statusCode >= 200 and statusCode < 300
+            if 200 <= statusCode < 300
                 @log chalk.green('Response Status: ' + statusCode)
-            else if statusCode >= 400 and statusCode < 500
+            else if 400 <= statusCode < 500
                 @log chalk.yellow('Response Status: ' + statusCode)
             else if statusCode >= 500
                 @log chalk.red('Response Status: ' + statusCode)
@@ -230,6 +222,6 @@ class RequestHandler
             @end = new Date()
             @log chalk.cyan('Time: ' + (@end.getTime() - @start.getTime()) + 'ms')
 
-        @stringOutput
+        @body
 
 module.exports = RequestHandler

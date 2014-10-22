@@ -4,13 +4,10 @@ class Response
 
     constructor: (@_response) ->
         @_xml = new XML
-        return
 
-    send: (body, headers, contentType = 'application/json', statusCode = 200, encoding = 'UTF-8') ->
-
-
-        headers['Content-Length'] = body.length
-        headers['Content-Type'] = contentType
+    send: (body, headers, statusCode = 200, contentType = 'application/json', encoding = 'UTF-8') ->
+        headers['Content-Length'] = body.length if body.length > 0
+        headers['Content-Type'] = contentType if contentType
         headers['Server'] = 'WaferPie'
         @_response.writeHead statusCode, headers
         @_response.end body, encoding
@@ -22,3 +19,5 @@ class Response
         return JSON.stringify(body) if isJSON
         return @_xml.fromJSON(body) if isXML
         return body
+
+module.exports = Response
