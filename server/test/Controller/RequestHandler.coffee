@@ -348,7 +348,7 @@ describe "RequestHandler.js", ->
 
             it "should render an empty response if the HEAD method is issued", (done) ->
                 rh = mockRequestHandler()
-                rh._writeResponse = (output) ->
+                rh._sendResponse = (output) ->
                     assert.equal "", output
                     done()
                     return
@@ -558,10 +558,9 @@ describe "RequestHandler.js", ->
                         @contentType = "text/xml"
                         callback root: {}
                         return
-
                     return
                 )
-                rh._writeResponse = (response) ->
+                rh._sendResponse = (response) ->
                     xml = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<root/>"
                     expect(response).to.be xml
                     done()

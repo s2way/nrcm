@@ -154,9 +154,7 @@ class RequestHandler
         headers['content-type'] = contentType  if contentType
         @response.writeHead statusCode, headers
 
-    _writeResponse: (output) -> @response.write output
-
-    _sendResponse: -> @response.end()
+    _sendResponse: (output) -> @response.end(output)
 
     _parsePayload: (contentType, payload) ->
         return null if payload is null or payload is undefined or payload is ''
@@ -330,7 +328,10 @@ class RequestHandler
                     @stringOutput = output
             else
                 @stringOutput = output
-            @_writeResponse @stringOutput
+
+            @_setHeader 'Content-Length', @stringOutput.length
+            @_sendResponse(@stringOutput)
+
             @log 'Output: ' + chalk.cyan((if @stringOutput.length > 1000 then @stringOutput.substring(0, 1000) + '...' else @stringOutput))
             if statusCode >= 200 and statusCode < 300
                 @log chalk.green('Response Status: ' + statusCode)
@@ -340,7 +341,6 @@ class RequestHandler
                 @log chalk.red('Response Status: ' + statusCode)
             else
                 @log chalk.blue('Response Status: ' + statusCode)
-            @_sendResponse()
             @end = new Date()
             @log chalk.cyan('Time: ' + (@end.getTime() - @start.getTime()) + 'ms')
 
