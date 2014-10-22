@@ -51,6 +51,7 @@ describe 'ControllerFactory', ->
     describe 'destroy', ->
 
         it 'should call destroy for all instantiated components', (done) ->
+
             class MyController
                 constructor: -> return
             class MyComponent
@@ -61,9 +62,8 @@ describe 'ControllerFactory', ->
                 controllers: MyController: MyController
                 components: MyComponent: MyComponent
                 name: 'App'
+
             controllerFactory = new ControllerFactory application
             instance = controllerFactory.create 'MyController'
             instance.component 'MyComponent'
-
             controllerFactory.destroy instance
-

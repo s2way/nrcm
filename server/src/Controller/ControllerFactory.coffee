@@ -43,28 +43,39 @@ class ControllerFactory
         controllerInstance.core = @application.core
         controllerInstance.configs = @application.configs
         controllerInstance.component = (modelName, params) =>
-            instance = controllerInstance.elementFactory.create 'model', modelName, params
-            controllerInstance.elementFactory.init instance
+            instance = controllerInstance.elementManager.create 'component', modelName, params
+            controllerInstance.elementManager.init instance
             instance
 
         controllerInstance.model = (componentName, params) =>
-            instance = controllerInstance.elementFactory.create 'component', componentName, params
-            controllerInstance.elementFactory.init instance
+            instance = controllerInstance.elementManager.create 'model', componentName, params
+            controllerInstance.elementManager.init instance
             instance
 
         controllerInstance.trace = automaticTraceImplementation
         controllerInstance.options = automaticOptionsImplementation
         controllerInstance.head = (callback) ->
             controllerInstance.get callback
+
         controllerInstance
 
-    invoke: (instance, method, url) ->
+
+
+    # Executed after the method to be called is known
+    prepare: (instance, method, url, segments) ->
+        instance.segments = segments
+        instance.query = url.query
+        instance.prefixes = url.prefixes
         instance.method = method
         instance.url = url
 
+    # Executed after the payload has been received
+    invoke: (requestHeaders, payload) ->
+
+
     destroy: (instance) ->
         @log 'Destroying controller'
-        componentsCreated = instance.elementFactory.getComponents()
+        componentsCreated = instance.elementManager.getComponents()
 
         for componentInstance in componentsCreated
             destroyComponent = (componentInstance) =>

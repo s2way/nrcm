@@ -39,24 +39,23 @@ class RequestHandler
             type = @decomposedURL.type
             @method = @request.method.toLowerCase()
             @appName = @decomposedURL.application
+
             if type isnt 'root'
                 @application = (if @appName then @applications[@appName] else null)
                 throw new Exceptions.ApplicationNotFound(@appName)  if @applications[@appName] is undefined
-            @query = @decomposedURL.query
-            @prefixes = @decomposedURL.prefixes
-            @segments = @decomposedURL.segments
+
             @log 'Application: ' + @appName
             @log 'Method: ' + @method
             @log 'URL type: ' + type
-            @log 'Prefixes: ' + JSON.stringify(@prefixes)
-            @log 'Query: ' + JSON.stringify(@query)
+            @log 'Prefixes: ' + JSON.stringify(@decomposedUrl.prefixes)
+            @log 'Query: ' + JSON.stringify(@decomposedUrl.query)
 
             if type is 'controller'
                 @_controllerFactory = new ControllerFactory @applications[@appName], @serverLogger
                 controllerInfo = router.findController(@application.controllers, @decomposedURL)
                 controllerNameCamelCase = controllerInfo.controller
                 @segments = controllerInfo.segments
-                @log 'Segments: ' + JSON.stringify(@segments)
+                @log 'Segments: ' + JSON.stringify(controllerInfo.segments)
                 @log 'Controller: ' + controllerNameCamelCase
                 controllerInstance = @prepareController(controllerNameCamelCase)
                 @invokeController controllerInstance, @method
@@ -144,18 +143,21 @@ class RequestHandler
         throw new Exceptions.MethodNotFound() if controllerInstance[httpMethod] is undefined
         self.log 'Receiving payload'
         @_receivePayload()
+
+        @_controllerFactory.prepare controllerInstance, httpMethod, @decomposedUrl, @segments
+
         @_endRequest ->
+
             self.log 'All data received'
             requestHeaders = self._headers()
-            requestContentType = requestHeaders['content-type']? 'application/json'
+            controllerInstance.payload = self._parsePayload(requestHeaders, self.payload)
 
-            controllerInstance.payload = self._parsePayload(requestContentType, self.payload)
-            controllerInstance.segments = self.segments
-            controllerInstance.query = self.query
-            controllerInstance.prefixes = self.prefixes
+            requestContentType = requestHeaders['content-type']? 'application/json'
+            @_controllerFactory.invoke requestHeaders, self.payload
+
+
             controllerInstance.requestHeaders = requestHeaders
             controllerInstance.responseHeaders = Server: 'WaferPie/' + self.version
-            controllerInstance.method = self.method
 
             self._timeoutTimer= null
             self._afterCallback = ->
