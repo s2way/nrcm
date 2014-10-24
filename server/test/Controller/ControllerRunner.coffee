@@ -123,8 +123,16 @@ describe 'ControllerRunner', ->
                 after: (callback) ->
                     failed = true
                     callback()
-            runner.run instance, 10000, (body) ->
+            runner.run instance, 10000, ->
                 expect(failed).to.be false
                 done()
 
-
+        it 'should answer if the object passed to the before() method is an object', (done) ->
+            instance =
+                method: 'get'
+                before: (callback) -> callback (before: true)
+                get: -> throw {}
+            runner.run instance, 10000, (error, response) ->
+                expect(error).not.to.be.ok()
+                expect(response.before).to.be true
+                done()

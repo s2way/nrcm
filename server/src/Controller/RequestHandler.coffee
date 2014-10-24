@@ -67,8 +67,7 @@ class RequestHandler
         @_log 'Segments: ' + JSON.stringify(@_request.segments)
         @_log 'Controller: ' + @_request.controller
 
-        instance = @_controllerFactory.create @_request.controller, @_request.method, @_request.decomposedURL
-        @_invokeController(instance)
+        @_invokeController @_controllerFactory.create @_request.controller
 
     # Process the server root request and renders a response with the server version
     _processServerRoot: ->

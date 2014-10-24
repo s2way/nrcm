@@ -29,9 +29,13 @@ class ControllerRunner
                 clearTimeout timeoutTimer
                 callback e
 
-        beforeCallback = ->
+        beforeCallback = (response) ->
             try
-                body = instance[instance.method](controllerMethodCallback)
+                if response is true or response is undefined
+                    body = instance[instance.method](controllerMethodCallback)
+                else
+                    clearTimeout timeoutTimer
+                    callback null, response
             catch e
                 clearTimeout timeoutTimer
                 callback e

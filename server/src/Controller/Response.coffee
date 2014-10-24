@@ -1,6 +1,7 @@
 XML = require '../Component/Builtin/XML'
 querystring = require 'querystring'
 
+# Response
 class Response
 
     constructor: (@_response) ->
