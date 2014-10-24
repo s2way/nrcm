@@ -190,10 +190,9 @@ class WaferPie
     # @param {number} port The listening port of NodeJS http.createServer function
     start: (address, port) ->
         throw new Exceptions.Fatal('Please call configure() before start()!')  unless @_configured
-        $this = this
         @info 'Starting...'
-        http.createServer((request, response) ->
-            requestHandler = new RequestHandler @_configs, @_applications, @_logger
+        http.createServer((request, response) =>
+            requestHandler = new RequestHandler @_applications, @_configs, @_logger
             requestHandler.process new Request(request), new Response(response)
         ).listen port, address
         @info address + ':' + port
