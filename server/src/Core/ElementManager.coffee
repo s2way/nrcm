@@ -39,7 +39,6 @@ class ElementManager
         else
             @log '[' + elementName + '] Component not found'
             return null
-        return null  if ElementConstructor is null
 
         elementInstance = new ElementConstructor(params)
         if type is 'component'
@@ -80,5 +79,6 @@ class ElementManager
         if elementInstance isnt null
             @log '[' + elementInstance.name + '] Element initialized'
             elementInstance.init?()
+        elementInstance
 
 module.exports = ElementManager

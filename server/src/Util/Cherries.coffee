@@ -14,4 +14,6 @@ class Cherries
     # @returns {*}
     copy: (object) -> JSON.parse JSON.stringify(object)
 
+
+
 module.exports = Cherries

@@ -18,25 +18,54 @@ describe 'Response', ->
                 end: (body, encoding) ->
                     expect(writeHeadCalled).to.be true
                     expect(body).to.be '{}'
-                    expect(encoding).to.be 'UTF-8'
                     done()
             )
-            response.send {}, {}, 200, 'application/json', 'UTF-8'
+            response.send {}, {
+                'Content-Type': 'application/json'
+            }, 200
 
         it 'should convert the body to a XML if the Content-Type is text/xml', (done) ->
             response = new Response
                 writeHead: -> return
                 end: (body) ->
-                    expect(body).to.be ''
+                    expect(body).to.be '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<root></root>'
                     done()
-            response.send root: '', {}, 'text/xml'
+            response.send root: '',
+                'Content-Type' : 'text/xml'
+            , 200
 
-        it 'should convert the body to an encoded url if the Content-Type is application/www-x-form-urlencoded', (done) ->
+        it 'should convert the body to an encoded url if the Content-Type is application/x-www-form-urlencoded', (done) ->
             response = new Response
                 writeHead: -> return
                 end: (body) ->
                     expect(body).to.be 'this=is&the=body'
                     done()
-            response.send this: 'is', the: 'body', {}, 'application/www-x-form-urlencoded'
+            response.send this: 'is', the: 'body',
+                'Content-Type' : 'application/x-www-form-urlencoded'
+            , 200
 
+        it 'should return the body as text if the Content-Type is text/plain', (done) ->
+            response = new Response
+                writeHead: -> return
+                end: (body) ->
+                    expect(body).to.be 'this is a textual body'
+                    done()
+            response.send 'this is a textual body',
+                'Content-Type' : 'text/plain'
+            , 200
+
+    describe 'wasSent()', ->
+
+        it 'should return true after send() is called', ->
+            response = new Response
+                writeHead: -> return
+                end: -> return
+            response.send()
+            expect(response.wasSent()).to.be true
+
+        it 'should return false before send() is called', ->
+            response = new Response
+                writeHead: -> return
+                end: -> return
+            expect(response.wasSent()).to.be false
 

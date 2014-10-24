@@ -11,15 +11,19 @@ class Request
 
     receive: (callback) ->
         payload = ''
-        @_request.on 'data', (data) =>
+        @_request.on 'data', (data) ->
             payload += data
 
         @_request.on 'end', =>
             @payload = @_parsePayload(payload)
             callback(@payload)
 
+    isController: -> return @type is 'controller'
+    isServerRoot: -> return @type is 'root'
+    isApplicationRoot: -> return @type is 'appRoot'
+
     _log: (message) ->
-        @_logger?.log '[Request] ' + message
+        @_logger?.log?('[Request] ' + message)
 
     _parsePayload: (payload) ->
         contentType = @headers?['content-type'] ? 'application/json'

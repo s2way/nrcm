@@ -14,13 +14,9 @@ class Router
     # @method Router
     # @param {string} urlFormat The string that represents how you will send the urls to the server,
     # check the example above
-    constructor: (logger, urlFormat) ->
-        @logger = logger
+    constructor: (urlFormat) ->
         @urlFormat = urlFormat
         @urlFormatParts = urlFormat.substring(1).split('/')
-        @info 'Router created'
-
-    info: (msg) -> @logger.info '[Router] ' + msg
 
     # It checks if the url received by the server was formatted according to the configuration
     # @method isValid
@@ -34,18 +30,15 @@ class Router
         formatContainsApplication = @urlFormat.indexOf('$application') isnt -1
         formatContainsController = @urlFormat.indexOf('$controller') isnt -1
         if noExtension
-            @info 'Extension is not allowed'
             return false
         parsedUrl = parsedUrl.substring(0, parsedUrl.length - 1)  if endsWithSlash
         if startsWithSlash
-            @info 'URL does not start with /'
             return false
         urlNumParts = parsedUrl.substring(1).split('/').length
         requiredParts = @urlFormatParts.length
         requiredParts -= 1  if formatContainsApplication
         requiredParts -= 1  if formatContainsController
         if urlNumParts < requiredParts
-            @info 'URL parts do not match the specified format'
             return false
         true
 
@@ -69,12 +62,30 @@ class Router
                     )
         false
 
+    # Composes a request object into an URL (resource part only)
+    compose: (requestObject) ->
+        requestUrl = @urlFormat
+        requestUrl = requestUrl.replace(/\$application/, requestObject.application)
+        requestUrl = requestUrl.replace(/\$controller/, StringUtils.camelCaseToLowerCaseUnderscored(requestObject.controller).replace(/\./, '/'))
+
+        prefixes = requestUrl.match(/\#[a-zA-Z0-9_-]*/g) ? {}
+
+        for prefix in prefixes
+            prefixWithoutSharp = prefix.substring(1)
+            requestUrl = requestUrl.replace(new RegExp('\\' + prefix), requestObject.prefixes[prefixWithoutSharp])
+
+
+        if Array.isArray requestObject.segments
+            for segment in requestObject.segments
+                requestUrl += '/' + segment
+
+        requestUrl
+
     # It decomposes the url
     # @method decompose
     # @param {string} requestUrl The requested url received by the server
     # @return {object} Returns a splitted json object of the url
     decompose: (requestUrl) ->
-        @info 'Decomposing URL'
         parsedUrl = url.parse(requestUrl, true)
         parts = parsedUrl.pathname.substring(1).split('/')
         prefixes = {}
@@ -104,7 +115,6 @@ class Router
             i += 1
             return
 
-        @info 'URL decomposed'
         host: parsedUrl.host
         hostname: parsedUrl.hostname
         port: parsedUrl.port

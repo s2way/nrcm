@@ -1,31 +1,30 @@
 Exceptions = require '../Util/Exceptions'
 ElementManager = require '../Core/ElementManager'
 
-# Responsible for creating controllers and performing injection
+# Responsible for creating controllers, performing injection and destroy them
 class ControllerFactory
 
     constructor: (@application, @logger = null) ->
         return
 
-    log: (message) ->
+    _log: (message) ->
         @logger?.log?('[ControllerFactory] ' + message)
 
+    # Creates the controller with the given name
+    # It will search within the application object passed to the constructor
     create: (controllerName) ->
-        @log 'Creating controller'
-        throw new Exceptions.ControllerNotFound() if controllerName is false or @application.controllers[controllerName] is undefined
-
         ControllerConstructor = @application.controllers[controllerName]
-        controllerInstance = new ControllerConstructor()
-        controllerInstance.elementManager = new ElementManager(@logger, @application)
+        controllerInstance = new ControllerConstructor
+        controllerInstance.elementManager = new ElementManager @logger, @application
 
-        automaticTraceImplementation = (callback) =>
+        automaticTraceImplementation = (callback) ->
             controllerInstance.contentType = false
             for headerName of controllerInstance.requestHeaders
                 if controllerInstance.requestHeaders.hasOwnProperty headerName
                     controllerInstance.responseHeaders[headerName] = controllerInstance.requestHeaders[headerName]
             callback ''
 
-        automaticOptionsImplementation = (callback) =>
+        automaticOptionsImplementation = (callback) ->
             methods = ['head', 'trace', 'options', 'get', 'post', 'put', 'delete']
             allowString = ''
             methods.forEach (method) ->
@@ -42,12 +41,12 @@ class ControllerFactory
         controllerInstance.application = @application.name
         controllerInstance.core = @application.core
         controllerInstance.configs = @application.configs
-        controllerInstance.component = (modelName, params) =>
+        controllerInstance.component = (modelName, params) ->
             instance = controllerInstance.elementManager.create 'component', modelName, params
             controllerInstance.elementManager.init instance
             instance
 
-        controllerInstance.model = (componentName, params) =>
+        controllerInstance.model = (componentName, params) ->
             instance = controllerInstance.elementManager.create 'model', componentName, params
             controllerInstance.elementManager.init instance
             instance
@@ -59,27 +58,27 @@ class ControllerFactory
 
         controllerInstance
 
+    # Performs additional injection
+    # Executed after the method to be called is known and the payload has been received
+    prepare: (instance, request) ->
+        instance.segments = request.segments
+        instance.query = request.decomposedURL.query
+        instance.prefixes = request.decomposedURL.prefixes
+        instance.method = request.method
+        instance.url = request.url
+        instance.payload = request.payload
+        instance.requestHeaders = request.headers
+        instance.responseHeaders = {}
 
-
-    # Executed after the method to be called is known
-    prepare: (instance, method, url, segments) ->
-        instance.segments = segments
-        instance.query = url.query
-        instance.prefixes = url.prefixes
-        instance.method = method
-        instance.url = url
-
-    # Executed after the payload has been received
-    invoke: (requestHeaders, payload) ->
-
-
+    # Destroy the controller instance and all loaded components
+    # The destruction of the components is asynchronous
     destroy: (instance) ->
-        @log 'Destroying controller'
+        @_log 'Destroying controller'
         componentsCreated = instance.elementManager.getComponents()
 
         for componentInstance in componentsCreated
             destroyComponent = (componentInstance) =>
-                @log 'Destroying ' + componentInstance.name
+                @_log 'Destroying ' + componentInstance.name
                 componentInstance.destroy?()
 
             setImmediate destroyComponent, componentInstance

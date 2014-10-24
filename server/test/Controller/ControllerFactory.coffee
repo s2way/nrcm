@@ -3,7 +3,6 @@ ControllerFactory = require './../../src/Controller/ControllerFactory'
 
 describe 'ControllerFactory', ->
 
-
     describe 'create', ->
 
         application = null
@@ -13,20 +12,56 @@ describe 'ControllerFactory', ->
 
         class MyController
             constructor: -> return
+        class MyComponent
+            constructor: -> return
+        class MyModel
+            constructor: -> return
 
         beforeEach ->
             application =
                 controllers: MyController: MyController
+                models: MyModel: MyModel
+                components: MyComponent: MyComponent
                 name: 'App'
                 configs: configs
                 core: core
             controllerFactory = new ControllerFactory application
 
-        it 'should instantiate the controller and inject the elementManager', ->
+        it 'should inject the elementManager', ->
             instance = controllerFactory.create 'MyController'
             expect(instance.elementManager).to.be.ok()
 
-        it 'should instantiate the controller and inject some informative properties', ->
+        it 'should inject the automatic options() implementation correctly', (done) ->
+            instance = controllerFactory.create 'MyController'
+            expect(instance.options).to.be.a 'function'
+            instance.options ->
+                expect(instance.responseHeaders['Allow']).to.be 'HEAD,TRACE,OPTIONS'
+                expect(instance.responseHeaders['Content-Type']).not.to.be.ok()
+                done()
+
+        it 'should inject the head() method as a delegation to the get()', (done) ->
+            instance = controllerFactory.create 'MyController'
+            expect(instance.head).to.be.a 'function'
+            instance.get = ->
+                done()
+            instance.head()
+
+        it 'should inject the automatic trace() implementation correctly', ->
+            instance = controllerFactory.create 'MyController'
+            instance.requestHeaders = 'X-My-Header': 'value'
+            expect(instance.trace).to.be.a 'function'
+            instance.trace ->
+                expect(instance.responseHeaders).to.eql instance.requestHeaders
+
+        it 'should be able to retrieve components', ->
+            instance = controllerFactory.create 'MyController'
+            expect(instance.component('MyComponent').name).to.be 'MyComponent'
+
+        it 'should be able to retrieve models', ->
+            instance = controllerFactory.create 'MyController'
+            expect(instance.model('MyModel').name).to.be 'MyModel'
+
+        it 'should inject some informative properties', ->
             instance = controllerFactory.create 'MyController'
             expect(instance.name).to.be 'MyController'
             expect(instance.application).to.be 'App'
@@ -39,14 +74,39 @@ describe 'ControllerFactory', ->
             expect(instance.options).to.be.a 'function'
             expect(instance.trace).to.be.a 'function'
 
+    describe 'prepare', ->
 
-        it 'should throw a ControllerNotFound exception if the controller cannot be found', ->
+        it 'should inject some basic information about the request into the controller instance', ->
+            segments = {}
+            query = {}
+            prefixes = {}
+            method = {}
+            url = {}
+            payload = {}
+            requestHeaders = {}
+            request =
+                segments: segments
+                method: method
+                decomposedURL:
+                    query: query
+                    prefixes: prefixes
+                url: url
+                payload: payload
+                headers: requestHeaders
 
-            fn = ->
-                controllerFactory.create 'InvalidController'
-            expect(fn).to.throwException((e)->
-                expect(e.name).to.be 'ControllerNotFound'
-            )
+            controller = {}
+
+            controllerFactory = new ControllerFactory
+            controllerFactory.prepare controller, request
+
+            expect(controller.segments).to.be segments
+            expect(controller.query).to.be query
+            expect(controller.prefixes).to.be prefixes
+            expect(controller.method).to.be method
+            expect(controller.payload).to.be payload
+            expect(controller.url).to.be url
+            expect(controller.requestHeaders).to.be requestHeaders
+            expect(controller.responseHeaders).to.be.ok()
 
     describe 'destroy', ->
 

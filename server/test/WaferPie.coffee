@@ -24,7 +24,6 @@ describe 'WaferPie.js', ->
 
         fs.rmdirSync(path.join(dir, 'logs'))
 
-        fs.unlinkSync('Exceptions.js')
         fs.rmdirSync(dir)
 
     wafer = null
@@ -120,7 +119,6 @@ describe 'WaferPie.js', ->
         expect(fs.existsSync(path.join('testing2', 'test', 'Component'))).to.be.ok()
         expect(fs.existsSync(path.join('testing2', 'test', 'Filter'))).to.be.ok()
         expect(fs.existsSync(path.join('testing2', 'test', 'Model'))).to.be.ok()
-        expect(fs.existsSync(path.join('Exceptions.js'))).to.be.ok()
         clearStructure 'testing2'
 
     it 'should throw a Fatal exception if the controller does not export a function', ->
