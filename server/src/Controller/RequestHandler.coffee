@@ -1,6 +1,7 @@
-Exceptions = require('./../Util/Exceptions')
-Router = require('./../Core/Router')
-chalk = require('chalk')
+Exceptions = require './../Util/Exceptions'
+Router = require './../Core/Router'
+chalk = require 'chalk'
+uuid = require 'node-uuid'
 ControllerFactory = require './ControllerFactory'
 ControllerRunner = require './ControllerRunner'
 
@@ -12,7 +13,9 @@ ControllerRunner = require './ControllerRunner'
 # Renders the response by calling response.render()
 class RequestHandler
     constructor: (@_applications, @_configs, @_serverLogger) ->
+        # TODO version is about the WaferPie why is it here? WTF WTF WTF move it to WP class
         @_version = '0.8.4'
+        @_uuid = uuid.v4()
         @_log 'RequestHandler created'
         @_router = new Router @_configs.urlFormat
         @_controllerRunner = new ControllerRunner
@@ -25,6 +28,7 @@ class RequestHandler
         @_start = new Date()
         try
             @_log chalk.bold.green('Request: ' + @_request.url)
+            @_log chalk.blue 'UUID: ' + @_uuid
 
             throw new Exceptions.InvalidUrl() unless @_router.isValid(@_request.url)
 
@@ -35,8 +39,9 @@ class RequestHandler
             application = null
 
             if !@_request.isServerRoot()
-                application = (if @_request.app then @_applications[@_request.app] else null)
                 throw new Exceptions.ApplicationNotFound(@_request.app) if @_applications[@_request.app] is undefined
+                application = (if @_request.app then @_applications[@_request.app] else null)
+                application.uuid = application ? @_uuid
 
             @_log 'Application: ' + @_request.app
             @_log 'Method: ' + @_request.method
@@ -137,24 +142,23 @@ class RequestHandler
     _render: (body, headers, statusCode = 200) ->
         if @_response.wasSent()
             @_log 'Response already sent'
-            return
+        else
+            @_log 'Rendering'
 
-        @_log 'Rendering'
+            if typeof statusCode isnt 'number'
+                throw new Exceptions.IllegalControllerParameter('Invalid statusCode: ' + statusCode)
+            if typeof headers isnt 'object'
+                throw new Exceptions.IllegalControllerParameter('Invalid responseHeaders: ' + headers)
 
-        if typeof statusCode isnt 'number'
-            throw new Exceptions.IllegalControllerParameter('Invalid statusCode: ' + statusCode)
-        if typeof headers isnt 'object'
-            throw new Exceptions.IllegalControllerParameter('Invalid responseHeaders: ' + headers)
+            @_response.send body, headers, statusCode
+            @_log 'Output: ' + chalk.cyan((if body.length > 1000 then body.substring(0, 1000) + '...' else body))
 
-        @_response.send body, headers, statusCode
-        @_log 'Output: ' + chalk.cyan((if body.length > 1000 then body.substring(0, 1000) + '...' else body))
+            color = 'blue'
+            color = 'green' if 200 <= statusCode < 300
+            color = 'yellow' if 400 <= statusCode < 500
+            color = 'red' if statusCode >= 500
 
-        color = 'blue'
-        color = 'green' if 200 <= statusCode < 300
-        color = 'yellow' if 400 <= statusCode < 500
-        color = 'red' if statusCode >= 500
-
-        @_log chalk[color]('Response Status: ' + statusCode)
-        @_log chalk.cyan('Time: ' + (new Date().getTime() - @_start.getTime()) + 'ms')
+            @_log chalk[color]('Response Status: ' + statusCode)
+            @_log chalk.cyan('Time: ' + (new Date().getTime() - @_start.getTime()) + 'ms')
 
 module.exports = RequestHandler

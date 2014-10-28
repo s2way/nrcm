@@ -1,90 +1,90 @@
 {
-    "bugs": {
-        "url": "http://www.s2way.com/waferpie/issues",
-        "email": "support@s2way.com"
+  "bugs": {
+    "url": "http://www.s2way.com/waferpie/issues",
+    "email": "support@s2way.com"
+  },
+  "description": "The official S2Way Framework for Node.js.",
+  "engines": {
+    "node": ">=0.8.8"
+  },
+  "homepage": "http://www.s2way.com/waferpie",
+  "keywords": [
+    "s2way",
+    "framework",
+    "waferpie",
+    "request",
+    "view",
+    "controller"
+  ],
+  "main": "./dist/src/WaferPie.js",
+  "license": "Apache2",
+  "name": "waferpie",
+  "dependencies": {
+    "better-require": "0.0.3",
+    "chalk": "^0.5.1",
+    "couchbase": "^2.0.0",
+    "elasticsearch": "^2.4.0",
+    "moment": "~2.8.3",
+    "mysql": "^2.4.2",
+    "node-uuid": "^1.4.1",
+    "o2.debug": "^0.2.5",
+    "winston": "^0.7.3",
+    "xml2js": "^0.4.4",
+    "xmlbuilder": "^2.4.4"
+  },
+  "devDependencies": {
+    "blanket": "^1.1.6",
+    "coffee-script": "^1.8.0",
+    "coffeelint": "^1.6.0",
+    "expect.js": "^0.3.1",
+    "grunt": "^0.4.5",
+    "grunt-contrib-watch": "^0.6.1",
+    "grunt-exec": "^0.4.6",
+    "grunt-jslint": "^1.1.12",
+    "grunt-mocha-test": "^0.11.0",
+    "jslint": "^0.5.2",
+    "karma": "^0.12.21",
+    "karma-coverage": "^0.2.6",
+    "karma-mocha": "^0.1.7",
+    "load-grunt-tasks": "^0.6.0",
+    "mocha": "1.13.0",
+    "should": "^4.0.4",
+    "travis-cov": "^0.2.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/s2way/waferpie.git"
+  },
+  "version": "0.8.2",
+  "scripts": {
+    "pretest": "node_modules/.bin/coffeelint server",
+    "postinstall": "rm -rf dist ; mkdir -p dist ; (cp -r server/* dist/ && find dist -type f ! -iname '*.js' -delete) ; node_modules/.bin/coffee --compile --output dist server",
+    "test": "node_modules/.bin/mocha server/test --recursive -R progress --compilers coffee:coffee-script/register ; node_modules/.bin/mocha server/test --recursive -R html-cov -r blanket --compilers coffee:coffee-script/register > report.html",
+    "posttest": "node_modules/.bin/mocha server/test --recursive -r blanket -R travis-cov --compilers coffee:coffee-script/register"
+  },
+  "contributors": [
+    {
+      "name": "Juliano Lazzarotto",
+      "email": "jl.br.nh@gmail.com"
     },
-    "description": "The official S2Way Framework for Node.js.",
-    "engines": {
-        "node": ">=0.8.8"
-    },
-    "homepage": "http://www.s2way.com/waferpie",
-    "keywords": [
-        "s2way",
-        "framework",
-        "waferpie",
-        "request",
-        "view",
-        "controller"
-    ],
-    "main": "./dist/src/WaferPie.js",
-    "license": "Apache2",
-    "name": "waferpie",
-    "dependencies": {
-        "better-require": "0.0.3",
-        "chalk": "^0.5.1",
-        "couchbase": "^2.0.0",
-        "elasticsearch": "^2.4.0",
-        "mysql": "^2.4.2",
-        "node-uuid": "^1.4.1",
-        "o2.debug": "^0.2.5",
-        "winston": "^0.7.3",
-        "xml2js": "^0.4.4",
-        "xmlbuilder": "^2.4.4",
-        "moment": "~2.8.3"
-    },
-    "devDependencies": {
-        "blanket": "^1.1.6",
-        "coffee-script": "^1.8.0",
-        "coffeelint": "^1.6.0",
-        "expect.js": "^0.3.1",
-        "grunt": "^0.4.5",
-        "grunt-contrib-watch": "^0.6.1",
-        "grunt-exec": "^0.4.6",
-        "grunt-jslint": "^1.1.12",
-        "grunt-mocha-test": "^0.11.0",
-        "jslint": "^0.5.2",
-        "karma": "^0.12.21",
-        "karma-coverage": "^0.2.6",
-        "karma-mocha": "^0.1.7",
-        "load-grunt-tasks": "^0.6.0",
-        "mocha": "1.13.0",
-        "should": "^4.0.4",
-        "travis-cov": "^0.2.5"
-    },
-    "repository": {
-        "type": "git",
-        "url": "http://github.com/s2way/waferpie.git"
-    },
-    "version": "0.8.2",
-    "scripts": {
-        "pretest": "node_modules/.bin/coffeelint server",
-        "postinstall": "rm -rf dist ; mkdir -p dist ; (cp -r server/* dist/ && find dist -type f ! -iname '*.js' -delete) ; node_modules/.bin/coffee --compile --output dist server",
-        "test": "node_modules/.bin/mocha server/test --recursive -R progress --compilers coffee:coffee-script/register ; node_modules/.bin/mocha server/test --recursive -R html-cov -r blanket --compilers coffee:coffee-script/register > report.html",
-        "posttest": "node_modules/.bin/mocha server/test --recursive -r blanket -R travis-cov --compilers coffee:coffee-script/register"
-    },
-    "contributors": [
-        {
-            "name": "Juliano Lazzarotto",
-            "email": "jl.br.nh@gmail.com"
-        },
-        {
-            "name": "Davi Gabriel da Silva",
-            "email": "davi.gbr@gmail.com"
-        }
-    ],
-    "readme": "Please reade the README.md file.",
-    "readmeFilename": "README.md",
-    "_id": "waferpie@0.8.2",
-    "_from": "waferpie@",
-    "config": {
-        "blanket": {
-            "loader": "./node-loaders/coffee-script",
-            "pattern": "server/src",
-            "data-cover-never": "node_modules"
-        },
-        "travis-cov": {
-            "threshold": 97,
-            "removeKey": "branchFcn"
-        }
+    {
+      "name": "Davi Gabriel da Silva",
+      "email": "davi.gbr@gmail.com"
     }
+  ],
+  "readme": "Please reade the README.md file.",
+  "readmeFilename": "README.md",
+  "_id": "waferpie@0.8.2",
+  "_from": "waferpie@",
+  "config": {
+    "blanket": {
+      "loader": "./node-loaders/coffee-script",
+      "pattern": "server/src",
+      "data-cover-never": "node_modules"
+    },
+    "travis-cov": {
+      "threshold": 97,
+      "removeKey": "branchFcn"
+    }
+  }
 }
