@@ -5,11 +5,12 @@ os = require 'os'
 @constructor
 ###
 class SystemInfo
-    constructor: ->
+    constructor: () ->
         @data =
-            os: {}
-            node: {}
-        @refresh()
+            s: {}
+            v: {}
+        @variable()
+
 
     ###*
     Refresh the whole information about the server, it always refresh everything because of virtualization that could
@@ -18,33 +19,41 @@ class SystemInfo
     @method refresh
     @return {json}
     ###
-    refresh: ->
-        @data.os.totalMenInMB = os.totalmem() / 1024 / 1024
-        @data.os.freeMenInMB = os.freemem() / 1024 / 1024
-        @data.os.uptimeInDays = os.uptime() / 3600 / 24
-        @data.os.hostName = os.hostname()
-        @data.os.platform = os.platform()
-        @data.os.loadAVG = os.loadavg()
-        @data.os.release = os.release()
-        @data.os.type = os.type()
-        @data.os.arch = os.arch()
-        @data.os.cpus = os.cpus()
-        @data.os.usedMenInMB = @data.os.totalMenInMB - @data.os.freeMenInMB
-        @data.node.uptimeInDays = process.uptime() / 3600 / 24
-        @data.node.moduleLoadList = process.moduleLoadList
-        @data.node.memoryUsageInMB = process.memoryUsage()
-        @data.node.features = process.features
-        @data.node.libsVer = process.versions
-        @data.node.args = process.execArgv
-        @data.node.config = process.config
-        @data.node.uid = process.getuid()
-        @data.node.gid = process.getgid()
-        @data.node.env = process.env
-        @data.node.pid = process.pid
-        @data.node.memoryUsageInMB.heapTotal = @data.node.memoryUsageInMB.heapTotal / 1024 / 1024
-        @data.node.memoryUsageInMB.heapUsed = @data.node.memoryUsageInMB.heapUsed / 1024 / 1024
-        @data.node.memoryUsageInMB.rss = @data.node.memoryUsageInMB.rss / 1024 / 1024
-        @data.node.memoryUsageInMB.heapFree = @data.node.memoryUsageInMB.heapTotal - @data.node.memoryUsageInMB.heapUsed
+    getAll: ->
+        @variable()
+        @static()
+
+    variable: ->
+        @data.v.osTotalMenInMB = os.totalmem() / 1024 / 1024
+        @data.v.osFreeMenInMB = os.freemem() / 1024 / 1024
+        @data.v.osUptimeInDays = os.uptime() / 3600 / 24
+        @data.v.osLoadAVG = os.loadavg()
+        @data.v.osUsedMenInMB = @data.v.osTotalMenInMB - @data.v.osFreeMenInMB
+        @data.v.osCpus = os.cpus()
+        @data.v.nodeUptimeInDays = process.uptime() / 3600 / 24
+        @data.v.nodeMemoryUsageInMB = process.memoryUsage()
+        @data.v.nodeMemoryUsageInMB.heapTotal = @data.v.nodeMemoryUsageInMB.heapTotal / 1024 / 1024
+        @data.v.nodeMemoryUsageInMB.heapUsed = @data.v.nodeMemoryUsageInMB.heapUsed / 1024 / 1024
+        @data.v.nodeMemoryUsageInMB.rss = @data.v.nodeMemoryUsageInMB.rss / 1024 / 1024
+        @data.v.nodeMemoryUsageInMB.heapFree = @data.v.nodeMemoryUsageInMB.heapTotal - @data.v.nodeMemoryUsageInMB.heapUsed
         @data
+
+    static: ->
+        @data.s.osHostName = os.hostname()
+        @data.s.osPlatform = os.platform()
+        @data.s.osRelease = os.release()
+        @data.s.osType = os.type()
+        @data.s.osArch = os.arch()
+        @data.s.nodeFeatures = process.features
+        @data.s.nodeLibsVer = process.versions
+        @data.s.nodeArgs = process.execArgv
+        @data.s.nodeConfig = process.config
+        @data.s.nodeUid = process.getuid()
+        @data.s.nodeGid = process.getgid()
+        @data.s.nodeEnv = process.env
+        @data.s.nodePid = process.pid
+        @data.s.nodeModuleLoadList = process.moduleLoadList
+        @data
+
 
 module.exports = SystemInfo
