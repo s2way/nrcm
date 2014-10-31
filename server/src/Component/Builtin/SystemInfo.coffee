@@ -24,35 +24,37 @@ class SystemInfo
         @static()
 
     variable: ->
-        @data.v.osTotalMenInMB = (os.totalmem() / 1024 / 1024).toFixed 2
-        @data.v.osFreeMenInMB = (os.freemem() / 1024 / 1024).toFixed 2
-        @data.v.osUptimeInDays = (os.uptime() / 3600 / 24).toFixed 2
-        @data.v.osLoadAVG = os.loadavg()
-        @data.v.osUsedMenInMB = (@data.v.osTotalMenInMB - @data.v.osFreeMenInMB).toFixed 2
-        @data.v.osCpus = os.cpus()
-        @data.v.nodeUptimeInDays = (process.uptime() / 3600 / 24).toFixed 2
-        @data.v.nodeMemoryUsageInMB = process.memoryUsage()
-        @data.v.nodeMemoryUsageInMB.heapTotal = (@data.v.nodeMemoryUsageInMB.heapTotal / 1024 / 1024).toFixed 2
-        @data.v.nodeMemoryUsageInMB.heapUsed = (@data.v.nodeMemoryUsageInMB.heapUsed / 1024 / 1024).toFixed 2
-        @data.v.nodeMemoryUsageInMB.rss = (@data.v.nodeMemoryUsageInMB.rss / 1024 / 1024).toFixed 2
-        @data.v.nodeMemoryUsageInMB.heapFree = (@data.v.nodeMemoryUsageInMB.heapTotal - @data.v.nodeMemoryUsageInMB.heapUsed).toFixed 2
+        nodeMemUsgMb = process.memoryUsage()
+        @data.osMemTotMb = parseFloat((os.totalmem() / 1024 / 1024).toFixed 2)
+        @data.osMemFreeMb = parseFloat((os.freemem() / 1024 / 1024).toFixed 2)
+        @data.osMemUsedMb = parseFloat((@data.osMemTotMb - @data.osMemFreeMb).toFixed 2)
+        @data.osMemFreePerc = parseFloat((@data.osMemFreeMb / @data.osMemTotMb * 100).toFixed 2)
+        @data.osDaysUP = parseFloat((os.uptime() / 3600 / 24).toFixed 2)
+        @data.osLoadAVG = os.loadavg()
+        @data.osCpus = os.cpus()
+        @data.nodeDaysUp = parseFloat((process.uptime() / 3600 / 24).toFixed 2)
+        @data.nodeHeapTotMb = parseFloat((nodeMemUsgMb.heapTotal / 1024 / 1024).toFixed 2)
+        @data.nodeHeapUsedMb = parseFloat((nodeMemUsgMb.heapUsed / 1024 / 1024).toFixed 2)
+        @data.nodeMemRssMb = parseFloat((nodeMemUsgMb.rss / 1024 / 1024).toFixed 2)
+        @data.nodeHeapFreeMb = parseFloat((@data.nodeHeapTotMb - @data.nodeHeapUsedMb).toFixed 2)
+        @data.nodeHeapFreePerc = parseFloat((@data.nodeHeapFreeMb / @data.nodeHeapTotMb * 100).toFixed 2)
         @data
 
     static: ->
-        @data.s.osHostName = os.hostname()
-        @data.s.osPlatform = os.platform()
-        @data.s.osRelease = os.release()
-        @data.s.osType = os.type()
-        @data.s.osArch = os.arch()
-        @data.s.nodeFeatures = process.features
-        @data.s.nodeLibsVer = process.versions
-        @data.s.nodeArgs = process.execArgv
-        @data.s.nodeConfig = process.config
-        @data.s.nodeUid = process.getuid()
-        @data.s.nodeGid = process.getgid()
-        @data.s.nodeEnv = process.env
-        @data.s.nodePid = process.pid
-        @data.s.nodeModuleLoadList = process.moduleLoadList
+        @data.osHostName = os.hostname()
+        @data.osPlatform = os.platform()
+        @data.osRelease = os.release()
+        @data.osType = os.type()
+        @data.osArch = os.arch()
+        @data.nodeFeatures = process.features
+        @data.nodeLibsVer = process.versions
+        @data.nodeArgs = process.execArgv
+        @data.nodeConfig = process.config
+        @data.nodeUid = process.getuid()
+        @data.nodeGid = process.getgid()
+        @data.nodeEnv = process.env
+        @data.nodePid = process.pid
+        @data.nodeModuleLoadList = process.moduleLoadList
         @data
 
 

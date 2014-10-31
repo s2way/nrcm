@@ -16,15 +16,16 @@ class Supervisor
 
     _runner: (name, ctx) ->
         now = new Date().toISOString()
+        data = ctx._si.variable()
+        data['@timestamp'] = now
+        data.requests = ctx._monitoring.requests
+        data.responseAvg = ctx._monitoring.responseAvg
         ctx._log 'Health check at ' + now
         ctx._es.index
             index: ctx._config.dataSource.index or 'waferpie'
             id: ctx._config.nodeName + '_' + now
             type: ctx._config.nodeName
-            body:
-                '@timestamp': now
-                stats: ctx._monitoring
-                health: ctx._si.variable()
+            body: data
             , (error, response) ->
                 if error
                     ctx._log error
