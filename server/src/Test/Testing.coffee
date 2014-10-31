@@ -142,8 +142,11 @@ class Testing
             callback body,
                 headers: headers
                 statusCode: statusCode
+        monitoring =
+            requests: 0
+            responseAvg: 0
 
-        requestHandler = new RequestHandler(@_applications, @_serverConfigs)
+        requestHandler = new RequestHandler(@_applications, @_serverConfigs, null, monitoring)
         requestHandler.process request, response
 
 module.exports = Testing

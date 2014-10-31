@@ -24,6 +24,7 @@ RequestHandler = require './Controller/RequestHandler'
 Request = require './Controller/Request'
 Response = require './Controller/Response'
 os = require 'os'
+Supervisor = require './Util/Supervisor'
 
 class WaferPie
     constructor: ->
@@ -32,6 +33,9 @@ class WaferPie
         @_configs =
             console: false
             urlFormat: '/$controller'
+        @_monitoring =
+            requests: 0
+            responseAvg: 0.00
         Sync.createDirIfNotExists 'logs'
 
     info: (message) -> @_logger.info '[WaferPie] ' + message
@@ -182,6 +186,8 @@ class WaferPie
             console: @_configs.debug
 
         @_logger.init()
+        @_supervisor = new Supervisor @_logger, @_configs.supervisor, @_monitoring
+        @_supervisor.run()
         @_configured = true
 
     # Starts the NodeJS server for all your applications
@@ -192,7 +198,7 @@ class WaferPie
         throw new Exceptions.Fatal('Please call configure() before start()!')  unless @_configured
         @info 'Starting...'
         http.createServer((request, response) =>
-            requestHandler = new RequestHandler @_applications, @_configs, @_logger
+            requestHandler = new RequestHandler @_applications, @_configs, @_logger, @_monitoring
             requestHandler.process new Request(request), new Response(response)
         ).listen port, address
         @info address + ':' + port

@@ -24,18 +24,18 @@ class SystemInfo
         @static()
 
     variable: ->
-        @data.v.osTotalMenInMB = os.totalmem() / 1024 / 1024
-        @data.v.osFreeMenInMB = os.freemem() / 1024 / 1024
-        @data.v.osUptimeInDays = os.uptime() / 3600 / 24
+        @data.v.osTotalMenInMB = (os.totalmem() / 1024 / 1024).toFixed 2
+        @data.v.osFreeMenInMB = (os.freemem() / 1024 / 1024).toFixed 2
+        @data.v.osUptimeInDays = (os.uptime() / 3600 / 24).toFixed 2
         @data.v.osLoadAVG = os.loadavg()
-        @data.v.osUsedMenInMB = @data.v.osTotalMenInMB - @data.v.osFreeMenInMB
+        @data.v.osUsedMenInMB = (@data.v.osTotalMenInMB - @data.v.osFreeMenInMB).toFixed 2
         @data.v.osCpus = os.cpus()
-        @data.v.nodeUptimeInDays = process.uptime() / 3600 / 24
+        @data.v.nodeUptimeInDays = (process.uptime() / 3600 / 24).toFixed 2
         @data.v.nodeMemoryUsageInMB = process.memoryUsage()
-        @data.v.nodeMemoryUsageInMB.heapTotal = @data.v.nodeMemoryUsageInMB.heapTotal / 1024 / 1024
-        @data.v.nodeMemoryUsageInMB.heapUsed = @data.v.nodeMemoryUsageInMB.heapUsed / 1024 / 1024
-        @data.v.nodeMemoryUsageInMB.rss = @data.v.nodeMemoryUsageInMB.rss / 1024 / 1024
-        @data.v.nodeMemoryUsageInMB.heapFree = @data.v.nodeMemoryUsageInMB.heapTotal - @data.v.nodeMemoryUsageInMB.heapUsed
+        @data.v.nodeMemoryUsageInMB.heapTotal = (@data.v.nodeMemoryUsageInMB.heapTotal / 1024 / 1024).toFixed 2
+        @data.v.nodeMemoryUsageInMB.heapUsed = (@data.v.nodeMemoryUsageInMB.heapUsed / 1024 / 1024).toFixed 2
+        @data.v.nodeMemoryUsageInMB.rss = (@data.v.nodeMemoryUsageInMB.rss / 1024 / 1024).toFixed 2
+        @data.v.nodeMemoryUsageInMB.heapFree = (@data.v.nodeMemoryUsageInMB.heapTotal - @data.v.nodeMemoryUsageInMB.heapUsed).toFixed 2
         @data
 
     static: ->

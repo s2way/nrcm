@@ -34,11 +34,15 @@ describe 'RequestHandler', ->
     configs =
         urlFormat: '/#prefix/$application/$controller'
 
+    monitoring =
+        requests: 0
+        responseAvg: 0
+
 
     handler = null
 
     beforeEach ->
-        handler = new RequestHandler applications, configs, logger
+        handler = new RequestHandler applications, configs, logger, monitoring
 
     describe 'process()', ->
 

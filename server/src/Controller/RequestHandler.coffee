@@ -12,7 +12,7 @@ ControllerRunner = require './ControllerRunner'
 # Handles any exception that can occur within the controller and the callbacks
 # Renders the response by calling response.render()
 class RequestHandler
-    constructor: (@_applications, @_configs, @_serverLogger) ->
+    constructor: (@_applications, @_configs, @_serverLogger, @_monitoring) ->
         # TODO version is about the WaferPie why is it here? WTF WTF WTF move it to WP class
         @_version = '0.8.4'
         @_uuid = uuid.v4()
@@ -26,6 +26,7 @@ class RequestHandler
     # @param {object} _response The response object that encapsulates a node response
     process: (@_request, @_response) ->
         @_start = new Date()
+        @_monitoring.requests += 1
         try
             @_log chalk.bold.green('Request: ' + @_request.url)
             @_log chalk.blue 'UUID: ' + @_uuid
@@ -159,6 +160,9 @@ class RequestHandler
             color = 'red' if statusCode >= 500
 
             @_log chalk[color]('Response Status: ' + statusCode)
-            @_log chalk.cyan('Time: ' + (new Date().getTime() - @_start.getTime()) + 'ms')
+            responseTimeInMs = new Date().getTime() - @_start.getTime()
+            @_monitoring.responseAvg += responseTimeInMs
+            @_monitoring.responseAvg /= @_monitoring.requests
+            @_log chalk.cyan('Time: ' + responseTimeInMs + 'ms')
 
 module.exports = RequestHandler
