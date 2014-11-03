@@ -180,8 +180,3 @@ describe 'RequestHandler', ->
                 expect(body.error).to.be 'Unknown'
                 done()
             handler.process request, response
-
-
-
-
-
