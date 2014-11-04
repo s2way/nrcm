@@ -42,7 +42,7 @@ describe 'RequestHandler', ->
     handler = null
 
     beforeEach ->
-        handler = new RequestHandler applications, configs, logger, monitoring
+        handler = new RequestHandler applications, configs, logger, monitoring, '0.8.4'
 
     describe 'process()', ->
 

@@ -12,9 +12,7 @@ ControllerRunner = require './ControllerRunner'
 # Handles any exception that can occur within the controller and the callbacks
 # Renders the response by calling response.render()
 class RequestHandler
-    constructor: (@_applications, @_configs, @_serverLogger, @_monitoring) ->
-        # TODO version is about the WaferPie why is it here? WTF WTF WTF move it to WP class
-        @_version = '0.8.4'
+    constructor: (@_applications, @_configs, @_serverLogger, @_monitoring, @_version) ->
         @_uuid = uuid.v4()
         @_log 'RequestHandler created'
         @_router = new Router @_configs.urlFormat

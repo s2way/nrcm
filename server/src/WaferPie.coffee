@@ -36,6 +36,7 @@ class WaferPie
         @_monitoring =
             requests: 0
             responseAvg: 0.00
+        @_version = '0.8.4'
         Sync.createDirIfNotExists 'logs'
 
     info: (message) -> @_logger.info '[WaferPie] ' + message
@@ -198,7 +199,7 @@ class WaferPie
         throw new Exceptions.Fatal('Please call configure() before start()!')  unless @_configured
         @info 'Starting...'
         http.createServer((request, response) =>
-            requestHandler = new RequestHandler @_applications, @_configs, @_logger, @_monitoring
+            requestHandler = new RequestHandler @_applications, @_configs, @_logger, @_monitoring, @_version
             requestHandler.process new Request(request), new Response(response)
         ).listen port, address
         @info address + ':' + port
