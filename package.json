@@ -55,7 +55,7 @@
     "type": "git",
     "url": "http://github.com/s2way/waferpie.git"
   },
-  "version": "0.8.2",
+  "version": "0.9.0",
   "scripts": {
     "pretest": "node_modules/.bin/coffeelint server",
     "postinstall": "rm -rf dist ; mkdir -p dist ; (cp -r server/* dist/ && find dist -type f ! -iname '*.js' -delete) ; node_modules/.bin/coffee --compile --output dist server",
@@ -74,7 +74,7 @@
   ],
   "readme": "Please reade the README.md file.",
   "readmeFilename": "README.md",
-  "_id": "waferpie@0.8.2",
+  "_id": "waferpie@0.9.0",
   "_from": "waferpie@",
   "config": {
     "blanket": {

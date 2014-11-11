@@ -1,5 +1,7 @@
 expect = require 'expect.js'
 ControllerFactory = require './../../src/Controller/ControllerFactory'
+ElementManager = require './../../src/Core/ElementManager'
+
 
 describe 'ControllerFactory', ->
 
@@ -7,6 +9,7 @@ describe 'ControllerFactory', ->
 
         application = null
         controllerFactory = null
+        elementManager = null
         configs = {}
         core = {}
 
@@ -25,7 +28,9 @@ describe 'ControllerFactory', ->
                 name: 'App'
                 configs: configs
                 core: core
-            controllerFactory = new ControllerFactory application
+                filters: []
+            elementManager = new ElementManager application
+            controllerFactory = new ControllerFactory application, elementManager
 
         it 'should inject the elementManager', ->
             instance = controllerFactory.create 'MyController'
@@ -96,7 +101,10 @@ describe 'ControllerFactory', ->
 
             controller = {}
 
-            controllerFactory = new ControllerFactory
+            application =
+                filters: []
+
+            controllerFactory = new ControllerFactory application
             controllerFactory.prepare controller, request
 
             expect(controller.segments).to.be segments
@@ -107,23 +115,6 @@ describe 'ControllerFactory', ->
             expect(controller.url).to.be url
             expect(controller.requestHeaders).to.be requestHeaders
             expect(controller.responseHeaders).to.be.ok()
+            expect(controller.filters).to.be.an('object')
+            expect(controller.params).to.eql {}
 
-    describe 'destroy', ->
-
-        it 'should call destroy for all instantiated components', (done) ->
-
-            class MyController
-                constructor: -> return
-            class MyComponent
-                destroy: ->
-                    done()
-
-            application =
-                controllers: MyController: MyController
-                components: MyComponent: MyComponent
-                name: 'App'
-
-            controllerFactory = new ControllerFactory application
-            instance = controllerFactory.create 'MyController'
-            instance.component 'MyComponent'
-            controllerFactory.destroy instance

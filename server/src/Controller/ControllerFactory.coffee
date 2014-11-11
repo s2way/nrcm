@@ -1,21 +1,22 @@
 Exceptions = require '../Util/Exceptions'
 ElementManager = require '../Core/ElementManager'
+FilterFactory = require './FilterFactory'
 
 # Responsible for creating controllers, performing injection and destroy them
 class ControllerFactory
 
-    constructor: (@application, @logger = null) ->
-        return
+    constructor: (@_application, @_elementManager, @_logger = null) ->
+        @_filterFactory = new FilterFactory @_application, @_elementManager, @_logger
 
     _log: (message) ->
-        @logger?.log?('[ControllerFactory] ' + message)
+        @_logger?.log?('[ControllerFactory] ' + message)
 
     # Creates the controller with the given name
     # It will search within the application object passed to the constructor
     create: (controllerName) ->
-        ControllerConstructor = @application.controllers[controllerName]
+        ControllerConstructor = @_application.controllers[controllerName]
         controllerInstance = new ControllerConstructor
-        controllerInstance.elementManager = new ElementManager @logger, @application
+        controllerInstance.elementManager = @_elementManager
 
         automaticTraceImplementation = (callback) ->
             controllerInstance.contentType = false
@@ -38,10 +39,11 @@ class ControllerFactory
 
         controllerInstance.responseHeaders = {}
         controllerInstance.name = controllerName
-        controllerInstance.application = @application.name
-        controllerInstance.core = @application.core
-        controllerInstance.configs = @application.configs
-        controllerInstance.uuid = @application._uuid
+        controllerInstance.application = @_application.name
+        controllerInstance.core = @_application.core
+        controllerInstance.configs = @_application.configs
+        controllerInstance.uuid = @_application._uuid
+
         controllerInstance.component = (modelName, params) ->
             instance = controllerInstance.elementManager.create 'component', modelName, params
             controllerInstance.elementManager.init instance
@@ -70,18 +72,7 @@ class ControllerFactory
         instance.payload = request.payload
         instance.requestHeaders = request.headers
         instance.responseHeaders = {}
-
-    # Destroy the controller instance and all loaded components
-    # The destruction of the components is asynchronous
-    destroy: (instance) ->
-        @_log 'Destroying controller'
-        componentsCreated = instance.elementManager.getComponents()
-
-        for componentInstance in componentsCreated
-            destroyComponent = (componentInstance) =>
-                @_log 'Destroying ' + componentInstance.name
-                componentInstance.destroy?()
-
-            setImmediate destroyComponent, componentInstance
+        instance.params = {}
+        instance.filters = @_filterFactory.createAll instance
 
 module.exports = ControllerFactory

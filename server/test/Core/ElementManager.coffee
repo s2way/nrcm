@@ -6,13 +6,11 @@ describe 'ElementManager.js', ->
     componentInstance = null
     modelInstance = null
     blankFunction = null
-    logger = null
     blankFunction = ->
         return
 
-    logger = log: blankFunction
     beforeEach ->
-        factory = new ElementManager(logger,
+        factory = new ElementManager(
             components:
                 MyComponent: blankFunction
 
@@ -21,7 +19,6 @@ describe 'ElementManager.js', ->
 
             configs: {}
             core: {}
-            logger: logger
             constants: {}
         )
         componentInstance = factory.create('component', 'MyComponent')
@@ -30,7 +27,7 @@ describe 'ElementManager.js', ->
 
     describe 'init', ->
         it 'should call the init method if defined', (done) ->
-            factory = new ElementManager(logger,
+            factory = new ElementManager(
                 components:
                     MyComponent: ->
                         @init = ->
@@ -39,7 +36,6 @@ describe 'ElementManager.js', ->
 
                         return
 
-                logger: logger
                 constants: {}
             )
             componentInstance = factory.create('component', 'MyComponent')
@@ -47,7 +43,7 @@ describe 'ElementManager.js', ->
             return
 
         it 'should call the init method if the component() method is used to retrieve AnotherComponent', (done) ->
-            factory = new ElementManager(logger,
+            factory = new ElementManager(
                 components:
                     MyComponent: ->
                         return
@@ -59,7 +55,6 @@ describe 'ElementManager.js', ->
 
                         return
 
-                logger: logger
                 constants: {}
             )
             componentInstance = factory.create('component', 'MyComponent')
@@ -67,6 +62,15 @@ describe 'ElementManager.js', ->
             return
 
         return
+
+    describe 'destroy', ->
+
+        it 'should call the destroy() function of all components returned by _getComponents()', (done) ->
+            component =
+                destroy: ->
+                    done()
+            factory._getComponents = -> [component]
+            factory.destroy()
 
     describe 'create', ->
         describe 'model', ->
@@ -104,7 +108,7 @@ describe 'ElementManager.js', ->
 
         describe 'component', ->
             it 'should pass the params to the component constructor', (done) ->
-                factory = new ElementManager(logger,
+                factory = new ElementManager(
                     components:
                         MyComponent: (params) ->
                             expect(params.key).to.be 'value'
@@ -112,7 +116,6 @@ describe 'ElementManager.js', ->
                             return
 
                     core: {}
-                    logger: logger
                     constants: {}
                 )
                 componentInstance = factory.create('component', 'MyComponent',
@@ -154,36 +157,34 @@ describe 'ElementManager.js', ->
                 return
 
             it 'should always return the same componentInstance if the component is marked as singleInstance', ->
-                factory = new ElementManager(logger,
+                factory = new ElementManager(
                     components:
                         MyComponent: ->
                             @singleInstance = true
                             return
 
                     core: {}
-                    logger: logger
                 )
                 componentInstance = factory.create('component', 'MyComponent')
                 expect(factory.create('component', 'MyComponent')).to.be componentInstance
-                expect(factory.getComponents()).to.have.length 1
-                expect(factory.getComponents()).to.contain componentInstance
+                expect(factory._getComponents()).to.have.length 1
+                expect(factory._getComponents()).to.contain componentInstance
                 return
 
             it 'should always return a different componentInstance if the component is not marked as singleInstance', ->
-                factory = new ElementManager(logger,
+                factory = new ElementManager(
                     components:
                         MyComponent: ->
                             return
 
                     core: {}
-                    logger: logger
                 )
                 componentInstance = factory.create('component', 'MyComponent')
                 componentInstance2 = factory.create('component', 'MyComponent')
                 expect(componentInstance2).not.to.be componentInstance
-                expect(factory.getComponents()).to.have.length 2
-                expect(factory.getComponents()).to.contain componentInstance
-                expect(factory.getComponents()).to.contain componentInstance2
+                expect(factory._getComponents()).to.have.length 2
+                expect(factory._getComponents()).to.contain componentInstance
+                expect(factory._getComponents()).to.contain componentInstance2
                 return
 
             return

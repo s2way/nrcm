@@ -4,6 +4,7 @@ chalk = require 'chalk'
 uuid = require 'node-uuid'
 ControllerFactory = require './ControllerFactory'
 ControllerRunner = require './ControllerRunner'
+ElementManager = require './../Core/ElementManager'
 
 # Process an http request
 # Decomposes the URL using the Router
@@ -49,7 +50,8 @@ class RequestHandler
             @_log 'Query: ' + JSON.stringify(@_request.decomposedURL.query)
 
             if @_request.isController()
-                @_controllerFactory = new ControllerFactory application, @_serverLogger
+                @_elementManager = new ElementManager application, @_serverLogger
+                @_controllerFactory = new ControllerFactory application, @_elementManager, @_serverLogger
                 @_processControllerRequest(application)
             else if @_request.isApplicationRoot()
                 @_processApplicationRoot(application)
@@ -102,7 +104,7 @@ class RequestHandler
             timeout = @_applications[@_request.app].core.requestTimeout
 
             @_controllerRunner.run instance, timeout, (error, response) =>
-                @_controllerFactory.destroy instance
+                @_elementManager.destroy
                 if error
                     @_handleRequestException error
                 else

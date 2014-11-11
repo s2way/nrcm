@@ -36,7 +36,7 @@ class WaferPie
         @_monitoring =
             requests: 0
             responseAvg: 0.00
-        @_version = '0.8.4'
+        @_version = '0.9.0'
         Sync.createDirIfNotExists 'logs'
 
     info: (message) -> @_logger.info '[WaferPie] ' + message
@@ -151,7 +151,7 @@ class WaferPie
         components = @_loadElements(path.join(__dirname, 'Component', 'Builtin'))
         appComponents = @_loadElements(componentsPath)
         for componentName of appComponents
-            components[componentName] = appComponents[componentName]  if appComponents.hasOwnProperty(componentName)
+            components[componentName] = appComponents[componentName] if appComponents.hasOwnProperty(componentName)
         components
 
     _loadElements: (dirPath) ->
@@ -196,7 +196,7 @@ class WaferPie
     # @param {string} address The listening address of NodeJS http.createServer function
     # @param {number} port The listening port of NodeJS http.createServer function
     start: (address, port) ->
-        throw new Exceptions.Fatal('Please call configure() before start()!')  unless @_configured
+        throw new Exceptions.Fatal('Please call configure() before start()!') unless @_configured
         @info 'Starting...'
         http.createServer((request, response) =>
             requestHandler = new RequestHandler @_applications, @_configs, @_logger, @_monitoring, @_version

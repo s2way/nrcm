@@ -31,7 +31,7 @@ class Testing
 
         # Necessary for testing Components and Models
         # When you are testing the Controllers, RequestHandler has its own ElementManager
-        @_elementManager= new ElementManager null, @_application
+        @_elementManager= new ElementManager @_application
         @_cherries = new Cherries
 
     mockConfigs: (configs) -> @_applications.app.configs = configs
