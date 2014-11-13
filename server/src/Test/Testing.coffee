@@ -7,7 +7,7 @@ Router = require '../Core/Router'
 Request = require '../Controller/Request'
 Response = require '../Controller/Response'
 
-# Testing tool constructor
+# Class for testing WaferPie applications outside the framework
 # @constructor
 # @param {string} applicationPath The path of your application
 # @param {json} core Mocked core.json object
@@ -60,7 +60,7 @@ class Testing
     # @param {object} params Parameters to be passed to the model constructor
     # @returns {object} The model instance or null
     createModel: (modelName, params) ->
-        @loadModel modelName
+        @loadModel modelName unless @_models[modelName]?
         @_elementManager.create('model', modelName, params)
 
     # Loads, creates, and returns the component instance or null if not found
@@ -68,7 +68,7 @@ class Testing
     # @params {object} params Parameters that will be passed to the component constructor
     # @returns {object} The component instance or null
     createComponent: (componentName, params) ->
-        @loadComponent componentName
+        @loadComponent componentName unless @_components[componentName]?
         @_elementManager.create('component', componentName, params)
 
     loadModel: (modelName) ->
@@ -77,6 +77,8 @@ class Testing
         for ext in allowedExtensions
             if @_exists(modelsPath + '.' + ext)
                 @_models[modelName] = @_require(modelsPath)
+                # Reset mocked properties
+                # @_models[modelName].mocked = null
                 return true
         throw
         name: 'ModelNotFound'
@@ -96,9 +98,13 @@ class Testing
         for ext in allowedExtensions
             if @_exists(applicationComponentPath + '.' + ext)
                 @_components[componentName] = @_require(applicationComponentPath)
+                # Reset mocked properties
+                # @_components[componentName].mocked = null
                 return true
             if @_exists(builtinComponentPath + '.' + ext)
-                @_components[componentName] = @_require(builtinComponentPath)
+                # @_components[componentName] = @_require(builtinComponentPath)
+                # Reset mocked properties
+                # @_components[componentName].mocked = null
                 return true
 
         throw
@@ -109,15 +115,15 @@ class Testing
     # @param {string} modelName The name of the model
     # @param {object} properties A JSON containing properties that will be injected into the model instance
     mockModel: (modelName, properties) ->
-        @loadModel modelName
-        @_applications.app.models[modelName].mocked = properties
+        @loadModel modelName unless @_models[modelName]?
+        @_models[modelName].mocked = properties
 
     # Loads a component an then mocks its components
     # @param {string} componentName The name of the component
     # @param {object} properties A JSON containing properties that will be injected into the component instance
     mockComponent: (componentName, properties) ->
-        @loadComponent componentName
-        @_applications.app.components[componentName].mocked = properties
+        @loadComponent componentName unless @_components[componentName]?
+        @_components[componentName].mocked = properties
 
     # Call a controller method for testing
     # @param {string} controllerName The name of the controller to be called

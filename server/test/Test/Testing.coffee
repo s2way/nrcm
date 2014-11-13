@@ -49,6 +49,7 @@ describe 'Testing', ->
             null
 
     describe 'createModel()', ->
+
         it 'should throw a ModelNotFound exception if the model does not exist', ->
             expect(->
                 testing._exists = -> false
@@ -96,19 +97,17 @@ describe 'Testing', ->
     describe 'loadComponent()', ->
         it 'should throw an exception if the component cannot be found', ->
             try
-                testing._exists = ->
-                    false
-
+                testing._exists = -> false
                 testing.loadComponent 'InvalidComponent'
                 expect.fail()
             catch e
                 expect(e.name).to.be.equal 'ComponentNotFound'
 
         it 'should be able to retrieve builtin components, like QueryBuilder', ->
-
             testing._exists = (filePath) -> filePath.indexOf('Builtin/QueryBuilder') isnt -1
             testing._require = -> require '../../src/Component/Builtin/QueryBuilder'
             expect(testing.loadComponent 'QueryBuilder').to.be true
+
 
     describe 'mockConfigs()', ->
         beforeEach ->
