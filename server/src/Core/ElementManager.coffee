@@ -41,7 +41,6 @@ class ElementManager
     # @returns {object} The component instantiated or null if it does not exist
     create: (type, elementName, params) ->
         @_log '[' + elementName + '] Creating ' + type
-        $this = this
         ElementConstructor = null
         if type is 'model' and @_application.models[elementName] isnt undefined
             ElementConstructor = @_application.models[elementName]
@@ -61,19 +60,22 @@ class ElementManager
 
         elementInstance.name = elementName
         elementInstance.constants = @_application.constants
-        elementInstance.model = (modelName, params) ->
-            instance = $this.create('model', modelName, params)
-            $this.init instance
+        elementInstance.model = (modelName, params) =>
+            instance = @create('model', modelName, params)
+            @init instance
             instance
 
-        elementInstance.component = (componentName, params) ->
-            instance = $this.create('component', componentName, params)
-            $this.init instance
+        elementInstance.component = (componentName, params) =>
+            instance = @create('component', componentName, params)
+            @init instance
             instance
 
         elementInstance.core = @_application.core
         elementInstance.configs = @_application.configs
         @_log '[' + elementName + '] Element created'
+
+        # Call the inject method (if specified) to perform additional injections into the element (component or model)
+        @inject?(elementName, type, elementInstance)
 
         if type is 'component'
             if elementInstance.singleInstance

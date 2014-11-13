@@ -31,8 +31,13 @@ class Testing
 
         # Necessary for testing Components and Models
         # When you are testing the Controllers, RequestHandler has its own ElementManager
-        @_elementManager= new ElementManager @_application
+        @_elementManager = new ElementManager @_application
         @_cherries = new Cherries
+
+        @_elementManager.inject = (name, type, instance) =>
+            mockedProperties = @_application[type + 's']?[name]?.mocked ? {}
+            for property of mockedProperties
+                instance[property] = mockedProperties[property]
 
     mockConfigs: (configs) -> @_applications.app.configs = configs
 
@@ -76,6 +81,7 @@ class Testing
         throw
         name: 'ModelNotFound'
         model: modelName
+        searched: modelsPath
 
 
     # Loads a component
@@ -101,19 +107,17 @@ class Testing
 
     # Loads a model an then mocks its methods
     # @param {string} modelName The name of the model
-    # @param {object} methods A JSON containing methods that will be injected into the model instance
-    mockModel: (modelName, methods) ->
+    # @param {object} properties A JSON containing properties that will be injected into the model instance
+    mockModel: (modelName, properties) ->
         @loadModel modelName
-        for methodName of methods
-            @_applications.app.models[modelName].prototype[methodName] = methods[methodName]
+        @_applications.app.models[modelName].mocked = properties
 
     # Loads a component an then mocks its components
     # @param {string} componentName The name of the component
-    # @param {object} methods A JSON containing methods taht will be injected into the component instance
-    mockComponent: (componentName, methods) ->
+    # @param {object} properties A JSON containing properties that will be injected into the component instance
+    mockComponent: (componentName, properties) ->
         @loadComponent componentName
-        for methodName of methods
-            @_applications.app.components[componentName].prototype[methodName] = methods[methodName]
+        @_applications.app.components[componentName].mocked = properties
 
     # Call a controller method for testing
     # @param {string} controllerName The name of the controller to be called
@@ -147,6 +151,7 @@ class Testing
             responseAvg: 0
 
         requestHandler = new RequestHandler(@_applications, @_serverConfigs, null, monitoring)
+        requestHandler._createElementManager = => return @_elementManager
         requestHandler.process request, response
 
 module.exports = Testing

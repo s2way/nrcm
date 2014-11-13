@@ -72,6 +72,24 @@ describe 'ElementManager.js', ->
             factory._getComponents = -> [component]
             factory.destroy()
 
+    describe 'inject', ->
+
+        it 'should perform injection into the component if the inject() method is specified', ->
+            factory.inject = (name, type, instance) ->
+                instance.myProperty = 1 if type is 'component' and name is 'MyComponent'
+
+            componentInstance = factory.create('component', 'MyComponent')
+            expect(componentInstance.myProperty).to.be 1
+            factory.inject = undefined
+
+        it 'should perform injection into the model if the inject() method is specified', ->
+            factory.inject = (name, type, instance) ->
+                instance.myProperty = 1 if type is 'component' and name is 'MyComponent'
+
+            componentInstance = factory.create('component', 'MyComponent')
+            expect(componentInstance.myProperty).to.be 1
+            factory.inject = undefined
+
     describe 'create', ->
         describe 'model', ->
             it 'should not return the same instance if called twice', ->

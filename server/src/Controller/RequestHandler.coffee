@@ -50,7 +50,7 @@ class RequestHandler
             @_log 'Query: ' + JSON.stringify(@_request.decomposedURL.query)
 
             if @_request.isController()
-                @_elementManager = new ElementManager application, @_serverLogger
+                @_elementManager = @_createElementManager(application)
                 @_controllerFactory = new ControllerFactory application, @_elementManager, @_serverLogger
                 @_processControllerRequest(application)
             else if @_request.isApplicationRoot()
@@ -59,6 +59,9 @@ class RequestHandler
                 @_processServerRoot()
         catch e
             @_handleRequestException e
+
+    _createElementManager: (application) ->
+        return new ElementManager application, @_serverLogger
 
     # Process a normal controller request
     _processControllerRequest: (application) ->
