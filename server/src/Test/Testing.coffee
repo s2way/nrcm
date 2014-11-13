@@ -78,7 +78,7 @@ class Testing
             if @_exists(modelsPath + '.' + ext)
                 @_models[modelName] = @_require(modelsPath)
                 # Reset mocked properties
-                # @_models[modelName].mocked = null
+                @_models[modelName].mocked = null
                 return true
         throw
         name: 'ModelNotFound'
@@ -99,12 +99,12 @@ class Testing
             if @_exists(applicationComponentPath + '.' + ext)
                 @_components[componentName] = @_require(applicationComponentPath)
                 # Reset mocked properties
-                # @_components[componentName].mocked = null
+                @_components[componentName].mocked = null
                 return true
             if @_exists(builtinComponentPath + '.' + ext)
-                # @_components[componentName] = @_require(builtinComponentPath)
+                @_components[componentName] = @_require(builtinComponentPath)
                 # Reset mocked properties
-                # @_components[componentName].mocked = null
+                @_components[componentName].mocked = null
                 return true
 
         throw
