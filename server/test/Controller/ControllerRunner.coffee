@@ -19,7 +19,7 @@ describe 'ControllerRunner', ->
                 method: 'get'
                 before: ->
                     done()
-            runner.run instance, 1000, ->
+            runner.run instance, 10000, ->
                 expect.fail()
 
         it 'should call the after() callback if it is defined', (done) ->
@@ -30,7 +30,7 @@ describe 'ControllerRunner', ->
                     callback {}
                 after: ->
                     done()
-            runner.run instance, 1000, ->
+            runner.run instance, 10000, ->
                 expect.fail()
 
         it 'should call the get() method if the instance has the method property defined as "get"', (done) ->
@@ -39,7 +39,7 @@ describe 'ControllerRunner', ->
                 method: 'get'
                 get: ->
                     done()
-            runner.run instance, 1000, ->
+            runner.run instance, 10000, ->
                 expect.fail()
 
         it 'should call the callback passing a Timeout exception if the timeout has occured', (done) ->
