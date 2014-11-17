@@ -66,15 +66,14 @@ class WaferPie
                 componentsTestPath: path.resolve(path.join(testPath, 'Component'))
                 modelsTestPath: path.resolve(path.join(testPath, 'Model'))
                 filtersTestPath: path.resolve(path.join(testPath, 'Filter'))
-
             hostname: os.hostname()
 
-        (shouldPointCoreFileBasedOnHost = ->
-            if Sync.isFile(path.join(app.constants.srcPath, 'Config', app.hostname, '.json'))
-                app.coreFileName = path.join(app.constants.srcPath, 'Config', app.hostname, '.json')
-            else
-                app.coreFileName = path.join(app.constants.srcPath, 'Config', 'core.json')
-        )()
+        if Sync.isFile(path.join(app.constants.srcPath, 'Config', app.hostname + '.json'))
+            app.coreFileName = path.join(app.constants.srcPath, 'Config', app.hostname + '.json')
+        else if Sync.isFile(path.join(app.constants.srcPath, 'Config', app.hostname + '.yml'))
+            app.coreFileName = path.join(app.constants.srcPath, 'Config', app.hostname + '.yml')
+        else
+            app.coreFileName = path.join(app.constants.srcPath, 'Config', 'core.json')
 
         pathsToCreate = app.constants
         for i of pathsToCreate
