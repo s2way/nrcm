@@ -1,4 +1,4 @@
-Cherries = require './../../src/Util/Cherries'
+Cherries = require './../../../src/Component/Builtin/Cherries'
 path = require 'path'
 expect = require 'expect.js'
 

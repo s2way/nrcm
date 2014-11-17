@@ -2,7 +2,7 @@ path = require 'path'
 fs = require 'fs'
 ElementManager = require '../Core/ElementManager'
 RequestHandler = require '../Controller/RequestHandler'
-Cherries = require '../Util/Cherries'
+Cherries = require '../Component/Builtin/Cherries'
 Router = require '../Core/Router'
 Request = require '../Controller/Request'
 Response = require '../Controller/Response'
@@ -12,11 +12,10 @@ Response = require '../Controller/Response'
 # @param {string} applicationPath The path of your application
 # @param {json} core Mocked core.json object
 class Testing
-    constructor: (applicationPath, @_core = {}, @_serverConfigs = {}) ->
+    constructor: (@_applicationPath = './', @_core = {}, @_serverConfigs = {}) ->
         @_core.requestTimeout = @_core.requestTimeout ? 1000
         @_core.dataSources = @_core.dataSources ? {}
         @_serverConfigs.urlFormat = @_serverConfigs.urlFormat ? '/$application/$controller'
-        @_applicationPath = applicationPath
         @_controllers = {}
         @_components = {}
         @_models = {}

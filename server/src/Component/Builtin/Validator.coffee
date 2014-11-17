@@ -1,4 +1,4 @@
-Exceptions = require("../../Util/Exceptions")
+Exceptions = require('../../Util/Exceptions')
 
 
 
@@ -17,7 +17,7 @@ class Validator
         key = undefined
         for key of fieldErrors
             if fieldErrors.hasOwnProperty(key)
-                if typeof fieldErrors[key] isnt "object"
+                if typeof fieldErrors[key] isnt 'object'
                     return false  if fieldErrors[key] is false
                 else return false  unless @_succeeded(fieldErrors[key])
         true
@@ -28,7 +28,7 @@ class Validator
         key = undefined
         for key of validate
             if validate.hasOwnProperty(key)
-                if typeof validate[key] isnt "object" or validate[key] instanceof Array
+                if typeof validate[key] isnt 'object' or validate[key] instanceof Array
                     return false  if fieldErrors[key] is undefined
                 else
                     fieldErrors[key] = {}  if fieldErrors[key] is undefined
@@ -39,12 +39,12 @@ class Validator
         n = undefined
         originalData = originalData or data
         validateFunctionCallback = (validationErrorObject) ->
-            fieldErrors[n] = validationErrorObject or true
+            fieldErrors[n] = validationErrorObject ? true
             validatedFields[n] = (if validationErrorObject then false else true)
 
         for n of validate
             if validate.hasOwnProperty(n)
-                if typeof validate[n] is "function"
+                if typeof validate[n] is 'function'
                     validate[n] (if data is undefined then undefined else data[n]), originalData, validateFunctionCallback
                 else
                     fieldErrors[n] = {}  if fieldErrors[n] is undefined
@@ -77,14 +77,14 @@ class Validator
         timeoutFunc = ->
             if expired
                 callback
-                    name: "ValidationExpired"
+                    name: 'ValidationExpired'
                 , fieldErrors
             else if that._hasValidatedAllFields(fieldErrors, validate)
                 clearTimeout timer
                 succeeded = that._succeeded(validatedFields)
                 unless succeeded
                     return callback
-                        name: "ValidationFailed"
+                        name: 'ValidationFailed'
                         fields: fieldErrors
                     , fieldErrors
                 callback null, fieldErrors
@@ -109,11 +109,11 @@ class Validator
                     return (
                         field: n
                         level: level
-                        error: "denied"
+                        error: 'denied'
                     )
 
                 # validate set and it is an object: recursive
-                if typeof validate[n] is "object"
+                if typeof validate[n] is 'object'
                     test = @_matchAgainst(data[n], level, validate[n])
                     return test  if test isnt true
 
@@ -126,7 +126,7 @@ class Validator
                     return (
                         field: n
                         level: level
-                        error: "required"
+                        error: 'required'
                     )
         true
 
@@ -141,15 +141,13 @@ class Validator
         false
 
 
-    ###*
-    Match the data against the validate object specified in the constructor
-    If there are fields in the data that are not specified in the validate object, this method returns false
-    @param {object} data The data to be matched
-    @return {boolean}
-    ###
+    # Match the data against the validate object specified in the constructor
+    # If there are fields in the data that are not specified in the validate object, this method returns false
+    # @param {object} data The data to be matched
+    # @return {boolean}
     match: (data) ->
         newData = @_isJSONValid(data)
-        throw new Exceptions.IllegalArgument("The data is invalid!") unless newData
+        throw new Exceptions.IllegalArgument('The data is invalid!') unless newData
         @_matchAgainst data
 
 module.exports = Validator

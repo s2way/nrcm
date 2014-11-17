@@ -17,37 +17,37 @@ class QueryBuilder
         commaList
 
     selectStarFrom: (table) ->
-        throw new Exceptions.IllegalArgument()  if table is undefined
+        throw new Exceptions.IllegalArgument() if table is undefined
         @query += "SELECT * FROM " + table + " "
         this
 
     select: ->
-        throw new Exceptions.IllegalArgument()  if arguments.length is 0
+        throw new Exceptions.IllegalArgument() if arguments.length is 0
         @query += "SELECT " + @_fieldsToCommaList(arguments) + " "
         this
 
     deleteFrom: (table) ->
-        throw new Exceptions.IllegalArgument()  if typeof table isnt "string"
+        throw new Exceptions.IllegalArgument() if typeof table isnt "string"
         @query += "DELETE FROM " + table + " "
         this
 
     from: (table) ->
-        throw new Exceptions.IllegalArgument()  if typeof table isnt "string"
+        throw new Exceptions.IllegalArgument() if typeof table isnt "string"
         @query += "FROM " + table + " "
         this
 
     update: (table) ->
-        throw new Exceptions.IllegalArgument()  if typeof table isnt "string"
+        throw new Exceptions.IllegalArgument() if typeof table isnt "string"
         @query += "UPDATE " + table + " "
         this
 
     insertInto: (table) ->
-        throw new Exceptions.IllegalArgument()  if typeof table isnt "string"
+        throw new Exceptions.IllegalArgument() if typeof table isnt "string"
         @query += "INSERT INTO " + table + " "
         this
 
     set: (fields) ->
-        throw new Exceptions.IllegalArgument()  if typeof fields isnt "object"
+        throw new Exceptions.IllegalArgument() if typeof fields isnt "object"
         name = undefined
         value = undefined
         fieldList = ""
@@ -60,12 +60,12 @@ class QueryBuilder
         this
 
     groupBy: ->
-        throw new Exceptions.IllegalArgument()  if arguments.length is 0
+        throw new Exceptions.IllegalArgument() if arguments.length is 0
         @query += "GROUP BY " + @_fieldsToCommaList(arguments) + " "
         this
 
     limit: (p1, p2) ->
-        throw new Exceptions.IllegalArgument()  if p1 is undefined
+        throw new Exceptions.IllegalArgument() if p1 is undefined
         if p2 is undefined
             @query += "LIMIT " + p1 + " "
         else
@@ -73,8 +73,8 @@ class QueryBuilder
         this
 
     in: (field, params) ->
-        throw new Exceptions.IllegalArgument()  if params is undefined or params.length is 0
-        throw new Exceptions.IllegalArgument()  if field is null or typeof field isnt "string"
+        throw new Exceptions.IllegalArgument() if params is undefined or params.length is 0
+        throw new Exceptions.IllegalArgument() if field is null or typeof field isnt "string"
         field + " IN (" + @_fieldsToCommaList(params, true) + ")"
 
     build: ->
@@ -83,7 +83,7 @@ class QueryBuilder
         query
 
     _conditions: (conditions, operation) ->
-        key = undefined
+        conditions = conditions[0] if conditions.length is 1 and Array.isArray(conditions[0])
         query = ""
         for key of conditions
             if conditions.hasOwnProperty(key)
@@ -97,17 +97,17 @@ class QueryBuilder
         this
 
     on: ->
-        throw new Exceptions.IllegalArgument()  if arguments.length is 0
+        throw new Exceptions.IllegalArgument() if arguments.length is 0
         @query += "ON " + @_conditions(arguments, "AND") + " "
         this
 
     join: (table) ->
-        throw new Exceptions.IllegalArgument()  if typeof table isnt "string"
+        throw new Exceptions.IllegalArgument() if typeof table isnt "string"
         @query += "JOIN " + table + " "
         this
 
     innerJoin: (table) ->
-        throw new Exceptions.IllegalArgument()  if typeof table isnt "string"
+        throw new Exceptions.IllegalArgument() if typeof table isnt "string"
         @query += "INNER JOIN " + table + " "
         this
 
@@ -116,54 +116,61 @@ class QueryBuilder
         this
 
     equal: (left, right) ->
-        throw new Exceptions.IllegalArgument()  if left is undefined or right is undefined
+        throw new Exceptions.IllegalArgument() if left is undefined or right is undefined
         return left + " IS NULL"  if right is null
         left + " = " + right
 
+    like: (left, right) ->
+        throw new Exceptions.IllegalArgument() if left is undefined or right is undefined
+        left + " LIKE " + right
+
     notEqual: (left, right) ->
-        throw new Exceptions.IllegalArgument()  if left is undefined or right is undefined
+        throw new Exceptions.IllegalArgument() if left is undefined or right is undefined
         return left + " IS NOT NULL"  if right is null
         left + " <> " + right
 
     less: (left, right) ->
-        throw new Exceptions.IllegalArgument()  if left is undefined or right is undefined
+        throw new Exceptions.IllegalArgument() if left is undefined or right is undefined
         left + " < " + right
 
     lessOrEqual: (left, right) ->
-        throw new Exceptions.IllegalArgument()  if left is undefined or right is undefined
+        throw new Exceptions.IllegalArgument() if left is undefined or right is undefined
         left + " <= " + right
 
     greater: (left, right) ->
-        throw new Exceptions.IllegalArgument()  if left is undefined or right is undefined
+        throw new Exceptions.IllegalArgument() if left is undefined or right is undefined
         left + " > " + right
 
     greaterOrEqual: (left, right) ->
-        throw new Exceptions.IllegalArgument()  if left is undefined or right is undefined
+        throw new Exceptions.IllegalArgument() if left is undefined or right is undefined
         left + " >= " + right
 
     between: (value, comp1, comp2) ->
-        throw new Exceptions.IllegalArgument()  if value is undefined or comp1 is undefined or comp2 is undefined
+        throw new Exceptions.IllegalArgument() if value is undefined or comp1 is undefined or comp2 is undefined
         value + " BETWEEN " + comp1 + " AND " + comp2
 
     and: ->
-        throw new Exceptions.IllegalArgument()  if arguments.length < 2
-        i = undefined
+        conditions = arguments
+        conditions = arguments[0] if arguments.length is 1 and Array.isArray(arguments[0])
+        throw new Exceptions.IllegalArgument() if conditions.length < 2
         expression = "("
-        for i of arguments
-            if arguments.hasOwnProperty(i)
+        for i of conditions
+            if conditions.hasOwnProperty(i)
                 expression += " AND "  if expression isnt "("
-                expression += arguments[i]
+                expression += conditions[i]
         expression += ")"
         expression
 
     or: ->
-        throw new Exceptions.IllegalArgument()  if arguments.length < 2
+        conditions = arguments
+        conditions = arguments[0] if arguments.length is 1 and Array.isArray(arguments[0])
+        throw new Exceptions.IllegalArgument() if conditions.length < 2
         i = undefined
         expression = "("
-        for i of arguments
-            if arguments.hasOwnProperty(i)
+        for i of conditions
+            if conditions.hasOwnProperty(i)
                 expression += " OR "  if expression isnt "("
-                expression += arguments[i]
+                expression += conditions[i]
         expression += ")"
         expression
 

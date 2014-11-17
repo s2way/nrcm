@@ -1,22 +1,22 @@
-Exceptions = require("../../../Util/Exceptions")
+Exceptions = require('../../../Util/Exceptions')
 
 class MySQL
     # MySQL DataSource component
     # @param {string} dataSourceName The name of the DataSource defined in the application core.json
     # @constructor
     constructor: (dataSourceName) ->
-        @_mysql = require("mysql")
+        @_mysql = require('mysql')
         @_dataSourceName = dataSourceName
         @_connections = {}
         @_databaseSelected = {}
-        @_dataSourceName = "default"  unless dataSourceName
+        @_dataSourceName = 'default'  unless dataSourceName
         @singleInstance = true
 
     # Component initialization
     # Validates if the DataSource exists
     init: ->
         @_dataSource = @core.dataSources[@_dataSourceName]
-        throw new Exceptions.IllegalArgument("Couldn't find datasource '" + @_dataSourceName + "'. Take a look at your core.json.")  unless @_dataSource
+        throw new Exceptions.IllegalArgument("Couldn't find datasource '' + @_dataSourceName + ''. Take a look at your core.json.")  unless @_dataSource
 
     # Changes the DataSource (connection properties) being used internally
     # @param {string} dataSourceName The name of the DataSource, as specified in the core.json file
@@ -27,32 +27,31 @@ class MySQL
     # Logging method
     # @param {string} msg The log message
     info: (msg) ->
-        logger = @component("Logger")
+        logger = @component('Logger')
         logger.init()
-        logger.log "[MySQL] " + msg
+        logger.log '[MySQL] ' + msg
 
     # Connects to the database or returns the same connection object
     # @param callback Calls the callback passing an error or the connection object if successful
     # @private
     _connect: (callback) ->
         if @_connections[@_dataSourceName]
-            @info "[" + @_dataSourceName + "] Recycling connection"
+            @info '[' + @_dataSourceName + '] Recycling connection'
             callback null, @_connections[@_dataSourceName]
             return
-        $this = this
-        @info "[" + @_dataSourceName + "] Connecting to " + @_dataSource.host + ":" + @_dataSource.port
+        @info '[' + @_dataSourceName + '] Connecting to ' + @_dataSource.host + ':' + @_dataSource.port
         connection = @_mysql.createConnection(
             host: @_dataSource.host
             port: @_dataSource.port
             user: @_dataSource.user
             password: @_dataSource.password
         )
-        connection.connect (error) ->
+        connection.connect (error) =>
             if error
                 callback error
             else
-                $this._connections[$this._dataSourceName] = connection
-                $this.info "[" + $this._dataSourceName + "] Connected"
+                @_connections[@_dataSourceName] = connection
+                @info '[' + @_dataSourceName + '] Connected'
                 callback null, connection
             return
 
@@ -62,16 +61,13 @@ class MySQL
     # Shutdowns the connection
     destroy: ->
         $this = this
-        (shutdownConnection = ->
-            dataSourceName = undefined
-            $this.info "Shutting down connections..."
-            for dataSourceName of $this._connections
-                if $this._connections.hasOwnProperty(dataSourceName)
-                    $this._connections[dataSourceName].end()
-                    $this.info "[" + dataSourceName + "] Closed"
-                    delete $this._connections[dataSourceName]
-            return
-        )()
+        dataSourceName = undefined
+        $this.info 'Shutting down connections...'
+        for dataSourceName of $this._connections
+            if $this._connections.hasOwnProperty(dataSourceName)
+                $this._connections[dataSourceName].end()
+                $this.info '[' + dataSourceName + '] Closed'
+                delete $this._connections[dataSourceName]
 
     # Issues a query to the MySQL server
     # @param {string} query The query (you can use the QueryBuilder component to build it)
@@ -115,7 +111,7 @@ class MySQL
         @_connect (error, connection) ->
             if error
                 return callback error
-            connection.query "USE " + connection.escapeId(database) + ";", (error) ->
+            connection.query 'USE ' + connection.escapeId(database) + ';', (error) ->
                 if error
                     return callback error
                 return callback()
@@ -125,7 +121,7 @@ class MySQL
     # @param {array} params An array of parameters that will be passed to the procedure
     # @param {function} callback Function called when the operation has been completed
     call: (procedure, params, callback) ->
-        throw new Exceptions.IllegalArgument("The procedure parameter is mandatory")  if typeof procedure isnt "string"
+        throw new Exceptions.IllegalArgument('The procedure parameter is mandatory')  if typeof procedure isnt 'string'
         $this = this
         @_connect (error, connection) ->
             if error
@@ -134,12 +130,12 @@ class MySQL
                 if error
                     return callback error
                 i = undefined
-                paramsString = ""
+                paramsString = ''
                 i = 0
                 while i < params.length
-                    paramsString += ", "  if paramsString isnt ""
-                    paramsString += "?"
+                    paramsString += ', '  if paramsString isnt ''
+                    paramsString += '?'
                     i += 1
-                connection.query "CALL " + connection.escapeId(procedure) + "(" + paramsString + ")", params, callback
+                connection.query 'CALL ' + connection.escapeId(procedure) + '(' + paramsString + ')', params, callback
 
 module.exports = MySQL

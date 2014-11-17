@@ -44,7 +44,7 @@ class RequestHandler
                 application.uuid = application ? @_uuid
 
             @_log 'Application: ' + @_request.app
-            @_log 'Method: ' + @_request.method
+            @_log 'Method: ' + @_request.method.toUpperCase()
             @_log 'URL type: ' + @_request.type
             @_log 'Prefixes: ' + JSON.stringify(@_request.decomposedURL.prefixes)
             @_log 'Query: ' + JSON.stringify(@_request.decomposedURL.query)
@@ -155,7 +155,10 @@ class RequestHandler
                 throw new Exceptions.IllegalControllerParameter('Invalid responseHeaders: ' + headers)
 
             @_response.send body, headers, statusCode
-            @_log 'Output: ' + chalk.cyan((if body.length > 1000 then body.substring(0, 1000) + '...' else body))
+
+            body = JSON.stringify(body) if typeof body is 'object'
+
+            @_log 'Output: ' + chalk.cyan((if body and body.length > 1000 then body.substring(0, 1000) + '...' else body))
 
             color = 'blue'
             color = 'green' if 200 <= statusCode < 300

@@ -86,7 +86,7 @@ class ControllerRunner
         beforeCallback = (response) ->
             try
                 if response is true or response is undefined
-                    body = controller[controller.method](controllerMethodCallback)
+                    controller[controller.method](controllerMethodCallback)
                 else
                     clearTimeout timeoutTimer
                     callback null, response

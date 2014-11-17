@@ -123,7 +123,7 @@ class Rules
     datetime: (value, formats = ['YYYY-MM-DDTHH:mm:ss']) ->
         return @regex(value, /^\d{4}\-\d{2}\-\d{2}[T]\d{2}\:\d{2}\:\d{2}$/) and moment(value, formats).isValid()
 
-    # Test if a value will pass a set of validation rules specified in the rulese parameter
+    # Test if a value will pass a set of validation rules specified in the rules parameter
     # @value The value to be validated
     # @rules {object} A JSON containing the rules to be tested against the fields
     # See the tests for examples
@@ -137,7 +137,7 @@ class Rules
             ruleMethodParams = rule.params
             ruleExists = @[ruleMethod]?
             throw new Exceptions.IllegalArgument 'Rule ' + ruleMethod + ' not found' unless ruleExists
-            passed = @[ruleMethod].apply(@, [ruleMethod].concat ruleMethodParams)
+            passed = @[ruleMethod].apply(@, [value].concat ruleMethodParams)
             unless passed
                 failedRules[key] = rule
                 failureCounter += 1
