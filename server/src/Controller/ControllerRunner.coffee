@@ -36,6 +36,7 @@ class ControllerRunner
                             controller.responseHeaders = filter.responseHeaders if filter.responseHeaders?
                             callback null, response
                     )
+                    filter.before.called = true
                 else
                     pickFilterAndCallBefore()
             catch e
@@ -55,7 +56,8 @@ class ControllerRunner
             try
                 if typeof filter.after is 'function'
                     @_log filter.name + '.after()'
-                    filter.after(pickFilterAndCallAfter)
+                    filter.after pickFilterAndCallAfter
+                    filter.after.called = true
                 else
                     pickFilterAndCallAfter()
             catch e
@@ -73,7 +75,8 @@ class ControllerRunner
 
             filter = filtersInReverseOrder.shift()
             try
-                if typeof filter.timeout is 'function'
+                wasFilterBeforeCalled = filter.before?.called is true
+                if typeof filter.timeout is 'function' and wasFilterBeforeCalled
                     @_log filter.name + '.timeout()'
                     filter.timeout(pickFilterAndCallTimeout)
                 else
@@ -102,6 +105,7 @@ class ControllerRunner
                 if typeof controller.after is 'function'
                     @_log controller.name + '.after()'
                     controller.after afterCallback
+                    controller.after.called = true
                 else
                     afterCallback()
             catch e
@@ -113,6 +117,7 @@ class ControllerRunner
                 if response is true or response is undefined
                     @_log controller.name + '.' + controller.method + '()'
                     controller[controller.method](controllerMethodCallback)
+                    controller[controller.method].called = true
                 else
                     clearTimeout timeoutTimer
                     callback null, response
@@ -129,9 +134,10 @@ class ControllerRunner
                 @_runFiltersTimeout controller, (error) =>
                     @_error(error) if error
 
-            if typeof controller.timeout is 'function'
+            wasControllerCalled = controller.before?.called is true or controller[controller.method].called is true
+            if typeof controller.timeout is 'function' and wasControllerCalled
                 @_log controller.name + '.timeout()'
-                controller.timeout(controllerTimeoutCallback)
+                controller.timeout controllerTimeoutCallback
             else
                 controllerTimeoutCallback()
 
@@ -147,6 +153,7 @@ class ControllerRunner
                     if typeof controller.before is 'function'
                         @_log controller.name + '.before()'
                         controller.before beforeCallback
+                        controller.before.called = true
                     else
                         beforeCallback()
                 catch e

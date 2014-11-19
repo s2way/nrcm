@@ -271,10 +271,11 @@ describe 'ControllerRunner', ->
                 expect(error.name).to.be 'MyError'
                 done()
 
-        it 'should call all timeout() methods if a timeout occurs', (done) ->
+        it 'should call all timeout() methods if a timeout occurs within the controller method', (done) ->
             bTimeoutCalled = false
 
             aFilter =
+                before: (callback) -> callback()
                 timeout: (callback) ->
                     expect(bTimeoutCalled).to.be true
                     callback()
@@ -282,6 +283,7 @@ describe 'ControllerRunner', ->
                 after: ->
                     expect.fail()
             bFilter =
+                before: (callback) -> callback()
                 timeout: (callback) ->
                     bTimeoutCalled = true
                     callback()
@@ -293,4 +295,43 @@ describe 'ControllerRunner', ->
                 get: ->
 
             runner.run controller, 1, (error) ->
+                expect(error.name).to.be 'Timeout'
+
+        it 'should not call controller.timeout() if the controller.method() is not called', (done) ->
+            aFilter =
+                timeout: (callback) ->
+                    callback()
+                    setTimeout ->
+                        done()
+                    , 30
+                before: ->
+                    # The callback is not called, so the controller.get() will never be called
+                    # Therefore controller.timeout() should also not be called!
+            controller =
+                timeout: -> expect.fail()
+                method: 'get'
+                filters: [aFilter]
+                get: -> expect.fail()
+
+            runner.run controller, 10, (error) ->
+                expect(error.name).to.be 'Timeout'
+
+        it 'should not call bFilter.timeout() if the aFilter.before() callback is not called', (done) ->
+            aFilter =
+                timeout: (callback) ->
+                    callback()
+                    setTimeout ->
+                        done()
+                    , 30
+                before: ->
+                    # The callback is not called, so the B filter will never execute
+                    # Therefore bFilter.timeout() should also not be called!
+            bFilter =
+                timeout: -> expect.fail()
+            controller =
+                method: 'get'
+                filters: [aFilter, bFilter]
+                get: -> expect.fail()
+
+            runner.run controller, 10, (error) ->
                 expect(error.name).to.be 'Timeout'
