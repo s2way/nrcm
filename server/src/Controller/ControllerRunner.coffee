@@ -17,7 +17,7 @@ class ControllerRunner
     _runFiltersBefore: (controller, timeoutTimer, callback) ->
         filters = controller.filters.slice 0
 
-        pickFilterAndCallBefore = () ->
+        pickFilterAndCallBefore = =>
             noFiltersLeft = filters.length is 0
             return callback null, true if noFiltersLeft
 
@@ -25,6 +25,7 @@ class ControllerRunner
 
             try
                 if typeof filter.before is 'function'
+                    @_log filter.name + '.before()'
                     filter.before((response) ->
                         isCarryOnResponse = response is true or response is undefined
                         if isCarryOnResponse
@@ -46,13 +47,14 @@ class ControllerRunner
     # Run all filter's after() method in reverse order
     _runFiltersAfter: (controller, timeoutTimer, callback) ->
         filtersInReverseOrder = controller.filters.reverse().slice 0
-        pickFilterAndCallAfter = () ->
+        pickFilterAndCallAfter = =>
             noFiltersLeft = filtersInReverseOrder.length is 0
             return callback null if noFiltersLeft
 
             filter = filtersInReverseOrder.shift()
             try
                 if typeof filter.after is 'function'
+                    @_log filter.name + '.after()'
                     filter.after(pickFilterAndCallAfter)
                 else
                     pickFilterAndCallAfter()
@@ -65,13 +67,14 @@ class ControllerRunner
     # Run all filter's timeout() method in reverse order
     _runFiltersTimeout: (controller, callback) ->
         filtersInReverseOrder = controller.filters.reverse().slice 0
-        pickFilterAndCallTimeout = () ->
+        pickFilterAndCallTimeout = () =>
             noFiltersLeft = filtersInReverseOrder.length is 0
             return callback null if noFiltersLeft
 
             filter = filtersInReverseOrder.shift()
             try
                 if typeof filter.timeout is 'function'
+                    @_log filter.name + '.timeout()'
                     filter.timeout(pickFilterAndCallTimeout)
                 else
                     pickFilterAndCallTimeout()
@@ -93,10 +96,11 @@ class ControllerRunner
                 return callback error if error
                 return callback null, body
 
-        controllerMethodCallback = (output) ->
+        controllerMethodCallback = (output) =>
             body = output
             try
                 if typeof controller.after is 'function'
+                    @_log controller.name + '.after()'
                     controller.after afterCallback
                 else
                     afterCallback()
@@ -104,9 +108,10 @@ class ControllerRunner
                 clearTimeout timeoutTimer
                 callback e
 
-        beforeCallback = (response) ->
+        beforeCallback = (response) =>
             try
                 if response is true or response is undefined
+                    @_log controller.name + '.' + controller.method + '()'
                     controller[controller.method](controllerMethodCallback)
                 else
                     clearTimeout timeoutTimer
@@ -125,6 +130,7 @@ class ControllerRunner
                     @_error(error) if error
 
             if typeof controller.timeout is 'function'
+                @_log controller.name + '.timeout()'
                 controller.timeout(controllerTimeoutCallback)
             else
                 controllerTimeoutCallback()
@@ -133,12 +139,13 @@ class ControllerRunner
 
         # Encapsulate the method in a immediate so it can be killed
         controllerMethodImmediate = setImmediate(=>
-            @_runFiltersBefore controller, timeoutTimer, (error, callbackResponse) ->
+            @_runFiltersBefore controller, timeoutTimer, (error, callbackResponse) =>
                 return callback(error) if error
                 return callback(null, callbackResponse) if callbackResponse isnt true
 
                 try
                     if typeof controller.before is 'function'
+                        @_log controller.name + '.before()'
                         controller.before beforeCallback
                     else
                         beforeCallback()
