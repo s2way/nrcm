@@ -17,7 +17,7 @@ describe 'Sync.js', ->
         it 'should copy the file if it does not exist', ->
             Sync.createFileIfNotExists 'here.json', '{}'
             Sync.copyIfNotExists 'here.json', 'there.json'
-            assert.equal '{}', JSON.stringify(Sync.fileToJSON('there.json'))
+            assert.equal '{}', fs.readFileSync('there.json')
             fs.unlinkSync 'here.json'
             fs.unlinkSync 'there.json'
 
@@ -42,7 +42,7 @@ describe 'Sync.js', ->
         it 'should copy the file Synchronously', ->
             Sync.createFileIfNotExists 'here.json', '{}'
             Sync.copy 'here.json', 'there.json'
-            assert.equal '{}', JSON.stringify(Sync.fileToJSON('there.json'))
+            assert.equal '{}', fs.readFileSync('there.json')
             fs.unlinkSync 'here.json'
             fs.unlinkSync 'there.json'
 
@@ -86,19 +86,6 @@ describe 'Sync.js', ->
             fileId = undefined
             for fileId of filesJSON
                 assert.equal JSON.stringify({}), JSON.stringify(filesJSON[fileId])    if filesJSON.hasOwnProperty(fileId)
-
-    describe 'fileToJSON', ->
-        it 'should return a valid JSON if the input file is a valid JSON file', ->
-            fileName = undefined
-            json = undefined
-            json =
-                prop: 'value'
-                anotherProp: 'anotherValue'
-
-            fileName = 'fileToJSON.js'
-            fs.writeFileSync fileName, JSON.stringify(json)
-            assert.equal JSON.stringify(json), JSON.stringify(Sync.fileToJSON(fileName))
-            fs.unlinkSync fileName
 
     describe 'createDirIfNotExists', ->
         it 'create the directory if it does not exists', ->

@@ -73,7 +73,9 @@ describe 'ControllerRunner', ->
                 get: (callback) ->
                     callback {}
                 after: ->
-                    throw afterError
+                    setTimeout ->
+                        throw afterError
+                    , 10
             runner.run instance, 10000, (e) ->
                 expect(e).to.be afterError
                 done()
@@ -83,7 +85,9 @@ describe 'ControllerRunner', ->
             instance =
                 filters: []
                 before: ->
-                    throw beforeError
+                    setTimeout ->
+                        throw beforeError
+                    , 10
             runner.run instance, 10000, (e) ->
                 expect(e).to.be beforeError
                 done()
@@ -358,7 +362,10 @@ describe 'ControllerRunner', ->
             controller =
                 method: 'get'
                 filters: [aFilter, bFilter]
-                get: -> throw name: 'MyError'
+                get: ->
+                    setTimeout ->
+                        throw name: 'MyError'
+                    , 10
                 after: -> expect.fail()
 
             runner.run controller, 10000, (error) ->
@@ -372,7 +379,9 @@ describe 'ControllerRunner', ->
                         done()
                     , 30
                 before: ->
-                    throw name: 'MyError'
+                    setTimeout ->
+                        throw name: 'MyError'
+                    , 10
             controller =
                 afterError: -> expect.fail()
                 method: 'get'
@@ -390,7 +399,9 @@ describe 'ControllerRunner', ->
                         done()
                     , 30
                 before: ->
-                    throw name: 'MyError'
+                    setTimeout ->
+                        throw name: 'MyError'
+                    , 10
             bFilter =
                 afterTimeout: -> expect.fail()
             controller =

@@ -64,17 +64,6 @@ class Sync
             fs.mkdirSync dir, permission
         return
 
-
-    ###*
-    Turn a json file into a json object
-
-    @method fileToJSON
-    @param {string} file The file path
-    ###
-    @fileToJSON: (file) ->
-        JSON.parse fs.readFileSync(file, "utf8")
-
-
     ###*
     Check if the file exists, if doesn't try to create
 
