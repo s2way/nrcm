@@ -5,7 +5,9 @@ class Couchbase
         dataSourceName = dataSourceName or "default"
         @_couchbase = require("couchbase")
         @_dataSourceName = dataSourceName
-        @ViewQuery = @_couchbase.ViewQuery
+        @_viewQuery = @_couchbase.ViewQuery
+        @_cluster = null
+        @_db = null
 
     # Component initialization
     # Check if the data source specified in the constructor exists
@@ -16,12 +18,17 @@ class Couchbase
     # Connects to the database or returns the bucket object
     # @param {function} callback
     connect: (callback) ->
-        cluster = new @_couchbase.Cluster(@_dataSource.host + ":" + @_dataSource.port)
-        db = cluster.openBucket(@_dataSource.bucket)
-        db.on "connect", (error) ->
-            callback error, db
+        $this = @
+        @_cluster = new @_couchbase.Cluster(@_dataSource.host + ":" + @_dataSource.port) if @_cluster == null
+        @_db = @_cluster.openBucket(@_dataSource.bucket) if @_db == null
+        @_db.on "connect", (error) ->
+            callback error, $this._db
 
-        db.on "error", (error) ->
+        @_db.on "error", (error) ->
             callback error
+
+    # Close the database connection
+    destroy: ->
+        @_db?.shutdown()?
 
 module.exports = Couchbase
