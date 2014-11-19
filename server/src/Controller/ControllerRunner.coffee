@@ -8,6 +8,9 @@ class ControllerRunner
     _log: (message) ->
         @_logger?.log?('[ControllerRunner] ' + message)
 
+    _error: (message) ->
+        @_logger?.error?('[ControllerRunner] Error: ' + require('util').inspect(message))
+
     # Run all filter's before() method
     # If a response is issued by one of the before()'s, the response is passed to the second argument of the callback
     # If no response is issued by one of the before()'s, true is passed to the second argument of the callback
@@ -59,6 +62,24 @@ class ControllerRunner
 
         pickFilterAndCallAfter()
 
+    # Run all filter's timeout() method in reverse order
+    _runFiltersTimeout: (controller, callback) ->
+        filtersInReverseOrder = controller.filters.reverse().slice 0
+        pickFilterAndCallTimeout = () ->
+            noFiltersLeft = filtersInReverseOrder.length is 0
+            return callback null if noFiltersLeft
+
+            filter = filtersInReverseOrder.shift()
+            try
+                if typeof filter.timeout is 'function'
+                    filter.timeout(pickFilterAndCallTimeout)
+                else
+                    pickFilterAndCallTimeout()
+            catch e
+                callback e
+
+        pickFilterAndCallTimeout()
+
 
     # Run the controller calling the corresponding methods and all the triggers (before() and after())
     run: (controller, timeout, callback) ->
@@ -95,9 +116,19 @@ class ControllerRunner
                 callback e
 
         @_log 'Timeout timer started'
-        timeoutTimer = setTimeout( ->
+        timeoutTimer = setTimeout( =>
             clearImmediate controllerMethodImmediate
-            callback new Exceptions.Timeout()
+            callback new Exceptions.Timeout() # Response already sent
+
+            controllerTimeoutCallback = =>
+                @_runFiltersTimeout controller, (error) =>
+                    @_error(error) if error
+
+            if typeof controller.timeout is 'function'
+                controller.timeout(controllerTimeoutCallback)
+            else
+                controllerTimeoutCallback()
+
         , timeout)
 
         # Encapsulate the method in a immediate so it can be killed

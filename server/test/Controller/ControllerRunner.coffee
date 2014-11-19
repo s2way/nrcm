@@ -51,6 +51,19 @@ describe 'ControllerRunner', ->
                 expect(e.name).to.be 'Timeout'
                 done()
 
+        it 'should call the controller timeout method if the timeout expires', (done) ->
+            beforeCalled = false
+
+            instance =
+                filters: []
+                method: 'get'
+                before: (callback) -> beforeCalled = true ; callback(true)
+                after: -> expect.fail()
+                get: ->
+                timeout: ->
+                    expect(beforeCalled).to.be true
+                    done()
+            runner.run instance, 1, ->
 
         it 'should call the callback passing the error if an exception occurs in the after() method', (done) ->
             afterError = {}
@@ -257,3 +270,27 @@ describe 'ControllerRunner', ->
             runner.run controller, 10000, (error) ->
                 expect(error.name).to.be 'MyError'
                 done()
+
+        it 'should call all timeout() methods if a timeout occurs', (done) ->
+            bTimeoutCalled = false
+
+            aFilter =
+                timeout: (callback) ->
+                    expect(bTimeoutCalled).to.be true
+                    callback()
+                    done()
+                after: ->
+                    expect.fail()
+            bFilter =
+                timeout: (callback) ->
+                    bTimeoutCalled = true
+                    callback()
+                after: ->
+                    expect.fail()
+            controller =
+                method: 'get'
+                filters: [aFilter, bFilter]
+                get: ->
+
+            runner.run controller, 1, (error) ->
+                expect(error.name).to.be 'Timeout'

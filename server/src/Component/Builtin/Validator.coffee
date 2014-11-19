@@ -1,7 +1,5 @@
 Exceptions = require('../../Util/Exceptions')
 
-
-
 class Validator
     # @constructor
     # @method Validator
