@@ -1,5 +1,6 @@
 Exceptions = require '../Util/Exceptions'
 util = require 'util'
+domain = require 'domain'
 
 # Responsible for running the controllers
 class ControllerRunner
@@ -24,13 +25,20 @@ class ControllerRunner
 
             filter = filters.shift()
 
-            try
+            beforeDomain = domain.create()
+            beforeDomain.on 'error', (e) =>
+                # Filter.before() exception
+                clearTimeout timeoutTimer
+                @_onError e, controller, callback
+
+            beforeDomain.run =>
                 filter.processed = true
 
                 if typeof filter.before is 'function'
                     @_log filter.name + '.before()'
                     filter.before.called = true
                     filter.before((response) ->
+                        beforeDomain.exit()
                         isCarryOnResponse = response is true or response is undefined
                         if isCarryOnResponse
                             pickFilterAndCallBefore()
@@ -41,12 +49,8 @@ class ControllerRunner
                             callback null, response
                     )
                 else
+                    beforeDomain.exit()
                     pickFilterAndCallBefore()
-
-            catch e
-                # Filter.before() exception
-                clearTimeout timeoutTimer
-                @_onError e, controller, callback
 
         pickFilterAndCallBefore()
 
@@ -58,17 +62,23 @@ class ControllerRunner
             return callback null if noFiltersLeft
 
             filter = filtersInReverseOrder.shift()
-            try
-                if typeof filter.after is 'function'
-                    @_log "#{filter.name}.after()"
-                    filter.after.called = true
-                    filter.after pickFilterAndCallAfter
-                else
-                    pickFilterAndCallAfter()
-            catch e
+            afterDomain = domain.create()
+            afterDomain.on 'error', (e) =>
                 # Filter.after() exception
                 clearTimeout timeoutTimer
                 @_onError e, controller, callback
+
+            afterDomain.run =>
+                if typeof filter.after is 'function'
+                    @_log "#{filter.name}.after()"
+                    filter.after.called = true
+                    filter.after(->
+                        afterDomain.exit()
+                        pickFilterAndCallAfter()
+                    )
+                else
+                    afterDomain.exit()
+                    pickFilterAndCallAfter()
 
         pickFilterAndCallAfter()
 
@@ -80,18 +90,24 @@ class ControllerRunner
             return callback null if noFiltersLeft
 
             filter = filtersInReverseOrder.shift()
-            try
-                wasFilterProcessed = filter.processed is true
-                if typeof filter[which] is 'function' and wasFilterProcessed
-                    @_log "#{filter.name}.#{which}()"
-                    filter[which](pickFilterAndCallMethod)
-                    filter[which].called = true
-                else
-                    pickFilterAndCallMethod()
-            catch e
+            afterXDomain = domain.create()
+            afterXDomain.on 'error', (e) ->
                 # Filter.afterTimeout() or Controller.afterError() exception
                 # DO NOT CALL _onError() OR IT WILL RESULT IN AN INFINITE LOOP
                 callback e
+
+            afterXDomain.run =>
+                wasFilterProcessed = filter.processed is true
+                if typeof filter[which] is 'function' and wasFilterProcessed
+                    @_log "#{filter.name}.#{which}()"
+                    filter[which].called = true
+                    filter[which](->
+                        afterXDomain.exit()
+                        pickFilterAndCallMethod()
+                    )
+                else
+                    afterXDomain.exit()
+                    pickFilterAndCallMethod()
 
         pickFilterAndCallMethod()
 
@@ -118,31 +134,46 @@ class ControllerRunner
 
         controllerMethodCallback = (output) =>
             body = output
-            try
-                if typeof controller.after is 'function'
-                    @_log "#{controller.name}.after()"
-                    controller.after.called = true
-                    controller.after afterCallback
-                else
-                    afterCallback()
-            catch e
+
+            afterDomain = domain.create()
+            afterDomain.on 'error', (e) =>
                 # controller.after() exception
                 clearTimeout timeoutTimer
                 @_onError e, controller, callback
+                afterDomain.dispose()
+
+            afterDomain.run =>
+                if typeof controller.after is 'function'
+                    @_log "#{controller.name}.after()"
+                    controller.after.called = true
+                    controller.after(->
+                        afterDomain.exit()
+                        afterCallback()
+                    )
+                else
+                    afterDomain.exit()
+                    afterCallback()
 
         beforeCallback = (response) =>
-            try
-                if response is true or response is undefined
-                    @_log "#{controller.name}.#{controller.method}()"
-                    controller[controller.method](controllerMethodCallback)
-                    controller[controller.method].called = true
-                else
-                    clearTimeout timeoutTimer
-                    callback null, response
-            catch e
+            methodDomain = domain.create()
+            methodDomain.on 'error', (e) =>
                 # controller.method() exception
                 clearTimeout timeoutTimer
                 @_onError e, controller, callback
+                methodDomain.dispose()
+
+            methodDomain.run =>
+                if response is true or response is undefined
+                    @_log "#{controller.name}.#{controller.method}()"
+                    controller[controller.method]((response) ->
+                        controllerMethodCallback(response)
+                        methodDomain.exit()
+                    )
+                    controller[controller.method].called = true
+                else
+                    methodDomain.exit()
+                    clearTimeout timeoutTimer
+                    callback null, response
 
         @_log 'Timeout timer started'
         timeoutTimer = setTimeout( =>
@@ -168,17 +199,24 @@ class ControllerRunner
                 return callback(error) if error
                 return callback(null, callbackResponse) if callbackResponse isnt true
 
-                try
-                    if typeof controller.before is 'function'
-                        @_log "#{controller.name}.before()"
-                        controller.before.called = true
-                        controller.before beforeCallback
-                    else
-                        beforeCallback()
-                catch e
+                beforeDomain = domain.create()
+                beforeDomain.on 'error', (e) =>
                     # controller.before() exception
                     clearTimeout timeoutTimer
                     @_onError e, controller, callback
+                    beforeDomain.dispose()
+
+                beforeDomain.run =>
+                    if typeof controller.before is 'function'
+                        @_log "#{controller.name}.before()"
+                        controller.before.called = true
+                        controller.before((response) ->
+                            beforeDomain.exit()
+                            beforeCallback response
+                        )
+                    else
+                        beforeDomain.exit()
+                        beforeCallback()
         )
 
 module.exports = ControllerRunner
