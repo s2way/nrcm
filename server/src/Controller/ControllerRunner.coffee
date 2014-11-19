@@ -1,4 +1,5 @@
 Exceptions = require '../Util/Exceptions'
+util = require 'util'
 
 # Responsible for running the controllers
 class ControllerRunner
@@ -8,8 +9,8 @@ class ControllerRunner
     _log: (message) ->
         @_logger?.log?('[ControllerRunner] ' + message)
 
-    _error: (message) ->
-        @_logger?.error?('[ControllerRunner] Error: ' + require('util').inspect(message))
+    _error: (object) ->
+        @_logger?.error?("[ControllerRunner] Error: #{util.inspect(object)}")
 
     # Run all filter's before() method
     # If a response is issued by one of the before()'s, the response is passed to the second argument of the callback
@@ -24,8 +25,11 @@ class ControllerRunner
             filter = filters.shift()
 
             try
+                filter.processed = true
+
                 if typeof filter.before is 'function'
                     @_log filter.name + '.before()'
+                    filter.before.called = true
                     filter.before((response) ->
                         isCarryOnResponse = response is true or response is undefined
                         if isCarryOnResponse
@@ -36,12 +40,13 @@ class ControllerRunner
                             controller.responseHeaders = filter.responseHeaders if filter.responseHeaders?
                             callback null, response
                     )
-                    filter.before.called = true
                 else
                     pickFilterAndCallBefore()
+
             catch e
+                # Filter.before() exception
                 clearTimeout timeoutTimer
-                callback e
+                @_onError e, controller, callback
 
         pickFilterAndCallBefore()
 
@@ -55,37 +60,49 @@ class ControllerRunner
             filter = filtersInReverseOrder.shift()
             try
                 if typeof filter.after is 'function'
-                    @_log filter.name + '.after()'
-                    filter.after pickFilterAndCallAfter
+                    @_log "#{filter.name}.after()"
                     filter.after.called = true
+                    filter.after pickFilterAndCallAfter
                 else
                     pickFilterAndCallAfter()
             catch e
+                # Filter.after() exception
                 clearTimeout timeoutTimer
-                callback e
+                @_onError e, controller, callback
 
         pickFilterAndCallAfter()
 
-    # Run all filter's timeout() method in reverse order
-    _runFiltersTimeout: (controller, callback) ->
+    # Run all filter's afterX() method in reverse order
+    _runFiltersAfterX: (which, controller, callback) ->
         filtersInReverseOrder = controller.filters.reverse().slice 0
-        pickFilterAndCallTimeout = () =>
+        pickFilterAndCallMethod = =>
             noFiltersLeft = filtersInReverseOrder.length is 0
             return callback null if noFiltersLeft
 
             filter = filtersInReverseOrder.shift()
             try
-                wasFilterBeforeCalled = filter.before?.called is true
-                if typeof filter.timeout is 'function' and wasFilterBeforeCalled
-                    @_log filter.name + '.timeout()'
-                    filter.timeout(pickFilterAndCallTimeout)
+                wasFilterProcessed = filter.processed is true
+                if typeof filter[which] is 'function' and wasFilterProcessed
+                    @_log "#{filter.name}.#{which}()"
+                    filter[which](pickFilterAndCallMethod)
+                    filter[which].called = true
                 else
-                    pickFilterAndCallTimeout()
+                    pickFilterAndCallMethod()
             catch e
+                # Filter.afterTimeout() or Controller.afterError() exception
+                # DO NOT CALL _onError() OR IT WILL RESULT IN AN INFINITE LOOP
                 callback e
 
-        pickFilterAndCallTimeout()
+        pickFilterAndCallMethod()
 
+    # Executed if an exception occurs inside
+    # Controller.before(), Controller.method(), Controller.after()
+    _onError: (error, controller, callback) ->
+        @_error(error) if error
+        callback error
+        @_runFiltersAfterX 'afterError', controller, (errorWithinAfterError) =>
+            # If an error occurs within afterError(), only the original error will be sent to the client
+            @_error(errorWithinAfterError) if errorWithinAfterError
 
     # Run the controller calling the corresponding methods and all the triggers (before() and after())
     run: (controller, timeout, callback) ->
@@ -103,27 +120,29 @@ class ControllerRunner
             body = output
             try
                 if typeof controller.after is 'function'
-                    @_log controller.name + '.after()'
-                    controller.after afterCallback
+                    @_log "#{controller.name}.after()"
                     controller.after.called = true
+                    controller.after afterCallback
                 else
                     afterCallback()
             catch e
+                # controller.after() exception
                 clearTimeout timeoutTimer
-                callback e
+                @_onError e, controller, callback
 
         beforeCallback = (response) =>
             try
                 if response is true or response is undefined
-                    @_log controller.name + '.' + controller.method + '()'
+                    @_log "#{controller.name}.#{controller.method}()"
                     controller[controller.method](controllerMethodCallback)
                     controller[controller.method].called = true
                 else
                     clearTimeout timeoutTimer
                     callback null, response
             catch e
+                # controller.method() exception
                 clearTimeout timeoutTimer
-                callback e
+                @_onError e, controller, callback
 
         @_log 'Timeout timer started'
         timeoutTimer = setTimeout( =>
@@ -131,13 +150,13 @@ class ControllerRunner
             callback new Exceptions.Timeout() # Response already sent
 
             controllerTimeoutCallback = =>
-                @_runFiltersTimeout controller, (error) =>
+                @_runFiltersAfterX 'afterTimeout', controller, (error) =>
                     @_error(error) if error
 
             wasControllerCalled = controller.before?.called is true or controller[controller.method].called is true
-            if typeof controller.timeout is 'function' and wasControllerCalled
-                @_log controller.name + '.timeout()'
-                controller.timeout controllerTimeoutCallback
+            if typeof controller.afterTimeout is 'function' and wasControllerCalled
+                @_log "#{controller.name}.afterTimeout()"
+                controller.afterTimeout controllerTimeoutCallback
             else
                 controllerTimeoutCallback()
 
@@ -151,15 +170,15 @@ class ControllerRunner
 
                 try
                     if typeof controller.before is 'function'
-                        @_log controller.name + '.before()'
-                        controller.before beforeCallback
+                        @_log "#{controller.name}.before()"
                         controller.before.called = true
+                        controller.before beforeCallback
                     else
                         beforeCallback()
                 catch e
-                    # Catch exceptions that may occur in the controller before method
+                    # controller.before() exception
                     clearTimeout timeoutTimer
-                    callback e
+                    @_onError e, controller, callback
         )
 
 module.exports = ControllerRunner

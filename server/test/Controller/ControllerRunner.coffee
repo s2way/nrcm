@@ -60,7 +60,7 @@ describe 'ControllerRunner', ->
                 before: (callback) -> beforeCalled = true ; callback(true)
                 after: -> expect.fail()
                 get: ->
-                timeout: ->
+                afterTimeout: ->
                     expect(beforeCalled).to.be true
                     done()
             runner.run instance, 1, ->
@@ -271,12 +271,12 @@ describe 'ControllerRunner', ->
                 expect(error.name).to.be 'MyError'
                 done()
 
-        it 'should call all timeout() methods if a timeout occurs within the controller method', (done) ->
+        it 'should call all afterTimeout() methods if a timeout occurs within the controller method', (done) ->
             bTimeoutCalled = false
 
             aFilter =
                 before: (callback) -> callback()
-                timeout: (callback) ->
+                afterTimeout: (callback) ->
                     expect(bTimeoutCalled).to.be true
                     callback()
                     done()
@@ -284,7 +284,7 @@ describe 'ControllerRunner', ->
                     expect.fail()
             bFilter =
                 before: (callback) -> callback()
-                timeout: (callback) ->
+                afterTimeout: (callback) ->
                     bTimeoutCalled = true
                     callback()
                 after: ->
@@ -297,18 +297,18 @@ describe 'ControllerRunner', ->
             runner.run controller, 1, (error) ->
                 expect(error.name).to.be 'Timeout'
 
-        it 'should not call controller.timeout() if the controller.method() is not called', (done) ->
+        it 'should not call controller.afterTimeout() if the controller.method() is not called', (done) ->
             aFilter =
-                timeout: (callback) ->
+                afterTimeout: (callback) ->
                     callback()
                     setTimeout ->
                         done()
                     , 30
                 before: ->
                     # The callback is not called, so the controller.get() will never be called
-                    # Therefore controller.timeout() should also not be called!
+                    # Therefore controller.afterTimeout() should also not be called!
             controller =
-                timeout: -> expect.fail()
+                afterTimeout: -> expect.fail()
                 method: 'get'
                 filters: [aFilter]
                 get: -> expect.fail()
@@ -316,18 +316,18 @@ describe 'ControllerRunner', ->
             runner.run controller, 10, (error) ->
                 expect(error.name).to.be 'Timeout'
 
-        it 'should not call bFilter.timeout() if the aFilter.before() callback is not called', (done) ->
+        it 'should not call bFilter.afterTimeout() if the aFilter.before() callback is not called', (done) ->
             aFilter =
-                timeout: (callback) ->
+                afterTimeout: (callback) ->
                     callback()
                     setTimeout ->
                         done()
                     , 30
                 before: ->
                     # The callback is not called, so the B filter will never execute
-                    # Therefore bFilter.timeout() should also not be called!
+                    # Therefore bFilter.afterTimeout() should also not be called!
             bFilter =
-                timeout: -> expect.fail()
+                afterTimeout: -> expect.fail()
             controller =
                 method: 'get'
                 filters: [aFilter, bFilter]
@@ -335,3 +335,68 @@ describe 'ControllerRunner', ->
 
             runner.run controller, 10, (error) ->
                 expect(error.name).to.be 'Timeout'
+
+
+        it 'should call all afterError() methods if an exception occurs within the controller method', (done) ->
+            bAfterError = false
+
+            aFilter =
+                before: (callback) -> callback()
+                afterError: (callback) ->
+                    expect(bAfterError).to.be true
+                    callback()
+                    done()
+                after: -> expect.fail()
+                afterTimeout: -> expect.fail()
+            bFilter =
+                before: (callback) -> callback()
+                afterError: (callback) ->
+                    bAfterError = true
+                    callback()
+                after: -> expect.fail()
+                afterTimeout: -> expect.fail()
+            controller =
+                method: 'get'
+                filters: [aFilter, bFilter]
+                get: -> throw name: 'MyError'
+                after: -> expect.fail()
+
+            runner.run controller, 10000, (error) ->
+                expect(error.name).to.be 'MyError'
+
+        it 'should not call controller.afterError() if an exception occurs within the filter', (done) ->
+            aFilter =
+                afterError: (callback) ->
+                    callback()
+                    setTimeout ->
+                        done()
+                    , 30
+                before: ->
+                    throw name: 'MyError'
+            controller =
+                afterError: -> expect.fail()
+                method: 'get'
+                filters: [aFilter]
+                get: -> expect.fail()
+
+            runner.run controller, 10000, (error) ->
+                expect(error.name).to.be 'MyError'
+
+        it 'should not call bFilter.afterError() if an exception occurs within the aFilter.before()', (done) ->
+            aFilter =
+                afterError: (callback) ->
+                    callback()
+                    setTimeout ->
+                        done()
+                    , 30
+                before: ->
+                    throw name: 'MyError'
+            bFilter =
+                afterTimeout: -> expect.fail()
+            controller =
+                method: 'get'
+                filters: [aFilter, bFilter]
+                get: -> expect.fail()
+
+            runner.run controller, 10000, (error) ->
+                expect(error.name).to.be 'MyError'
