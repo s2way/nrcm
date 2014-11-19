@@ -430,3 +430,16 @@ describe 'MyNinja', ->
                     expect(results).to.be.ok()
                     done()
             )
+
+    describe 'bind()', ->
+
+        it 'should bind all MyNinja methods to the specified model', (done) ->
+            instance = testing.createComponent 'Database.MyNinja',table: 'sky'
+            instance.init()
+            params = {}
+            instance.findAll = ->
+                expect(arguments[0]).to.be params
+                done()
+            model = {}
+            instance.bind model
+            model.findAll(params)

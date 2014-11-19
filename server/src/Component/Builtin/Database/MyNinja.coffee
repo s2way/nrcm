@@ -11,6 +11,17 @@ class MyNinja
         @_cherries = @component 'Cherries'
         @$ = @component 'QueryBuilder'
 
+
+    # Bind all methods from MyNinja into the model instance (expect for init() and bind() itself)
+    bind: (model) ->
+        methodsToBind = ['findById', 'find', 'findAll', 'removeAll', 'removeById', 'remove', 'query', 'updateAll', 'save']
+        for methodName in methodsToBind
+            ninjaMethod = @[methodName]
+            ((ninjaMethod) =>
+                model[methodName] = =>
+                    return ninjaMethod.apply(@, arguments)
+            )(ninjaMethod)
+
     # Finds a single record using the primary key
     # @param {object} id The record id
     # @param {function} callback Called when the operation is completed (error, result)
@@ -21,6 +32,7 @@ class MyNinja
 
         @_mysql.query sql, [], (error, result) ->
             return callback(error) if error
+            return callback(null, null) if result.length is 0
             return callback(null, result[0])
 
     # Finds a single record using the specified conditions

@@ -87,9 +87,9 @@ class WaferPie
         app.models = @_loadElements(app.constants.modelsPath)
 
         try
-            app.core = Sync.fileToJSON(app.coreFileName)
+            app.core = require(app.coreFileName)
         catch e
-            throw new Exceptions.Fatal('The core configuration file is not a valid JSON', e)
+            throw new Exceptions.Fatal('The core configuration file is not valid', e)
 
         @_loadAllConfigJSONFiles app, app.constants.configPath
         @_validateCoreFile app.core

@@ -52,7 +52,7 @@ describe 'WaferPie.js', ->
             wafer.configure configFileName
             fs.unlinkSync(configFileName)
 
-        it 'should throw a Fatal exception if the config file is not a valid JSON file', ->
+        it 'should throw a Fatal exception if the config file is not a valid configuration file', ->
             configFileName = 'config_test.json'
             sync.createFileIfNotExists(configFileName, 'this is not a json file')
             expect( ->
@@ -74,7 +74,7 @@ describe 'WaferPie.js', ->
             )
             fs.unlinkSync(configFileName)
 
-        it 'should throw a Fatal exception if the core configuration file is not a valid JSON', ->
+        it 'should throw a Fatal exception if the core configuration file is not valid', ->
             sync.createDirIfNotExists(path.join('testing'))
             sync.createDirIfNotExists(path.join('testing', 'src'))
             sync.createDirIfNotExists(path.join('testing', 'src', 'Config'))
@@ -85,7 +85,7 @@ describe 'WaferPie.js', ->
                 assert.fail()
             ).to.throwException((e) ->
                 expect(e.name).to.be('Fatal')
-                expect(e.message).to.be('The core configuration file is not a valid JSON')
+                expect(e.message).to.be('The core configuration file is not valid')
             )
             clearStructure 'testing'
 

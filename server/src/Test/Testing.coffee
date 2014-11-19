@@ -146,11 +146,13 @@ class Testing
             method: httpMethod
         request.receive = (callback) ->
             callback options.payload
+
         response = new Response
         response.send = (body, headers, statusCode) ->
             callback body,
                 headers: headers
                 statusCode: statusCode
+
         monitoring =
             requests: 0
             responseAvg: 0
