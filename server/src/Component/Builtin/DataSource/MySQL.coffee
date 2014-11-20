@@ -15,7 +15,6 @@ class MySQL
     init: ->
         @_dataSource = @core.dataSources[@_dataSourceName]
         @_logger = @component 'Logger', 'mysql.log'
-        @_logger.config console: true
         throw new Exceptions.IllegalArgument("Couldn't find datasource #{@_dataSourceName}. Take a look at your core.json.")  unless @_dataSource
 
     # Changes the DataSource (connection properties) being used internally

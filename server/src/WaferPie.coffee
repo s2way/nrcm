@@ -41,7 +41,7 @@ class WaferPie
         @_cherries = new Cherries
         Sync.createDirIfNotExists 'logs'
 
-    info: (message) -> @_logger.info '[WaferPie] ' + message
+    info: (message) -> @_logger.info message
 
     # Initiate an application inside the framework
     # Create the directory structure if it does not exist
@@ -197,12 +197,11 @@ class WaferPie
     # @param {number} port The listening port of NodeJS http.createServer function
     start: (address, port) ->
         throw new Exceptions.Fatal('Please call configure() before start()!') unless @_configured
-        @info 'Starting...'
+        @info "Starting #{address}:#{port}"
         http.createServer((request, response) =>
             requestHandler = new RequestHandler @_applications, @_configs, @_logger, @_monitoring, @_version
             requestHandler.process new Request(request), new Response(response)
         ).listen port, address
-        @info address + ':' + port
         @info 'Started!'
 
 WaferPie.Testing = require './Test/Testing'

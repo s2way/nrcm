@@ -9,9 +9,6 @@ class ControllerRunner
         @_cherries = new Cherries
         return
 
-    _log: (message) ->
-        @_logger?.log?('[ControllerRunner] ' + message)
-
     _error: (object) ->
         @_logger?.error?("[ControllerRunner] Error: #{util.inspect(object)}")
 
@@ -33,11 +30,10 @@ class ControllerRunner
                 clearTimeout timeoutTimer
                 @_onError e, controller, callback
 
-            beforeDomain.run =>
+            beforeDomain.run ->
                 filter.processed = true
 
                 if typeof filter.before is 'function'
-                    @_log "[Filter] #{filter.name}.before()"
                     filter.before.called = true
                     filter.before((response) ->
                         beforeDomain.exit()
@@ -70,9 +66,8 @@ class ControllerRunner
                 clearTimeout timeoutTimer
                 @_onError e, controller, callback
 
-            afterDomain.run =>
+            afterDomain.run ->
                 if typeof filter.after is 'function'
-                    @_log "[Filter] #{filter.name}.after()"
                     filter.after.called = true
                     filter.after(->
                         afterDomain.exit()
@@ -87,7 +82,7 @@ class ControllerRunner
     # Run all filter's afterX() method in reverse order
     _runFiltersAfterX: (which, controller, callback) ->
         filtersInReverseOrder = controller.filters.reverse().slice 0
-        pickFilterAndCallMethod = =>
+        pickFilterAndCallMethod = ->
             noFiltersLeft = filtersInReverseOrder.length is 0
             return callback null if noFiltersLeft
 
@@ -98,10 +93,9 @@ class ControllerRunner
                 # DO NOT CALL _onError() OR IT WILL RESULT IN AN INFINITE LOOP
                 callback e
 
-            afterXDomain.run =>
+            afterXDomain.run ->
                 wasFilterProcessed = filter.processed is true
                 if typeof filter[which] is 'function' and wasFilterProcessed
-                    @_log "[Filter] #{filter.name}.#{which}()"
                     filter[which].called = true
                     filter[which](->
                         afterXDomain.exit()
@@ -144,9 +138,8 @@ class ControllerRunner
                 @_onError e, controller, callback
                 afterDomain.dispose()
 
-            afterDomain.run =>
+            afterDomain.run ->
                 if typeof controller.after is 'function'
-                    @_log "[Controller] #{controller.name}.after()"
                     controller.after.called = true
                     controller.after(->
                         afterDomain.exit()
@@ -166,7 +159,6 @@ class ControllerRunner
 
             methodDomain.run =>
                 if response is true or response is undefined
-                    @_log "[Controller] #{controller.name}.#{controller.method}()"
                     controller[controller.method]((response) =>
                         if @_cherries.isJSON response
                             controller.responseBody = @_cherries.copy(response)
@@ -181,7 +173,6 @@ class ControllerRunner
                     clearTimeout timeoutTimer
                     callback null, response
 
-        @_log 'Timeout timer started'
         timeoutTimer = setTimeout( =>
             clearImmediate controllerMethodImmediate
             callback new Exceptions.Timeout() # Response already sent
@@ -192,7 +183,6 @@ class ControllerRunner
 
             wasControllerCalled = controller.before?.called is true or controller[controller.method].called is true
             if typeof controller.afterTimeout is 'function' and wasControllerCalled
-                @_log "[Controller] #{controller.name}.afterTimeout()"
                 controller.afterTimeout controllerTimeoutCallback
             else
                 controllerTimeoutCallback()
@@ -212,9 +202,8 @@ class ControllerRunner
                     @_onError e, controller, callback
                     beforeDomain.dispose()
 
-                beforeDomain.run =>
+                beforeDomain.run ->
                     if typeof controller.before is 'function'
-                        @_log "[Controller] #{controller.name}.before()"
                         controller.before.called = true
                         controller.before((response) ->
                             beforeDomain.exit()
