@@ -192,6 +192,26 @@ describe 'Testing', ->
                 expect(info.headers).to.be.ok()
                 done()
 
+        it 'should call the controller method passing the query string', (done) ->
+            query =
+                one: 1
+                two: 2
+            class MyController
+                get: (callback) ->
+                    callback query: @query
+
+            testing._require = (filePath) ->
+                return MyController if filePath is path.join('app', 'src', 'Controller', 'MyController')
+
+            testing.callController 'MyController', 'get', {
+                query: query
+            }, (body, info) ->
+                expect(body.query).to.eql query
+                expect(info.statusCode).to.be 200
+                expect(info.headers).to.be.ok()
+                done()
+
+
         it 'should call the controller and accept the callback() without parameters', (done) ->
             segments = ['one', 'two']
             class MyController
@@ -202,6 +222,6 @@ describe 'Testing', ->
 
             testing.callController 'MyController', 'get', {
                 segments: segments
-            }, (body, info) ->
+            }, (body) ->
                 expect(body).to.eql {}
                 done()

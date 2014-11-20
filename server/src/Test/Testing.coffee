@@ -140,6 +140,7 @@ class Testing
             controller: controllerName
             prefixes: options.prefixes
             segments: options.segments
+            query: options.query
         )
         request = new Request
             url: url

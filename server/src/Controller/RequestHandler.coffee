@@ -118,7 +118,7 @@ class RequestHandler
         @_serverLogger?.log?(@_uuid.substring(24) + ' ' + message)
 
     _error: (message) ->
-        @_serverLogger?.error?(message)
+        @_serverLogger?.error?(@_uuid.substring(25) + ' ' + message)
 
     # It handles the exceptions
     # @method _handleRequestException
@@ -130,8 +130,7 @@ class RequestHandler
             @_error 'Exception ' + e.name + ' handled'
 
             unless e.name in doNotPrintStackIf
-                @_log e
-                @_log e.stack if e.stack isnt undefined
+                @_error ('\n' + e.stack) if e.stack isnt undefined
 
             @_render
                 error: e.name
@@ -139,7 +138,7 @@ class RequestHandler
             , {}, 500
         else
             @_error 'Unknown Exception: ' + e
-            @_error e.stack if e.stack isnt undefined
+            @_error ('\n' + e.stack) if e.stack isnt undefined
             @_render error: 'Unknown', {}, 500
 
     # The callback function that sends the response back to the client
@@ -170,6 +169,6 @@ class RequestHandler
             responseTimeInMs = new Date().getTime() - @_start.getTime()
             @_monitoring.responseAvg += responseTimeInMs
             @_monitoring.responseAvg /= @_monitoring.requests
-            @_log "Time: #{responseTimeInMs}ms"
+            @_log "Time: #{responseTimeInMs}ms\n"
 
 module.exports = RequestHandler

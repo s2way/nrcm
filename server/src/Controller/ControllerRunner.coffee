@@ -10,7 +10,7 @@ class ControllerRunner
         return
 
     _error: (object) ->
-        @_logger?.error?("[ControllerRunner] Error: #{util.inspect(object)}")
+        @_logger?.error?("Error: #{JSON.stringify(object)}")
 
     # Run all filter's before() method
     # If a response is issued by one of the before()'s, the response is passed to the second argument of the callback
@@ -110,7 +110,6 @@ class ControllerRunner
     # Executed if an exception occurs inside
     # Controller.before(), Controller.method(), Controller.after()
     _onError: (error, controller, callback) ->
-        @_error(error) if error
         callback error
         @_runFiltersAfterX 'afterError', controller, (errorWithinAfterError) =>
             # If an error occurs within afterError(), only the original error will be sent to the client
