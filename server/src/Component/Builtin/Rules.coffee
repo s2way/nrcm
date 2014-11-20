@@ -71,6 +71,7 @@ emailRegex = ///(?:(?:\r\n)?[ \t])*(?:(?:(?:[^()<>@,;:\\".\[\] \000-\031]+(?:(?:
 ///
 
 class Rules
+    @static = true
     # Type validation rules
     isNumber: (value) ->
         return typeof value is 'number' and isFinite value
@@ -122,9 +123,6 @@ class Rules
         return @regex(value, /^\d{2}\:\d{2}\:\d{2}$/) and moment(value, formats).isValid()
     datetime: (value, formats = ['YYYY-MM-DDTHH:mm:ss']) ->
         return @regex(value, /^\d{4}\-\d{2}\-\d{2}[T]\d{2}\:\d{2}\:\d{2}$/) and moment(value, formats).isValid()
-
-    constructor: ->
-        @singleInstance = true
 
     # Test if a value will pass a set of validation rules specified in the rules parameter
     # @value The value to be validated

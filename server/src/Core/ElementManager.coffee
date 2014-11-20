@@ -42,13 +42,12 @@ class ElementManager
         else
             return null
 
-        elementInstance = new ElementConstructor(params)
         if type is 'component'
-            if elementInstance.singleInstance is true
+            if ElementConstructor.static is true
                 alreadyInstantiated = @_staticComponents[elementName] isnt undefined
-                if alreadyInstantiated
-                    return @_staticComponents[elementName]
+                return @_staticComponents[elementName] if alreadyInstantiated
 
+        elementInstance = new ElementConstructor(params)
         elementInstance.name = elementName
         elementInstance.constants = @_application.constants
         elementInstance.model = (modelName, params) =>
@@ -68,7 +67,7 @@ class ElementManager
         @inject?(elementName, type, elementInstance)
 
         if type is 'component'
-            if elementInstance.singleInstance
+            if ElementConstructor.static is true
                 @_staticComponents[elementName] = elementInstance
             else
                 @_dynamicComponents.push elementInstance

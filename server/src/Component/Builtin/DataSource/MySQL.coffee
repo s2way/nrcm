@@ -1,6 +1,8 @@
 Exceptions = require('../../../Util/Exceptions')
 
 class MySQL
+    @static = true
+
     # MySQL DataSource component
     # @param {string} dataSourceName The name of the DataSource defined in the application core.json
     # @constructor
@@ -8,7 +10,6 @@ class MySQL
         @_mysql = require('mysql')
         @_connections = {}
         @_databaseSelected = {}
-        @singleInstance = true
 
     # Component initialization
     # Validates if the DataSource exists
