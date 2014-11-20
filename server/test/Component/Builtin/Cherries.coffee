@@ -27,3 +27,18 @@ describe 'Cherries.js', ->
             expect(copy.c).not.to.be.ok()
             expect(copy.a isnt toCopy.a).to.be(true)
             expect(copy.b isnt toCopy.b).to.be(true)
+
+    describe 'isJSON', ->
+
+        it 'should return false if the param is not a JSON', ->
+            expect(instance.isJSON true).to.be false
+            expect(instance.isJSON false).to.be false
+            expect(instance.isJSON null).to.be false
+            expect(instance.isJSON undefined).to.be false
+            expect(instance.isJSON '').to.be false
+            expect(instance.isJSON 0).to.be false
+            expect(instance.isJSON 1.1).to.be false
+            expect(instance.isJSON ->).to.be false
+
+        it 'should return true if the param is a valid JSON', ->
+            expect(instance.isJSON {}).to.be true

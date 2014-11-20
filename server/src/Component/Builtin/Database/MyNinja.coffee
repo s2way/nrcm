@@ -11,7 +11,6 @@ class MyNinja
         @_cherries = @component 'Cherries'
         @$ = @component 'QueryBuilder'
 
-
     # Bind all methods from MyNinja into the model instance (expect for init() and bind() itself)
     bind: (model) ->
         methodsToBind = ['findById', 'find', 'findAll', 'removeAll', 'removeById', 'remove', 'query', 'updateAll', 'save']

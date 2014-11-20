@@ -14,16 +14,16 @@ ElementManager = require './../Core/ElementManager'
 # Renders the response by calling response.render()
 class RequestHandler
     constructor: (@_applications, @_configs, @_serverLogger, @_monitoring, @_version) ->
-        @_uuid = uuid.v4()
         @_log 'RequestHandler created'
         @_router = new Router @_configs.urlFormat
-        @_controllerRunner = new ControllerRunner
+        @_controllerRunner = new ControllerRunner @_serverLogger
 
     # It processes every request received
     # @method process
     # @param {object} _request The request object that encapsulates a node request
     # @param {object} _response The response object that encapsulates a node response
     process: (@_request, @_response) ->
+        @_uuid = uuid.v4()
         @_start = new Date()
         @_monitoring.requests += 1
         try
@@ -111,7 +111,10 @@ class RequestHandler
                 if error
                     @_handleRequestException error
                 else
-                    @_render response, instance.responseHeaders, instance.statusCode
+                    try
+                        @_render response, instance.responseHeaders, instance.statusCode
+                    catch e
+                        @_handleRequestException e
 
     _log: (message) ->
         @_serverLogger?.log?('[RequestHandler] ' + message)
@@ -143,7 +146,7 @@ class RequestHandler
             @_render error: 'Unknown', {}, 500
 
     # The callback function that sends the response back to the client
-    _render: (body, headers, statusCode = 200) ->
+    _render: (responseBody, responseHeaders, statusCode = 200) ->
         if @_response.wasSent()
             @_log 'Response already sent'
         else
@@ -151,14 +154,14 @@ class RequestHandler
 
             if typeof statusCode isnt 'number'
                 throw new Exceptions.IllegalControllerParameter('Invalid statusCode: ' + statusCode)
-            if typeof headers isnt 'object'
-                throw new Exceptions.IllegalControllerParameter('Invalid responseHeaders: ' + headers)
+            if typeof responseHeaders isnt 'object'
+                throw new Exceptions.IllegalControllerParameter('Invalid responseHeaders: ' + responseHeaders)
 
-            @_response.send body, headers, statusCode
+            @_response.send responseBody, responseHeaders, statusCode
 
-            body = JSON.stringify(body) if typeof body is 'object'
+            responseBody = JSON.stringify(responseBody) if typeof responseBody is 'object'
 
-            @_log 'Output: ' + chalk.cyan((if body and body.length > 1000 then body.substring(0, 1000) + '...' else body))
+            @_log 'Output: ' + chalk.cyan(responseBody)
 
             color = 'blue'
             color = 'green' if 200 <= statusCode < 300

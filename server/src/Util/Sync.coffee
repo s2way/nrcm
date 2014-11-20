@@ -56,7 +56,7 @@ class Sync
             stats = fs.lstatSync(filePath)
             throw new Exceptions.Fatal(filePath + " is not a file")  unless stats.isFile()
         else
-            fs.writeFileSync filePath, fileData, mode: parseInt('766', 8)
+            fs.writeFileSync filePath, fileData, mode: parseInt('666', 8)
 
     # Return a list of files inside a given folder (recursive)
     # @method listFilesFromDir

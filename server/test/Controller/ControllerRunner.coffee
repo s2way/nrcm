@@ -114,6 +114,21 @@ describe 'ControllerRunner', ->
                 expect(response).to.be.ok()
                 done()
 
+        it 'should call after() and it should be able to see the responseBody', (done) ->
+            instance =
+                filters: []
+                method: 'get'
+                before: (callback) -> callback true
+                get: (callback) -> callback {}
+                after: (callback) ->
+                    expect(@responseBody).to.be.ok()
+                    callback()
+            runner.run instance, 10000, (error, response) ->
+                expect(error).not.to.be.ok()
+                expect(response).to.be.ok()
+                done()
+
+
         it 'should call get() and pass the response to the callback', (done) ->
             instance =
                 filters: []

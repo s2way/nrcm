@@ -1,10 +1,12 @@
 Exceptions = require '../Util/Exceptions'
 util = require 'util'
 domain = require 'domain'
+Cherries = require '../Component/Builtin/Cherries'
 
 # Responsible for running the controllers
 class ControllerRunner
     constructor: (@_logger) ->
+        @_cherries = new Cherries
         return
 
     _log: (message) ->
@@ -35,7 +37,7 @@ class ControllerRunner
                 filter.processed = true
 
                 if typeof filter.before is 'function'
-                    @_log filter.name + '.before()'
+                    @_log "[Filter] #{filter.name}.before()"
                     filter.before.called = true
                     filter.before((response) ->
                         beforeDomain.exit()
@@ -70,7 +72,7 @@ class ControllerRunner
 
             afterDomain.run =>
                 if typeof filter.after is 'function'
-                    @_log "#{filter.name}.after()"
+                    @_log "[Filter] #{filter.name}.after()"
                     filter.after.called = true
                     filter.after(->
                         afterDomain.exit()
@@ -99,7 +101,7 @@ class ControllerRunner
             afterXDomain.run =>
                 wasFilterProcessed = filter.processed is true
                 if typeof filter[which] is 'function' and wasFilterProcessed
-                    @_log "#{filter.name}.#{which}()"
+                    @_log "[Filter] #{filter.name}.#{which}()"
                     filter[which].called = true
                     filter[which](->
                         afterXDomain.exit()
@@ -144,7 +146,7 @@ class ControllerRunner
 
             afterDomain.run =>
                 if typeof controller.after is 'function'
-                    @_log "#{controller.name}.after()"
+                    @_log "[Controller] #{controller.name}.after()"
                     controller.after.called = true
                     controller.after(->
                         afterDomain.exit()
@@ -164,10 +166,14 @@ class ControllerRunner
 
             methodDomain.run =>
                 if response is true or response is undefined
-                    @_log "#{controller.name}.#{controller.method}()"
-                    controller[controller.method]((response) ->
-                        controllerMethodCallback(response)
+                    @_log "[Controller] #{controller.name}.#{controller.method}()"
+                    controller[controller.method]((response) =>
+                        if @_cherries.isJSON response
+                            controller.responseBody = @_cherries.copy(response)
+                        else
+                            controller.responseBody = response
                         methodDomain.exit()
+                        controllerMethodCallback(response)
                     )
                     controller[controller.method].called = true
                 else
@@ -186,7 +192,7 @@ class ControllerRunner
 
             wasControllerCalled = controller.before?.called is true or controller[controller.method].called is true
             if typeof controller.afterTimeout is 'function' and wasControllerCalled
-                @_log "#{controller.name}.afterTimeout()"
+                @_log "[Controller] #{controller.name}.afterTimeout()"
                 controller.afterTimeout controllerTimeoutCallback
             else
                 controllerTimeoutCallback()
@@ -208,7 +214,7 @@ class ControllerRunner
 
                 beforeDomain.run =>
                     if typeof controller.before is 'function'
-                        @_log "#{controller.name}.before()"
+                        @_log "[Controller] #{controller.name}.before()"
                         controller.before.called = true
                         controller.before((response) ->
                             beforeDomain.exit()

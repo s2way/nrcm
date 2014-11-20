@@ -4,19 +4,19 @@ class MySQL
     # MySQL DataSource component
     # @param {string} dataSourceName The name of the DataSource defined in the application core.json
     # @constructor
-    constructor: (dataSourceName) ->
+    constructor: (@_dataSourceName = 'default') ->
         @_mysql = require('mysql')
-        @_dataSourceName = dataSourceName
         @_connections = {}
         @_databaseSelected = {}
-        @_dataSourceName = 'default'  unless dataSourceName
         @singleInstance = true
 
     # Component initialization
     # Validates if the DataSource exists
     init: ->
         @_dataSource = @core.dataSources[@_dataSourceName]
-        throw new Exceptions.IllegalArgument("Couldn't find datasource '' + @_dataSourceName + ''. Take a look at your core.json.")  unless @_dataSource
+        @_logger = @component 'Logger', 'mysql.log'
+        @_logger.config console: true
+        throw new Exceptions.IllegalArgument("Couldn't find datasource #{@_dataSourceName}. Take a look at your core.json.")  unless @_dataSource
 
     # Changes the DataSource (connection properties) being used internally
     # @param {string} dataSourceName The name of the DataSource, as specified in the core.json file
@@ -27,18 +27,18 @@ class MySQL
     # Logging method
     # @param {string} msg The log message
     info: (msg) ->
-        logger = @component('Logger')
-        logger.init()
-        logger.log '[MySQL] ' + msg
+        @_logger.init()
+        @_logger.log '[MySQL] ' + msg
 
     # Connects to the database or returns the same connection object
     # @param callback Calls the callback passing an error or the connection object if successful
     # @private
     _connect: (callback) ->
         if @_connections[@_dataSourceName]
-            @info '[' + @_dataSourceName + '] Recycling connection'
+            @info '[' + @_dataSourceName + '] Connection reused'
             callback null, @_connections[@_dataSourceName]
             return
+
         @info '[' + @_dataSourceName + '] Connecting to ' + @_dataSource.host + ':' + @_dataSource.port
         connection = @_mysql.createConnection(
             host: @_dataSource.host

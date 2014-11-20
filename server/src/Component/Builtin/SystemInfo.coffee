@@ -1,9 +1,6 @@
 Exceptions = require './../../Util/Exceptions'
 os = require 'os'
 
-###*
-@constructor
-###
 class SystemInfo
     constructor: () ->
         @data =
@@ -12,13 +9,10 @@ class SystemInfo
         @variable()
 
 
-    ###*
-    Refresh the whole information about the server, it always refresh everything because of virtualization that could
-    change the cpus/route/memory/etc.
-
-    @method refresh
-    @return {json}
-    ###
+    # Refresh the whole information about the server, it always refresh everything because of virtualization that could
+    # change the cpus/route/memory/etc.
+    # @method refresh
+    # @return {json}
     getAll: ->
         @variable()
         @static()

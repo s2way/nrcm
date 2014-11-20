@@ -25,6 +25,7 @@ Request = require './Controller/Request'
 Response = require './Controller/Response'
 os = require 'os'
 Supervisor = require './Util/Supervisor'
+Cherries = require './Component/Builtin/Cherries'
 
 class WaferPie
     constructor: ->
@@ -37,6 +38,7 @@ class WaferPie
             requests: 0
             responseAvg: 0.00
         @_version = '0.9.0'
+        @_cherries = new Cherries
         Sync.createDirIfNotExists 'logs'
 
     info: (message) -> @_logger.info '[WaferPie] ' + message
@@ -45,7 +47,7 @@ class WaferPie
     # Create the directory structure if it does not exist
     # It loads all application files on memory
     # It is possible to have more then one application running on the same NodeJS server
-    # It is possible to have one core.json by each host that will run the server
+    # It is possible to have one core.yml by each host that will run the server
     # @method setUp
     # @param {string} appName The name of application, it will be also used as directory's name
     setUp: (appName) ->
@@ -68,18 +70,18 @@ class WaferPie
                 filtersTestPath: path.resolve(path.join(testPath, 'Filter'))
             hostname: os.hostname()
 
-        if Sync.isFile(path.join(app.constants.srcPath, 'Config', app.hostname + '.json'))
-            app.coreFileName = path.join(app.constants.srcPath, 'Config', app.hostname + '.json')
+        if Sync.isFile(path.join(app.constants.srcPath, 'Config', app.hostname + '.yml'))
+            app.coreFileName = path.join(app.constants.srcPath, 'Config', app.hostname + '.yml')
         else if Sync.isFile(path.join(app.constants.srcPath, 'Config', app.hostname + '.yml'))
             app.coreFileName = path.join(app.constants.srcPath, 'Config', app.hostname + '.yml')
         else
-            app.coreFileName = path.join(app.constants.srcPath, 'Config', 'core.json')
+            app.coreFileName = path.join(app.constants.srcPath, 'Config', 'core.yml')
 
         pathsToCreate = app.constants
         for i of pathsToCreate
             Sync.createDirIfNotExists pathsToCreate[i] if pathsToCreate.hasOwnProperty i
 
-        Sync.copyIfNotExists path.join(__dirname, 'Copy', 'core.json'), app.coreFileName
+        Sync.copyIfNotExists path.join(__dirname, 'Copy', 'core.yml'), app.coreFileName
 
         app.controllers = @_loadElements(app.constants.controllersPath)
         app.filters = @_loadElements(app.constants.filtersPath)
@@ -88,6 +90,7 @@ class WaferPie
 
         try
             app.core = require(app.coreFileName)
+            throw message: 'Could not load the core file as a JSON' unless @_cherries.isJSON app.core
         catch e
             throw new Exceptions.Fatal('The core configuration file is not valid', e)
 
@@ -105,20 +108,20 @@ class WaferPie
         for name of models
             if models.hasOwnProperty(name)
                 Model = models[name]
-                throw new Exceptions.Fatal('Model does not export a function: ' + name)  unless Model instanceof Function
+                throw new Exceptions.Fatal('Model does not export a function: ' + name) unless Model instanceof Function
 
     _validateComponents: (components) ->
         for name of components
             if components.hasOwnProperty(name)
                 Component = components[name]
-                throw new Exceptions.Fatal('Component does not export a function: ' + name)  unless Component instanceof Function
+                throw new Exceptions.Fatal('Component does not export a function: ' + name) unless Component instanceof Function
 
     _validateControllers: (controllers) ->
         methods = ['before', 'after', 'put', 'delete', 'get', 'post', 'options', 'head', 'path']
         for name of controllers
             if controllers.hasOwnProperty(name)
                 Controller = controllers[name]
-                throw new Exceptions.Fatal('Controller does not export a function: ' + name)  unless Controller instanceof Function
+                throw new Exceptions.Fatal('Controller does not export a function: ' + name) unless Controller instanceof Function
                 instance = new Controller()
                 methodsLength = methods.length
                 j = 0
@@ -132,7 +135,7 @@ class WaferPie
         elementNames = []
         files = Sync.listFilesFromDir(configPath)
         files.forEach (file) ->
-            if file.indexOf('.json') isnt -1
+            if file.indexOf('.yml') isnt -1
                 relative = file.substring(configPath.length + 1)
                 extensionIndex = relative.lastIndexOf('.')
                 relativeWithoutExt = relative.substring(0, extensionIndex)
@@ -140,7 +143,6 @@ class WaferPie
                 elementNames[elementName] = file
 
             app.configs = Sync.loadNodeFilesIntoArray(elementNames)
-
 
     # Load builtin and application components
     # @param {string} componentsPath Path to the application components

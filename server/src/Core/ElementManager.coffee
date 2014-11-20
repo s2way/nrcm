@@ -40,7 +40,7 @@ class ElementManager
     # @param {object=} params Parameters passed to the component constructor
     # @returns {object} The component instantiated or null if it does not exist
     create: (type, elementName, params) ->
-        @_log '[' + elementName + '] Creating ' + type
+        # @_log '[' + elementName + '] Creating ' + type
         ElementConstructor = null
         if type is 'model' and @_application.models[elementName] isnt undefined
             ElementConstructor = @_application.models[elementName]
@@ -90,7 +90,7 @@ class ElementManager
     # @param {object} componentInstance The component instance
     init: (elementInstance) ->
         if elementInstance isnt null
-            @_log '[' + elementInstance.name + '] Element initialized'
+            # @_log '[' + elementInstance.name + '] Element initialized'
             elementInstance.init?()
         elementInstance
 
