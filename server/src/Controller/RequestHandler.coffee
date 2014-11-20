@@ -107,7 +107,7 @@ class RequestHandler
             timeout = @_applications[@_request.app].core.requestTimeout
 
             @_controllerRunner.run instance, timeout, (error, response) =>
-                @_elementManager.destroy
+                @_elementManager.destroy()
                 if error
                     @_handleRequestException error
                 else
