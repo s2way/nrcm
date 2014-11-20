@@ -148,7 +148,7 @@ class Testing
             callback options.payload
 
         response = new Response
-        response.send = (body, headers, statusCode) ->
+        response.send = (body = {}, headers = {}, statusCode = 200) ->
             callback body,
                 headers: headers
                 statusCode: statusCode

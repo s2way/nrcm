@@ -191,3 +191,17 @@ describe 'Testing', ->
                 expect(info.statusCode).to.be 200
                 expect(info.headers).to.be.ok()
                 done()
+
+        it 'should call the controller and accept the callback() without parameters', (done) ->
+            segments = ['one', 'two']
+            class MyController
+                get: (callback) -> callback()
+
+            testing._require = (filePath) ->
+                return MyController if filePath is path.join('app', 'src', 'Controller', 'MyController')
+
+            testing.callController 'MyController', 'get', {
+                segments: segments
+            }, (body, info) ->
+                expect(body).to.eql {}
+                done()

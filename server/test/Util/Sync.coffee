@@ -2,8 +2,10 @@ Sync = require './../../src/Util/Sync'
 assert = require 'assert'
 fs = require 'fs'
 path = require 'path'
+expect = require 'expect.js'
 
 describe 'Sync.js', ->
+
     describe 'isFile', ->
         it 'should return false if the file does not exist or if it exists but it is not a file', ->
             assert.equal false, Sync.isFile('/this/path/must/not/exist/please')
@@ -45,7 +47,6 @@ describe 'Sync.js', ->
             assert.equal '{}', fs.readFileSync('there.json')
             fs.unlinkSync 'here.json'
             fs.unlinkSync 'there.json'
-
 
     describe 'loadNodeFilesIntoArray', ->
         it 'should throw a Fatal exception if the param is not an array', ->

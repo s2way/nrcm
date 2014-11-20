@@ -135,14 +135,13 @@ class WaferPie
         elementNames = []
         files = Sync.listFilesFromDir(configPath)
         files.forEach (file) ->
-            if file.indexOf('.yml') isnt -1
+            unless file.indexOf('.yml') is -1
                 relative = file.substring(configPath.length + 1)
                 extensionIndex = relative.lastIndexOf('.')
                 relativeWithoutExt = relative.substring(0, extensionIndex)
                 elementName = relativeWithoutExt.replace(/\//g, '.')
                 elementNames[elementName] = file
-
-            app.configs = Sync.loadNodeFilesIntoArray(elementNames)
+                app.configs = Sync.loadNodeFilesIntoArray(elementNames)
 
     # Load builtin and application components
     # @param {string} componentsPath Path to the application components
