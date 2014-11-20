@@ -28,6 +28,6 @@ class Couchbase
 
     # Close the database connection
     destroy: ->
-        @_db?.shutdown()?
+        @_db?.disconnect()?
 
 module.exports = Couchbase
