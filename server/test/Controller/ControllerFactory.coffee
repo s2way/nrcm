@@ -28,7 +28,6 @@ describe 'ControllerFactory', ->
                 name: 'App'
                 configs: configs
                 core: core
-                filters: []
             elementManager = new ElementManager application
             controllerFactory = new ControllerFactory application, elementManager
 
@@ -102,7 +101,12 @@ describe 'ControllerFactory', ->
             controller = {}
 
             application =
-                filters: []
+                controllers: {}
+                models: {}
+                components: {}
+                configs: {}
+                name: 'App'
+                core: {}
 
             controllerFactory = new ControllerFactory application
             controllerFactory.prepare controller, request
@@ -115,6 +119,5 @@ describe 'ControllerFactory', ->
             expect(controller.url).to.be url
             expect(controller.requestHeaders).to.be requestHeaders
             expect(controller.responseHeaders).to.be.ok()
-            expect(controller.filters).to.be.an('object')
             expect(controller.params).to.eql {}
 

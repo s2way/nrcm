@@ -3,6 +3,7 @@ Router = require './../Core/Router'
 chalk = require 'chalk'
 uuid = require 'node-uuid'
 ControllerFactory = require './ControllerFactory'
+FilterFactory = require './FilterFactory'
 ControllerRunner = require './ControllerRunner'
 ElementManager = require './../Core/ElementManager'
 
@@ -50,6 +51,7 @@ class RequestHandler
             if @_request.isController()
                 @_elementManager = @_createElementManager(application)
                 @_controllerFactory = new ControllerFactory application, @_elementManager, @_serverLogger
+                @_filterFactory = @_createFilterFactory(application)
                 @_processControllerRequest(application)
             else if @_request.isApplicationRoot()
                 @_processApplicationRoot(application)
@@ -63,6 +65,9 @@ class RequestHandler
 
     _createElementManager: (application) ->
         return new ElementManager application
+
+    _createFilterFactory: (application) ->
+        return new FilterFactory application, @_elementManager, @_serverLogger
 
     # Process a normal controller request
     _processControllerRequest: (application) ->
@@ -101,6 +106,7 @@ class RequestHandler
             @_request.payload = payload
 
             @_controllerFactory.prepare instance, @_request
+            @_filterFactory.createForController instance
 
             timeout = @_applications[@_request.app].core.requestTimeout
 

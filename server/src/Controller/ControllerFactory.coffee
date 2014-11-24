@@ -1,12 +1,10 @@
 Exceptions = require '../Util/Exceptions'
 ElementManager = require '../Core/ElementManager'
-FilterFactory = require './FilterFactory'
 
 # Responsible for creating controllers, performing injection and destroy them
 class ControllerFactory
 
-    constructor: (@_application, @_elementManager, @_logger = null) ->
-        @_filterFactory = new FilterFactory @_application, @_elementManager, @_logger
+    constructor: (@_application, @_elementManager, @_logger = null) -> return
 
     _log: (message) ->
         @_logger?.log?('[ControllerFactory] ' + message)
@@ -73,6 +71,5 @@ class ControllerFactory
         instance.requestHeaders = request.headers
         instance.responseHeaders = {}
         instance.params = {}
-        instance.filters = @_filterFactory.createAll instance
 
 module.exports = ControllerFactory

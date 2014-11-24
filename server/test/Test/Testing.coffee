@@ -109,6 +109,42 @@ describe 'Testing', ->
             expect(testing.loadComponent 'QueryBuilder').to.be true
 
 
+    describe 'loadFilter()', ->
+        it 'should throw an exception if the filter cannot be found', ->
+            expect(->
+                testing._exists = -> false
+                testing.loadFilter 'InvalidFilter'
+            ).to.throwException((e) ->
+                expect(e.name).to.be 'FilterNotFound'
+            )
+
+        it 'should be able to load a component and put it inside the application object', ->
+            MyFilter = -> return
+            testing._exists = (filePath) -> filePath.indexOf('Filter/MyFilter') isnt -1
+            testing._require = -> MyFilter
+            expect(testing.loadFilter 'MyFilter').to.be true
+            expect(testing._application.filters.MyFilter).to.be MyFilter
+
+        it 'should run the filter if callController() is called', (done) ->
+            filterCalled = false
+            class MyFilter
+                before: (callback) ->
+                    filterCalled = true
+                    callback true
+
+            class MyController
+                get: (callback) -> callback {}
+
+            testing._exists = -> true
+            testing._require = (path) ->
+                return MyFilter if path.indexOf('MyFilter') isnt -1
+                return MyController if path.indexOf('MyController') isnt -1
+
+            testing.loadFilter 'MyFilter'
+            testing.callController 'MyController', 'get', {}, ->
+                expect(filterCalled).to.be true
+                done()
+
     describe 'mockConfigs()', ->
         beforeEach ->
             testing.mockConfigs file:
@@ -225,3 +261,24 @@ describe 'Testing', ->
             }, (body) ->
                 expect(body).to.eql {}
                 done()
+
+        it 'should mock the Filter methods passed to mockFilter when callController is called', (done) ->
+            class MyController
+                get: (callback) ->
+                    callback @params
+
+            class MyFilter
+                before: (callback) ->
+                    @params.mocked = false
+                    callback true
+
+            testing._exists = -> true
+            testing._require = (filePath) ->
+                return MyController if filePath is path.join('app', 'src', 'Controller', 'MyController')
+                return MyFilter if filePath is path.join('app', 'src', 'Filter', 'MyFilter')
+
+            testing.mockFilter 'MyFilter', before: (callback) -> @params.mocked = true ; callback true
+            testing.callController 'MyController', 'get', {}, (body) ->
+                expect(body.mocked).to.be true
+                done()
+

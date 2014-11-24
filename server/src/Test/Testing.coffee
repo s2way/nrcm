@@ -1,6 +1,7 @@
 path = require 'path'
 fs = require 'fs'
 ElementManager = require '../Core/ElementManager'
+FilterFactory = require '../Controller/FilterFactory'
 RequestHandler = require '../Controller/RequestHandler'
 Cherries = require '../Component/Builtin/Cherries'
 Router = require '../Core/Router'
@@ -18,12 +19,14 @@ class Testing
         @_serverConfigs.urlFormat = @_serverConfigs.urlFormat ? '/$application/$controller'
         @_controllers = {}
         @_components = {}
+        @_filters = {}
         @_models = {}
 
         @_application =
             controllers: @_controllers
             components: @_components
             models: @_models
+            filters: @_filters
             core: @_core
 
         @_applications = app: @_application
@@ -85,6 +88,22 @@ class Testing
         searched: modelsPath
 
 
+    loadFilter: (filterName) ->
+        componentNameAsPath = @_cherries.elementNameToPath(filterName)
+        filterPath = path.join(@_applicationPath, 'src', 'Filter', componentNameAsPath)
+
+        allowedExtensions = ['coffee', 'js']
+        for ext in allowedExtensions
+            if @_exists(filterPath + '.' + ext)
+                @_filters[filterName] = @_require(filterPath)
+                # Reset mocked properties
+                @_filters[filterName].mocked = null
+                return true
+
+        throw
+        name: 'FilterNotFound'
+        component: filterName
+
     # Loads a component
     # You have to load all dependent components that you do not want to mock in your tests, including built-ins (QueryBuilder, etc)
     # @param {string} componentName The name of the component
@@ -117,12 +136,19 @@ class Testing
         @loadModel modelName unless @_models[modelName]?
         @_models[modelName].mocked = properties
 
-    # Loads a component an then mocks its components
+    # Loads a component an then mocks its methods
     # @param {string} componentName The name of the component
     # @param {object} properties A JSON containing properties that will be injected into the component instance
     mockComponent: (componentName, properties) ->
         @loadComponent componentName unless @_components[componentName]?
         @_components[componentName].mocked = properties
+
+    # Loads a filter an then mocks its properties
+    # @param {string} filterName The name of the filter to be mocked
+    # @param {object} properties A JSON containing properties that will be injected into the filter instance
+    mockFilter: (filterName, properties) ->
+        @loadFilter filterName unless @_filters[filterName]?
+        @_filters[filterName].mocked = properties
 
     # Call a controller method for testing
     # @param {string} controllerName The name of the controller to be called
@@ -159,6 +185,14 @@ class Testing
             responseAvg: 0
 
         requestHandler = new RequestHandler(@_applications, @_serverConfigs, null, monitoring)
+        requestHandler._createFilterFactory = (application) =>
+            filterFactory = new FilterFactory application
+            filterFactory.inject = (instance) =>
+                mockedProperties = @_filters?[instance.name]?.mocked ? {}
+                for property of mockedProperties
+                    instance[property] = mockedProperties[property]
+            filterFactory
+
         requestHandler._createElementManager = => return @_elementManager
         requestHandler.process request, response
 

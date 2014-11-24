@@ -33,9 +33,9 @@ describe 'FilterFactory', ->
     beforeEach ->
         elementManager = new ElementManager application
         instance = new FilterFactory application, elementManager
-        [anotherFilterInstance, myFilterInstance] = instance.createAll controllerInstance
+        [anotherFilterInstance, myFilterInstance] = instance.createForController controllerInstance
 
-    describe 'createAll', ->
+    describe 'createForController', ->
 
         it 'should inject the name property', ->
             expect(anotherFilterInstance.name).to.be 'AnotherFilter'
@@ -83,3 +83,5 @@ describe 'FilterFactory', ->
         it 'should inject the params property', ->
             expect(myFilterInstance.params).to.eql {}
 
+        it 'should inject the filters into the controllerInstance passed', ->
+            expect(controllerInstance.filters).to.be.ok()
