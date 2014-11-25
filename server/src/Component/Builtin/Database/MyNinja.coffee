@@ -6,7 +6,7 @@ class MyNinja
         @_validate = params?.validate
 
     init: ->
-        @_mysql = @component 'DataSource.MySQL'
+        @_mysql = @component 'DataSource.MySQL', @_dataSourceName
         @_mysql.setDataSource @_dataSourceName
         @_validator = @component 'Validator', validate: @_validate
         @_cherries = @component 'Cherries'
