@@ -313,7 +313,7 @@ describe 'ControllerRunner', ->
                 filters: [aFilter, bFilter]
                 get: ->
 
-            runner.run controller, 1, (error) ->
+            runner.run controller, 10, (error) ->
                 expect(error.name).to.be 'Timeout'
 
         it 'should not call controller.afterTimeout() if the controller.method() is not called', (done) ->

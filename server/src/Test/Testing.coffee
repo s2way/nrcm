@@ -191,9 +191,11 @@ class Testing
 
         response = new Response
         response.send = (body = {}, headers = {}, statusCode = 200) ->
-            callback body,
-                headers: headers
-                statusCode: statusCode
+            setImmediate(->
+                callback body,
+                    headers: headers
+                    statusCode: statusCode
+            )
 
         monitoring =
             requests: 0

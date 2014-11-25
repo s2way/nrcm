@@ -37,7 +37,7 @@ class WaferPie
         @_monitoring =
             requests: 0
             responseAvg: 0.00
-        @_version = '0.9.0'
+        @_version = '0.9.1'
         @_cherries = new Cherries
         Sync.createDirIfNotExists 'logs'
 
