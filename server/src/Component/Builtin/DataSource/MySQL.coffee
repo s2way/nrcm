@@ -46,6 +46,8 @@ class MySQL
             user: @_dataSource.user
             password: @_dataSource.password
         )
+        @info "[#{@_dataSourceName}] User: #{@_dataSource.user}"
+        @info "[#{@_dataSourceName}] Password: #{@_dataSource.password}"
         connection.connect (error) =>
             if error
                 callback error
