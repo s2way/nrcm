@@ -136,9 +136,13 @@ class Rules
             rule = {} unless rule?
             ruleMethod = rule.rule ? key
             ruleMethodParams = rule.params
+            required = rule.required ? false
             ruleExists = @[ruleMethod]?
-            throw new Exceptions.IllegalArgument 'Rule ' + ruleMethod + ' not found' unless ruleExists
-            passed = @[ruleMethod].apply(@, [value].concat ruleMethodParams)
+            throw new Exceptions.IllegalArgument "Rule #{ruleMethod} not found" unless ruleExists
+            if required is true and value is undefined
+                passed = true
+            else
+                passed = @[ruleMethod].apply(@, [value].concat ruleMethodParams)
             unless passed
                 failedRules[key] = rule
                 failureCounter += 1
