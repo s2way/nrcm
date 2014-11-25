@@ -7,6 +7,7 @@ Cherries = require '../Component/Builtin/Cherries'
 Router = require '../Core/Router'
 Request = require '../Controller/Request'
 Response = require '../Controller/Response'
+Sync = require '../Util/Sync'
 
 # Class for testing WaferPie applications outside the framework
 # @constructor
@@ -18,6 +19,8 @@ class Testing
         @_core.dataSources = @_core.dataSources ? {}
         @_serverConfigs.urlFormat = @_serverConfigs.urlFormat ? '/$application/$controller'
         @_controllers = {}
+        # Loads all builtin components
+        @_cherries = new Cherries
         @_components = {}
         @_filters = {}
         @_models = {}
@@ -34,12 +37,24 @@ class Testing
         # Necessary for testing Components and Models
         # When you are testing the Controllers, RequestHandler has its own ElementManager
         @_elementManager = new ElementManager @_application
-        @_cherries = new Cherries
 
         @_elementManager.inject = (name, type, instance) =>
             mockedProperties = @_application[type + 's']?[name]?.mocked ? {}
             for property of mockedProperties
                 instance[property] = mockedProperties[property]
+
+        @_filterFactory = new FilterFactory @_application
+        @_filterFactory.inject = (instance) =>
+            mockedProperties = @_filters?[instance.name]?.mocked ? {}
+            for property of mockedProperties
+                instance[property] = mockedProperties[property]
+
+        @_builtinComponentsPath = path.resolve(path.join(__dirname, '..', 'Component', 'Builtin'))
+
+        # Load Builtin components
+        files = Sync.listFilesFromDir(@_builtinComponentsPath)
+        for file in files
+            @loadComponent(@_cherries.pathToElementName(file.substring(@_builtinComponentsPath.length + 1)))
 
     mockConfigs: (configs) -> @_applications.app.configs = configs
 
@@ -80,7 +95,7 @@ class Testing
             if @_exists(modelsPath + '.' + ext)
                 @_models[modelName] = @_require(modelsPath)
                 # Reset mocked properties
-                @_models[modelName].mocked = null
+                @_models[modelName].mocked = @_models[modelName].autoMock ? null
                 return true
         throw
         name: 'ModelNotFound'
@@ -97,7 +112,7 @@ class Testing
             if @_exists(filterPath + '.' + ext)
                 @_filters[filterName] = @_require(filterPath)
                 # Reset mocked properties
-                @_filters[filterName].mocked = null
+                @_filters[filterName].mocked = @_filters[filterName].autoMock ? null
                 return true
 
         throw
@@ -110,19 +125,19 @@ class Testing
     loadComponent: (componentName) ->
         componentNameAsPath = @_cherries.elementNameToPath(componentName)
         applicationComponentPath = path.join(@_applicationPath, 'src', 'Component', componentNameAsPath)
-        builtinComponentPath = path.join(__dirname, '..', 'Component', 'Builtin', componentNameAsPath)
+        builtinComponentPath = path.join(@_builtinComponentsPath, componentNameAsPath)
 
         allowedExtensions = ['coffee', 'js']
         for ext in allowedExtensions
             if @_exists(applicationComponentPath + '.' + ext)
                 @_components[componentName] = @_require(applicationComponentPath)
                 # Reset mocked properties
-                @_components[componentName].mocked = null
+                @_components[componentName].mocked = @_components[componentName].autoMock ? null
                 return true
             if @_exists(builtinComponentPath + '.' + ext)
                 @_components[componentName] = @_require(builtinComponentPath)
                 # Reset mocked properties
-                @_components[componentName].mocked = null
+                @_components[componentName].mocked = @_components[componentName].autoMock ? null
                 return true
 
         throw
@@ -185,14 +200,7 @@ class Testing
             responseAvg: 0
 
         requestHandler = new RequestHandler(@_applications, @_serverConfigs, null, monitoring)
-        requestHandler._createFilterFactory = (application) =>
-            filterFactory = new FilterFactory application
-            filterFactory.inject = (instance) =>
-                mockedProperties = @_filters?[instance.name]?.mocked ? {}
-                for property of mockedProperties
-                    instance[property] = mockedProperties[property]
-            filterFactory
-
+        requestHandler._createFilterFactory = (application) => return @_filterFactory
         requestHandler._createElementManager = => return @_elementManager
         requestHandler.process request, response
 

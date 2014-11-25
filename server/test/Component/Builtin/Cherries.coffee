@@ -14,6 +14,13 @@ describe 'Cherries.js', ->
             expect(instance.elementNameToPath('Folder.SubFolder.MyModel')).to.be(path.join('Folder', 'SubFolder', 'MyModel'))
             expect(instance.elementNameToPath('MyModel')).to.be(path.join('MyModel'))
 
+    describe 'pathToElementName', ->
+        it 'should return the element name for a given model path', ->
+            expect(instance.pathToElementName(path.join('Folder', 'SubFolder', 'MyModel.coffee'))).to.be('Folder.SubFolder.MyModel')
+            expect(instance.pathToElementName(path.join('Folder', 'SubFolder', 'MyModel.js'))).to.be('Folder.SubFolder.MyModel')
+            expect(instance.pathToElementName(path.join('Folder', 'SubFolder', 'MyModel'))).to.be('Folder.SubFolder.MyModel')
+            expect(instance.pathToElementName('MyModel')).to.be(path.join('MyModel'))
+
     describe 'copy', ->
 
         it 'should perform a deep copy of a json object removing unserializable properties', ->
@@ -42,3 +49,9 @@ describe 'Cherries.js', ->
 
         it 'should return true if the param is a valid JSON', ->
             expect(instance.isJSON {}).to.be true
+
+    describe 'loadBuiltinComponents', ->
+
+        it 'should load and return all builtin components', ->
+            components = instance.loadBuiltinComponents()
+            expect(components.QueryBuilder).to.be.a('function')

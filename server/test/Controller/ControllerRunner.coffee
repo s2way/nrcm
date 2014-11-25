@@ -332,7 +332,7 @@ describe 'ControllerRunner', ->
                 filters: [aFilter]
                 get: -> expect.fail()
 
-            runner.run controller, 10, (error) ->
+            runner.run controller, 100, (error) ->
                 expect(error.name).to.be 'Timeout'
 
         it 'should not call bFilter.afterTimeout() if the aFilter.before() callback is not called', (done) ->
@@ -352,7 +352,7 @@ describe 'ControllerRunner', ->
                 filters: [aFilter, bFilter]
                 get: -> expect.fail()
 
-            runner.run controller, 10, (error) ->
+            runner.run controller, 100, (error) ->
                 expect(error.name).to.be 'Timeout'
 
 

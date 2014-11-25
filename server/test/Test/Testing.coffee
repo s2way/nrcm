@@ -10,9 +10,6 @@ describe 'Testing', ->
     payload = null
     query = null
     segments = null
-
-    RequestHandler::log = ->
-
     testing = null
     payload =
         this: 'is'
@@ -47,6 +44,9 @@ describe 'Testing', ->
             if filePath is path.join('app', 'src', 'Component', 'AnotherComponent')
                 return ->
             null
+
+    it 'should load all builtin components automatically', ->
+        expect(testing._components.QueryBuilder).to.a('function')
 
     describe 'createModel()', ->
 

@@ -6,6 +6,17 @@ fs = require('fs')
 # @param fileName The name of the file where the logs are going to be stored
 # @constructor
 class Logger
+    @autoMock:
+        init: ->
+        info: ->
+        log: ->
+        trace: ->
+        debug: ->
+        error: ->
+        warn: ->
+        enable: ->
+        disable: ->
+
     constructor: (@_fileName = 'default.log') ->
         @_enabled = true
         @_stream = null

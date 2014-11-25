@@ -9,9 +9,6 @@ describe 'MyNinja', ->
 
     beforeEach ->
         testing = new Testing
-        testing.loadComponent 'QueryBuilder'
-        testing.loadComponent 'Validator'
-        testing.loadComponent 'Cherries'
 
     describe 'findById', ->
 
@@ -38,8 +35,7 @@ describe 'MyNinja', ->
             error = name: 'MyError'
             testing.mockComponent 'DataSource.MySQL',
                 init: ->
-                query: (query, params, callback) ->
-                    callback(error)
+                query: (query, params, callback) ->callback(error)
 
             instance = testing.createComponent 'Database.MyNinja', table: 'sky'
             instance.init()
@@ -288,11 +284,11 @@ describe 'MyNinja', ->
             instance = testing.createComponent 'Database.MyNinja',
                 table: 'sky'
                 validate:
-                    number: (value, data, callback) ->
-                        return callback(error: '') if typeof value isnt 'number'
-                        callback()
                     string: (value, data, callback) ->
                         return callback(error: '') if typeof value isnt 'string'
+                        callback()
+                    number: (value, data, callback) ->
+                        return callback(error: '') if typeof value isnt 'number'
                         callback()
 
             instance.init()
@@ -435,7 +431,6 @@ describe 'MyNinja', ->
 
         it 'should bind all MyNinja methods to the specified model', (done) ->
             instance = testing.createComponent 'Database.MyNinja',table: 'sky'
-            instance.init()
             params = {}
             instance.findAll = ->
                 expect(arguments[0]).to.be params

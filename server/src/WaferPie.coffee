@@ -83,10 +83,10 @@ class WaferPie
 
         Sync.copyIfNotExists path.join(__dirname, 'Copy', 'core.yml'), app.coreFileName
 
-        app.controllers = @_loadElements(app.constants.controllersPath)
-        app.filters = @_loadElements(app.constants.filtersPath)
-        app.components = @_loadComponents(app.constants.componentsPath)
-        app.models = @_loadElements(app.constants.modelsPath)
+        app.controllers = @_cherries.loadElements(app.constants.controllersPath)
+        app.filters = @_cherries.loadElements(app.constants.filtersPath)
+        app.components = @_cherries.loadComponents(app.constants.componentsPath)
+        app.models = @_cherries.loadElements(app.constants.modelsPath)
 
         try
             app.core = require(app.coreFileName)
@@ -142,29 +142,6 @@ class WaferPie
                 elementName = relativeWithoutExt.replace(/\//g, '.')
                 elementNames[elementName] = file
                 app.configs = Sync.loadNodeFilesIntoArray(elementNames)
-
-    # Load builtin and application components
-    # @param {string} componentsPath Path to the application components
-    # @returns {object} Components
-    # @private
-    _loadComponents: (componentsPath) ->
-        components = @_loadElements(path.join(__dirname, 'Component', 'Builtin'))
-        appComponents = @_loadElements(componentsPath)
-        for componentName of appComponents
-            components[componentName] = appComponents[componentName] if appComponents.hasOwnProperty(componentName)
-        components
-
-    _loadElements: (dirPath) ->
-        elementNames = []
-        files = Sync.listFilesFromDir(dirPath)
-        files.forEach (file) ->
-            relative = file.substring(dirPath.length + 1)
-            extensionIndex = relative.lastIndexOf('.')
-            relativeWithoutExt = relative.substring(0, extensionIndex)
-            elementName = relativeWithoutExt.replace(/\//g, '.')
-            elementNames[elementName] = file
-
-        Sync.loadNodeFilesIntoArray elementNames
 
     _validateCoreFile: (core) ->
         throw new Exceptions.Fatal('The requestTimeout configuration is not defined') if core.requestTimeout is undefined
