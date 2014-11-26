@@ -71,10 +71,12 @@ class MySQL
         if typeof dataSourceNameOrCallback is 'function'
             callback = dataSourceNameOrCallback
             dataSourceName = @_dataSourceName
+
         @_connect dataSourceName, (error, connection) =>
             return callback(error) if error
-            @_selectDatabase dataSourceName, (error) ->
+            @_selectDatabase dataSourceName, (error) =>
                 return callback(error) if error
+                @info "[#{dataSourceName}] Query: #{query}"
                 connection.query query, params, callback
 
     _selectDatabase: (dataSourceName, callback) ->
@@ -82,7 +84,7 @@ class MySQL
         throw new Exceptions.IllegalArgument("Couldn't find data source #{dataSourceName}. Take a look at your core.yml.") unless dataSource
 
         unless @_databaseSelected[dataSourceName]
-            @use dataSource.database, (error) =>
+            @use dataSource.database, dataSourceName, (error) =>
                 if error
                     callback error
                     return
@@ -100,9 +102,11 @@ class MySQL
         if typeof dataSourceNameOrCallback is 'function'
             callback = dataSourceNameOrCallback
             dataSourceName = @_dataSourceName
-        @_connect dataSourceName, (error, connection) ->
+
+        @_connect dataSourceName, (error, connection) =>
             return callback(error) if error
-            connection.query "USE #{connection.escapeId(database)};", (error) ->
+            connection.query "USE #{connection.escapeId(database)};", (error) =>
+                @info "[#{dataSourceName}] Database selected: #{database}"
                 return callback(error) if error
                 return callback()
 

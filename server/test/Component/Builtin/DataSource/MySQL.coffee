@@ -73,22 +73,16 @@ describe 'MySQL.js', ->
             instance.query 'SELECT 1', [], 'anotherDataSource', ->
 
         it 'should handle multiple calls passing different data sources correctly', (done) ->
-            connectedTo = []
-            instance._mysql =
-                createConnection: (params) ->
-                    connectedTo.push params.host
-                    return {
-                        escapeId: (value) ->
-                            value
-                        connect: (callback) ->
-                            callback()
-                        query: (query, callback) ->
-                            callback([])
-                    }
-
+            databasesSelected = []
+            instance._mysql = mockMySQL({
+                query: (query, params, callback) -> callback()
+            })
+            instance.use = (database, dataSourceNameOrCallback, callback) ->
+                databasesSelected.push database
+                callback()
             instance.query 'SELECT 1', [], 'default', ->
                 instance.query 'SELECT 2', [], 'anotherDataSource', ->
-                    expect(connectedTo).to.eql ['localhost', 'another']
+                    expect(databasesSelected).to.eql ['s2way', 'another']
                     done()
 
         it 'should call the use command before query if the database configuration is specified', (done) ->
@@ -96,7 +90,7 @@ describe 'MySQL.js', ->
                 setImmediate ->
                     callback()
             )
-            instance.use = (database, callback) ->
+            instance.use = (database, dataSourceName, callback) ->
                 expect(database).to.be 's2way', database
                 callback()
 
@@ -108,7 +102,7 @@ describe 'MySQL.js', ->
                 setImmediate ->
                     callback()
             )
-            instance.use = (database, callback) ->
+            instance.use = (database, dataSourceName, callback) ->
                 expect(database).to.be 's2way'
                 callback()
 
@@ -119,7 +113,7 @@ describe 'MySQL.js', ->
             instance._mysql = mockMySQL(query: ->
                 expect().fail()
             )
-            instance.use = (database, callback) ->
+            instance.use = (database, dataSourceName, callback) ->
                 callback {}
 
             instance.query 'SELECT * FROM sky', [], (err) ->
@@ -185,7 +179,7 @@ describe 'MySQL.js', ->
                 setImmediate ->
                     callback()
             )
-            instance.use = (database, callback) ->
+            instance.use = (database, dataSourceName, callback) ->
                 expect(database).to.be 's2way', database
                 useCommandIssued = true
                 callback()
