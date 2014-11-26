@@ -15,7 +15,7 @@ describe 'MyNinja', ->
         it 'should issue the query for finding a record by id', (done) ->
             testing.mockComponent 'DataSource.MySQL',
                 init: ->
-                query: (query, params, callback) ->
+                query: (query, params, dataSourceName, callback) ->
                     expect(query).to.be "SELECT * FROM sky WHERE id = 1 LIMIT 1"
                     callback(null, [record])
 
@@ -35,7 +35,7 @@ describe 'MyNinja', ->
             error = name: 'MyError'
             testing.mockComponent 'DataSource.MySQL',
                 init: ->
-                query: (query, params, callback) ->callback(error)
+                query: (query, params, dataSourceName, callback) ->callback(error)
 
             instance = testing.createComponent 'Database.MyNinja', table: 'sky'
             instance.init()
@@ -52,7 +52,7 @@ describe 'MyNinja', ->
             record = {}
             testing.mockComponent 'DataSource.MySQL',
                 init: ->
-                query: (query, params, callback) ->
+                query: (query, params, dataSourceName, callback) ->
                     expect(query).to.be "SELECT * FROM sky WHERE (a > 10 OR b LIKE '%string%') GROUP BY field HAVING c > d LIMIT 1"
                     callback(null, [record])
             instance = testing.createComponent 'Database.MyNinja', table: 'sky'
@@ -76,7 +76,7 @@ describe 'MyNinja', ->
             error = name: 'MyError'
             testing.mockComponent 'DataSource.MySQL',
                 init: ->
-                query: (query, params, callback) ->
+                query: (query, params, dataSourceName, callback) ->
                     callback(error)
 
             instance = testing.createComponent 'Database.MyNinja', table: 'sky'
@@ -94,7 +94,7 @@ describe 'MyNinja', ->
             record = {}
             testing.mockComponent 'DataSource.MySQL',
                 init: ->
-                query: (query, params, callback) ->
+                query: (query, params, dataSourceName, callback) ->
                     expect(query).to.be "SELECT * FROM sky WHERE (a > 10 OR b LIKE '%string%') GROUP BY field HAVING c > d"
                     callback(null, record)
             instance = testing.createComponent 'Database.MyNinja', table: 'sky'
@@ -118,7 +118,7 @@ describe 'MyNinja', ->
             error = name: 'MyError'
             testing.mockComponent 'DataSource.MySQL',
                 init: ->
-                query: (query, params, callback) ->
+                query: (query, params, dataSourceName, callback) ->
                     callback(error)
 
             instance = testing.createComponent 'Database.MyNinja', table: 'sky'
@@ -136,7 +136,7 @@ describe 'MyNinja', ->
             record = {}
             testing.mockComponent 'DataSource.MySQL',
                 init: ->
-                query: (query, params, callback) ->
+                query: (query, params, dataSourceName, callback) ->
                     expect(query).to.be "DELETE FROM sky"
                     callback(null, record)
             instance = testing.createComponent 'Database.MyNinja', table: 'sky'
@@ -151,7 +151,7 @@ describe 'MyNinja', ->
             error = name: 'MyError'
             testing.mockComponent 'DataSource.MySQL',
                 init: ->
-                query: (query, params, callback) ->
+                query: (query, params, dataSourceName, callback) ->
                     callback(error)
 
             instance = testing.createComponent 'Database.MyNinja', table: 'sky'
@@ -168,7 +168,7 @@ describe 'MyNinja', ->
             record = {}
             testing.mockComponent 'DataSource.MySQL',
                 init: ->
-                query: (query, params, callback) ->
+                query: (query, params, dataSourceName, callback) ->
                     expect(query).to.be "DELETE FROM sky WHERE id = 1"
                     callback(null, record)
             instance = testing.createComponent 'Database.MyNinja', table: 'sky'
@@ -182,7 +182,7 @@ describe 'MyNinja', ->
             error = name: 'MyError'
             testing.mockComponent 'DataSource.MySQL',
                 init: ->
-                query: (query, params, callback) ->
+                query: (query, params, dataSourceName, callback) ->
                     callback(error)
 
             instance = testing.createComponent 'Database.MyNinja', table: 'sky'
@@ -199,7 +199,7 @@ describe 'MyNinja', ->
             record = {}
             testing.mockComponent 'DataSource.MySQL',
                 init: ->
-                query: (query, params, callback) ->
+                query: (query, params, dataSourceName, callback) ->
                     expect(query).to.be "DELETE FROM sky WHERE (a > b OR c = d)"
                     callback(null, record)
             instance = testing.createComponent 'Database.MyNinja', table: 'sky'
@@ -217,7 +217,7 @@ describe 'MyNinja', ->
             error = name: 'MyError'
             testing.mockComponent 'DataSource.MySQL',
                 init: ->
-                query: (query, params, callback) ->
+                query: (query, params, dataSourceName, callback) ->
                     callback(error)
 
             instance = testing.createComponent 'Database.MyNinja', table: 'sky'
@@ -232,7 +232,7 @@ describe 'MyNinja', ->
         it 'should call mysql.query() passing all the parameters', (done) ->
             testing.mockComponent 'DataSource.MySQL',
                 init: ->
-                query: (query, params, callback) ->
+                query: (query, params, dataSourceName, callback) ->
                     callback(null, {})
 
             instance = testing.createComponent 'Database.MyNinja', table: 'sky'
@@ -249,7 +249,7 @@ describe 'MyNinja', ->
         it 'should perform an update in the specified fields/values with the specified conditions', (done) ->
             testing.mockComponent 'DataSource.MySQL',
                 init: ->
-                query: (query, params, callback) ->
+                query: (query, params, dataSourceName, callback) ->
                     expect(query).to.be "UPDATE sky SET a = 1, b = 2, c = 'three' WHERE (b = 10 OR a > b)"
                     callback(null, {})
 
@@ -278,7 +278,7 @@ describe 'MyNinja', ->
         it 'should validate the data before saving and return an error if it fails', (done) ->
             testing.mockComponent 'DataSource.MySQL',
                 init: ->
-                query: (query, params, callback) ->
+                query: (query, params, dataSourceName, callback) ->
                     callback(null, {})
 
             instance = testing.createComponent 'Database.MyNinja',
@@ -307,7 +307,7 @@ describe 'MyNinja', ->
         it 'should match the data before saving and return an error if it fails', (done) ->
             testing.mockComponent 'DataSource.MySQL',
                 init: ->
-                query: (query, params, callback) ->
+                query: (query, params, dataSourceName, callback) ->
                     callback(null, {})
 
             instance = testing.createComponent 'Database.MyNinja',
@@ -340,7 +340,7 @@ describe 'MyNinja', ->
         it 'should validate and match data and call the callback if the operation is successful', (done) ->
             testing.mockComponent 'DataSource.MySQL',
                 init: ->
-                query: (query, params, callback) ->
+                query: (query, params, dataSourceName, callback) ->
                     callback(null, {})
 
             instance = testing.createComponent 'Database.MyNinja',
@@ -369,7 +369,7 @@ describe 'MyNinja', ->
         it 'should pass the error to the callback if the insert/update fails', (done) ->
             testing.mockComponent 'DataSource.MySQL',
                 init: ->
-                query: (query, params, callback) ->
+                query: (query, params, dataSourceName, callback) ->
                     callback(name: 'MyError')
 
             instance = testing.createComponent 'Database.MyNinja',table: 'sky'
@@ -388,7 +388,7 @@ describe 'MyNinja', ->
         it 'should insert the data if the id is not passed', (done) ->
             testing.mockComponent 'DataSource.MySQL',
                 init: ->
-                query: (query, params, callback) ->
+                query: (query, params, dataSourceName, callback) ->
                     expect(query).to.be "UPDATE sky SET name = 'Record' WHERE id = 1"
                     callback(null, {})
 
@@ -410,7 +410,7 @@ describe 'MyNinja', ->
         it 'should update the data if the id is passed', (done) ->
             testing.mockComponent 'DataSource.MySQL',
                 init: ->
-                query: (query, params, callback) ->
+                query: (query, params, dataSourceName, callback) ->
                     expect(query).to.be "INSERT INTO sky SET name = 'Record'"
                     callback(null, {})
 

@@ -44,14 +44,7 @@ describe 'MySQL.js', ->
             myQuery = 'SELECT * FROM x WHERE y = ?'
             myParams = [1]
             myFields = ['something']
-            myResult = [
-                {
-                    something: 'here'
-                }
-                {
-                    something: 'there'
-                }
-            ]
+            myResult = [{something: 'here'},{something: 'there'}]
             instance._databaseSelected['default'] = true
             instance._mysql = mockMySQL(query: (query, params, callback) ->
                 expect(query).to.be myQuery
@@ -122,11 +115,9 @@ describe 'MySQL.js', ->
             expectedQuery = 'USE database;'
             instance._mysql = mockMySQL(query: (query, callback) ->
                 expect(query).to.be expectedQuery
-                setImmediate ->
-                    callback null
+                setImmediate -> callback null
             )
-            instance.use 'database', (err) ->
-                done()
+            instance.use 'database', -> done()
 
         it 'should call the callback passing an error if a connection error occurs', (done) ->
             expectedQuery = 'USE database;'

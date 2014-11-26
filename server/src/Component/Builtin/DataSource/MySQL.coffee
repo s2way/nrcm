@@ -4,7 +4,7 @@ class MySQL
     @static = true
 
     # MySQL DataSource component
-    # @param {string} dataSourceName The name of the DataSource defined in the application core.json
+    # @param {string} dataSourceName The name of the DataSource defined in the application core.yml
     # @constructor
     constructor: (@_dataSourceName = 'default') ->
         @_mysql = require('mysql')
@@ -12,17 +12,8 @@ class MySQL
         @_databaseSelected = {}
 
     # Component initialization
-    # Validates if the DataSource exists
     init: ->
-        @_dataSource = @core.dataSources[@_dataSourceName]
         @_logger = @component 'Logger', 'mysql.log'
-        throw new Exceptions.IllegalArgument("Couldn't find data source #{@_dataSourceName}. Take a look at your core.yml.") unless @_dataSource
-
-    # Changes the DataSource (connection properties) being used internally
-    # @param {string} dataSourceName The name of the DataSource, as specified in the core.json file
-    setDataSource: (dataSourceName) ->
-        @_dataSourceName = dataSourceName
-        @_dataSource = @core.dataSources[@_dataSourceName]
 
     # Logging method
     # @param {string} msg The log message
@@ -33,32 +24,33 @@ class MySQL
     # Connects to the database or returns the same connection object
     # @param callback Calls the callback passing an error or the connection object if successful
     # @private
-    _connect: (callback) ->
-        if @_connections[@_dataSourceName]
-            @info "[#{@_dataSourceName}] Connection reused"
-            callback null, @_connections[@_dataSourceName]
+    _connect: (dataSourceName, callback) ->
+        dataSource = @core.dataSources[dataSourceName]
+        throw new Exceptions.IllegalArgument("Couldn't find data source #{dataSourceName}. Take a look at your core.yml.") unless dataSource
+
+        if @_connections[dataSourceName]
+            @info "[#{dataSourceName}] Connection reused"
+            callback null, @_connections[dataSourceName]
             return
 
-        @info "[#{@_dataSourceName}] Connecting to #{@_dataSource.host}:#{@_dataSource.port}"
+        @info "[#{dataSourceName}] Connecting to #{dataSource.host}:#{dataSource.port}"
         connection = @_mysql.createConnection(
-            host: @_dataSource.host
-            port: @_dataSource.port
-            user: @_dataSource.user
-            password: @_dataSource.password
+            host: dataSource.host
+            port: dataSource.port
+            user: dataSource.user
+            password: dataSource.password
         )
-        @info "[#{@_dataSourceName}] User: #{@_dataSource.user}"
-        @info "[#{@_dataSourceName}] Password: #{@_dataSource.password}"
+        @info "[#{dataSourceName}] User: #{dataSource.user}"
+        @info "[#{dataSourceName}] Password: #{dataSource.password}"
         connection.connect (error) =>
             if error
                 callback error
             else
-                @_connections[@_dataSourceName] = connection
-                @info "[#{@_dataSourceName}] Connected"
+                @_connections[dataSourceName] = connection
+                @info "[#{dataSourceName}] Connected"
                 callback null, connection
             return
-
         return
-
 
     # Shutdowns the connection
     destroy: ->
@@ -74,29 +66,28 @@ class MySQL
     # @param {string} query The query (you can use the QueryBuilder component to build it)
     # @param {array} params An array of parameters that will be used to replace the query placeholders (?)
     # @param {function} callback The function that will be called when the operation has been completed
-    query: (query, params, callback) ->
-        @_connect (error, connection) =>
-            if error
-                callback error
-                return
-            @_selectDatabase (error) ->
-                if error
-                    callback error
-                    return
+    query: (query, params, dataSourceNameOrCallback, callback) ->
+        dataSourceName = dataSourceNameOrCallback
+        if typeof dataSourceNameOrCallback is 'function'
+            callback = dataSourceNameOrCallback
+            dataSourceName = @_dataSourceName
+
+        @_connect dataSourceName, (error, connection) =>
+            return callback(error) if error
+            @_selectDatabase dataSourceName, (error) ->
+                return callback(error) if error
                 connection.query query, params, callback
-                return
 
-            return
+    _selectDatabase: (dataSourceName, callback) ->
+        dataSource = @core.dataSources[dataSourceName]
+        throw new Exceptions.IllegalArgument("Couldn't find data source #{dataSourceName}. Take a look at your core.yml.") unless dataSource
 
-        return
-
-    _selectDatabase: (callback) ->
-        unless @_databaseSelected[@_dataSourceName]
-            @use @_dataSource.database, (error) =>
+        unless @_databaseSelected[dataSourceName]
+            @use dataSource.database, (error) =>
                 if error
                     callback error
                     return
-                @_databaseSelected[@_dataSourceName] = true
+                @_databaseSelected[dataSourceName] = true
                 callback()
                 return
             return
@@ -104,29 +95,35 @@ class MySQL
 
     # Selects a database to be used
     # @param {string} database The name of the database
-    # @param {function} callback The function taht will be called when the operation has been completed
-    use: (database, callback) ->
-        @_connect (error, connection) ->
-            if error
-                return callback error
+    # @param {function} callback The function that will be called when the operation has been completed
+    use: (database, dataSourceNameOrCallback, callback) ->
+        dataSourceName = dataSourceNameOrCallback
+        if typeof dataSourceNameOrCallback is 'function'
+            callback = dataSourceNameOrCallback
+            dataSourceName = @_dataSourceName
+        @_connect dataSourceName, (error, connection) ->
+            return callback(error) if error
             connection.query "USE #{connection.escapeId(database)};", (error) ->
-                if error
-                    return callback error
+                return callback(error) if error
                 return callback()
 
     # Call a procedure passing the specified parameters
     # @param {string} procedure The procedure name
     # @param {array} params An array of parameters that will be passed to the procedure
     # @param {function} callback Function called when the operation has been completed
-    call: (procedure, params, callback) ->
+    call: (procedure, params, dataSourceNameOrCallback, callback) ->
+        dataSourceName = dataSourceNameOrCallback
+        if typeof dataSourceNameOrCallback is 'function'
+            callback = dataSourceNameOrCallback
+            dataSourceName = @_dataSourceName
+
         throw new Exceptions.IllegalArgument('The procedure parameter is mandatory')  if typeof procedure isnt 'string'
-        @_connect (error, connection) =>
+        @_connect dataSourceName, (error, connection) =>
             if error
                 return callback error
-            @_selectDatabase (error) ->
+            @_selectDatabase dataSourceName, (error) ->
                 if error
                     return callback error
-                i = undefined
                 paramsString = ''
                 i = 0
                 while i < params.length

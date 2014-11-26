@@ -7,7 +7,6 @@ class MyNinja
 
     init: ->
         @_mysql = @component 'DataSource.MySQL', @_dataSourceName
-        @_mysql.setDataSource @_dataSourceName
         @_validator = @component 'Validator', validate: @_validate
         @_cherries = @component 'Cherries'
         @$ = @component 'QueryBuilder'
@@ -30,7 +29,7 @@ class MyNinja
             @$.equal(@_primaryKey, @$.value(id))
         ).limit(1).build()
 
-        @_mysql.query sql, [], (error, result) ->
+        @_mysql.query sql, [], @_dataSourceName, (error, result) ->
             return callback(error) if error
             return callback(null, null) if result.length is 0
             return callback(null, result[0])
@@ -45,7 +44,7 @@ class MyNinja
         builder.having(params.having) if params.having?
         builder.limit(1)
         sql = builder.build()
-        @_mysql.query sql, [], (error, results) ->
+        @_mysql.query sql, [], @_dataSourceName, (error, results) ->
             return callback(error) if error
             return callback(null, results[0])
 
@@ -58,7 +57,7 @@ class MyNinja
         builder.groupBy(params.groupBy) if params.groupBy?
         builder.having(params.having) if params.having?
         sql = builder.build()
-        @_mysql.query sql, [], (error, results) ->
+        @_mysql.query sql, [], @_dataSourceName, (error, results) ->
             return callback(error) if error
             return callback(null, results)
 
@@ -66,7 +65,7 @@ class MyNinja
     # @param {function} callback Called when the operation is completed (error)
     removeAll: (callback) ->
         sql = @$.deleteFrom(@_table).build()
-        @_mysql.query sql, [], (error) ->
+        @_mysql.query sql, [], @_dataSourceName, (error) ->
             return callback(error) if error
             return callback()
 
@@ -76,7 +75,7 @@ class MyNinja
         sql = @$.deleteFrom(@_table).where(
             @$.equal(@_primaryKey, @$.value(id))
         ).build()
-        @_mysql.query sql, [], (error) ->
+        @_mysql.query sql, [], @_dataSourceName, (error) ->
             return callback(error) if error
             return callback()
 
@@ -84,14 +83,14 @@ class MyNinja
     # @param {function} callback Called when the operation is completed (error)
     remove: (conditions, callback) ->
         sql = @$.deleteFrom(@_table).where(conditions).build()
-        @_mysql.query sql, [], (error) ->
+        @_mysql.query sql, [], @_dataSourceName, (error) ->
             return callback(error) if error
             return callback()
 
     # Issues a query to the database (just a wrapper)
     # @param
     query: (query, params, callback) ->
-        @_mysql.query query, params, callback
+        @_mysql.query query, params, @_dataSourceName, callback
 
     # Updates all records of the table with the given values and using the given conditions
     updateAll: (params) ->
@@ -105,7 +104,7 @@ class MyNinja
                 data[prop] = @$.value(data[prop])
 
         sql = @$.update(@_table).set(data).where(conditions).build()
-        @_mysql.query sql, [], callback
+        @_mysql.query sql, [], @_dataSourceName, callback
 
     # Saves the specified data if it is validated and matched against the validate object
     save: (params) ->
@@ -136,13 +135,13 @@ class MyNinja
                 sql = @$.update(@_table).set(data).where(
                     @$.equal(@_primaryKey, primaryKeyValue)
                 ).build()
-                @_mysql.query sql, [], (error) =>
+                @_mysql.query sql, [], @_dataSourceName, (error) =>
                     return callback(error) if error
                     original[@_primaryKey] = primaryKeyValue
                     return callback(null, original)
             else
                 sql = @$.insertInto(@_table).set(data).build()
-                @_mysql.query sql, [], (error, results) =>
+                @_mysql.query sql, [], @_dataSourceName, (error, results) =>
                     return callback(error) if error
                     original[@_primaryKey] = results.insertId
                     return callback(null, original)
