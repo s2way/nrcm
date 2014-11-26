@@ -8,7 +8,6 @@ describe 'MySQL.js', ->
                 setImmediate ->
                     callback connectionError
             end: ->
-
             query: methods.query
             escapeId: (value) ->
                 value
@@ -23,6 +22,12 @@ describe 'MySQL.js', ->
                 user: 'root'
                 password: ''
                 database: 's2way'
+                port: 3306
+            anotherDataSource:
+                host: 'another'
+                user: 'root'
+                password: ''
+                database: 'another'
                 port: 3306
 
         instance.component = (componentName) ->
@@ -57,6 +62,34 @@ describe 'MySQL.js', ->
                 expect(rows).to.be myResult
                 expect(fields).to.be myFields
                 done()
+
+        it 'should connect to the DataSource specified in the params', (done) ->
+            instance._mysql =
+                createConnection: (params) ->
+                    expect(params.host).to.be 'another'
+                    done()
+                    return connect: ->
+
+            instance.query 'SELECT 1', [], 'anotherDataSource', ->
+
+        it 'should handle multiple calls passing different data sources correctly', (done) ->
+            connectedTo = []
+            instance._mysql =
+                createConnection: (params) ->
+                    connectedTo.push params.host
+                    return {
+                        escapeId: (value) ->
+                            value
+                        connect: (callback) ->
+                            callback()
+                        query: (query, callback) ->
+                            callback([])
+                    }
+
+            instance.query 'SELECT 1', [], 'default', ->
+                instance.query 'SELECT 2', [], 'anotherDataSource', ->
+                    expect(connectedTo).to.eql ['localhost', 'another']
+                    done()
 
         it 'should call the use command before query if the database configuration is specified', (done) ->
             instance._mysql = mockMySQL(query: (query, params, callback) ->

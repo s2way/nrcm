@@ -71,7 +71,6 @@ class MySQL
         if typeof dataSourceNameOrCallback is 'function'
             callback = dataSourceNameOrCallback
             dataSourceName = @_dataSourceName
-
         @_connect dataSourceName, (error, connection) =>
             return callback(error) if error
             @_selectDatabase dataSourceName, (error) ->
