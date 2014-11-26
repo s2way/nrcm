@@ -197,27 +197,27 @@ describe 'Rules', ->
                 notEmpty:
                     rule: 'notEmpty'
                     message: 'This field cannot be empty'
-                    required: false
+                    required: true
                 maxLength:
                     message: 'This field has exceeded the max length'
                     params: [4]
-                    # required: false # The default value is false!
+                    required: true
 
             result = instance.test undefined, rules
             expect(result).to.be.an 'object'
             expect(result).to.have.property('maxLength')
             expect(result).to.have.property('notEmpty')
 
-        it 'should return success if the rules are marked as required: true and the data is undefined', ->
+        it 'should return success if the rules are marked as required: false and the data is undefined', ->
             rules =
                 notEmpty:
                     rule: 'notEmpty'
                     message: 'This field cannot be empty'
-                    required: true
+                    required: false
                 maxLength:
                     message: 'This field has exceeded the max length'
                     params: [4]
-                    required: true
+                # required: false # The default value is false!
 
             result = instance.test undefined, rules
             expect(result).to.be null

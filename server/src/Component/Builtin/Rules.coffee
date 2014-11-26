@@ -111,7 +111,7 @@ class Rules
         return @isNumber(value) && value >= min
 
     # Other rules
-    alphaNumeric: (value, min) ->
+    alphaNumeric: (value) ->
         return @regex value, /^[a-zA-Z0-9_]*$/
     email: (value) ->
         return @regex value, emailRegex
@@ -139,7 +139,7 @@ class Rules
             required = rule.required ? false
             ruleExists = @[ruleMethod]?
             throw new Exceptions.IllegalArgument "Rule #{ruleMethod} not found" unless ruleExists
-            if required is true and value is undefined
+            if required is false and value is undefined
                 passed = true
             else
                 passed = @[ruleMethod].apply(@, [value].concat ruleMethodParams)
