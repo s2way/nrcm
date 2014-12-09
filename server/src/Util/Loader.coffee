@@ -7,13 +7,14 @@ Cherries = require '../Component/Builtin/Cherries'
 Router = require '../Core/Router'
 Request = require '../Controller/Request'
 Response = require '../Controller/Response'
-Sync = require '../Util/Sync'
+Sync = require './Sync'
 
 # Class for testing WaferPie applications outside the framework
+# Also can be used to load components and models in a non-api context (not RESTFul)
 # @constructor
 # @param {string} applicationPath The path of your application
 # @param {json} core Mocked core.json object
-class Testing
+class Loader
     constructor: (@_applicationPath = './', @_core = {}, @_serverConfigs = {}) ->
         @_core.requestTimeout = @_core.requestTimeout ? 1000
         @_core.dataSources = @_core.dataSources ? {}
@@ -202,8 +203,8 @@ class Testing
             responseAvg: 0
 
         requestHandler = new RequestHandler(@_applications, @_serverConfigs, null, monitoring)
-        requestHandler._createFilterFactory = (application) => return @_filterFactory
+        requestHandler._createFilterFactory = => return @_filterFactory
         requestHandler._createElementManager = => return @_elementManager
         requestHandler.process request, response
 
-module.exports = Testing
+module.exports = Loader

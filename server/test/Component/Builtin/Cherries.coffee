@@ -9,19 +9,19 @@ describe 'Cherries.js', ->
     beforeEach ->
         instance = new Cherries()
 
-    describe 'elementNameToPath', ->
+    describe 'elementNameToPath()', ->
         it 'should return the right path for a given model name', ->
             expect(instance.elementNameToPath('Folder.SubFolder.MyModel')).to.be(path.join('Folder', 'SubFolder', 'MyModel'))
             expect(instance.elementNameToPath('MyModel')).to.be(path.join('MyModel'))
 
-    describe 'pathToElementName', ->
+    describe 'pathToElementName()', ->
         it 'should return the element name for a given model path', ->
             expect(instance.pathToElementName(path.join('Folder', 'SubFolder', 'MyModel.coffee'))).to.be('Folder.SubFolder.MyModel')
             expect(instance.pathToElementName(path.join('Folder', 'SubFolder', 'MyModel.js'))).to.be('Folder.SubFolder.MyModel')
             expect(instance.pathToElementName(path.join('Folder', 'SubFolder', 'MyModel'))).to.be('Folder.SubFolder.MyModel')
             expect(instance.pathToElementName('MyModel')).to.be(path.join('MyModel'))
 
-    describe 'copy', ->
+    describe 'copy()', ->
 
         it 'should perform a deep copy of a json object removing unserializable properties', ->
             toCopy =
@@ -35,7 +35,7 @@ describe 'Cherries.js', ->
             expect(copy.a isnt toCopy.a).to.be(true)
             expect(copy.b isnt toCopy.b).to.be(true)
 
-    describe 'isJSON', ->
+    describe 'isJSON()', ->
 
         it 'should return false if the param is not a JSON', ->
             expect(instance.isJSON true).to.be false
@@ -50,7 +50,7 @@ describe 'Cherries.js', ->
         it 'should return true if the param is a valid JSON', ->
             expect(instance.isJSON {}).to.be true
 
-    describe 'loadBuiltinComponents', ->
+    describe 'loadBuiltinComponents()', ->
 
         it 'should load and return all builtin components', ->
             components = instance.loadBuiltinComponents()

@@ -204,10 +204,3 @@ describe 'ElementManager.js', ->
                 expect(factory._getComponents()).to.have.length 2
                 expect(factory._getComponents()).to.contain componentInstance
                 expect(factory._getComponents()).to.contain componentInstance2
-                return
-
-            return
-
-        return
-
-    return

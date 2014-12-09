@@ -21,11 +21,9 @@ class ElementManager
     # The destruction of the components is asynchronous
     destroy: ->
         componentsCreated = @_getComponents()
-
         for componentInstance in componentsCreated
             destroyComponent = (componentInstance) ->
                 componentInstance.destroy?()
-
             setImmediate destroyComponent, componentInstance
 
     # Instantiate a component (builtin or application)

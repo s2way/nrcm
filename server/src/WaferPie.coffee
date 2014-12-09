@@ -181,5 +181,6 @@ class WaferPie
         ).listen port, address
         @info 'Started!'
 
-WaferPie.Testing = require './Test/Testing'
+WaferPie.Testing = require './Util/Loader'
+WaferPie.Loader = require './Util/Loader'
 module.exports = WaferPie
