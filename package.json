@@ -56,7 +56,7 @@
         "type": "git",
         "url": "http://github.com/s2way/waferpie.git"
     },
-    "version": "0.9.4",
+    "version": "0.9.5",
     "scripts": {
         "pretest": "node_modules/.bin/coffeelint server",
         "test": "node_modules/.bin/mocha server/test --recursive -R progress --compilers coffee:coffee-script/register ; node_modules/.bin/mocha server/test --recursive -R html-cov -r blanket --compilers coffee:coffee-script/register > report.html",
@@ -74,7 +74,7 @@
     ],
     "readme": "Please reade the README.md file.",
     "readmeFilename": "README.md",
-    "_id": "waferpie@0.9.4",
+    "_id": "waferpie@0.9.5",
     "_from": "waferpie@",
     "config": {
         "blanket": {
