@@ -59,7 +59,6 @@
     "version": "0.9.1",
     "scripts": {
         "pretest": "node_modules/.bin/coffeelint server",
-        "postinstall": "rm -rf dist ; mkdir -p dist ; (cp -r server/* dist/ && find dist -type f -iname '*.coffee' -delete) ; node_modules/.bin/coffee --compile --output dist server",
         "test": "node_modules/.bin/mocha server/test --recursive -R progress --compilers coffee:coffee-script/register ; node_modules/.bin/mocha server/test --recursive -R html-cov -r blanket --compilers coffee:coffee-script/register > report.html",
         "posttest": "node_modules/.bin/mocha server/test --recursive -r blanket -R travis-cov --compilers coffee:coffee-script/register"
     },
