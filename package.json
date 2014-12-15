@@ -31,11 +31,11 @@
         "underscore": "^1.7.0",
         "winston": "^0.7.3",
         "xml2js": "^0.4.4",
-        "xmlbuilder": "^2.4.4"
+        "xmlbuilder": "^2.4.4",
+        "coffee-script": "^1.8.0"
     },
     "devDependencies": {
         "blanket": "^1.1.6",
-        "coffee-script": "^1.8.0",
         "coffeelint": "^1.6.0",
         "expect.js": "^0.3.1",
         "grunt": "^0.4.5",
@@ -56,8 +56,9 @@
         "type": "git",
         "url": "http://github.com/s2way/waferpie.git"
     },
-    "version": "0.9.5",
+    "version": "0.9.6",
     "scripts": {
+        "preinstall" : "./compile.sh",
         "pretest": "node_modules/.bin/coffeelint server",
         "test": "node_modules/.bin/mocha server/test --recursive -R progress --compilers coffee:coffee-script/register ; node_modules/.bin/mocha server/test --recursive -R html-cov -r blanket --compilers coffee:coffee-script/register > report.html",
         "posttest": "node_modules/.bin/mocha server/test --recursive -r blanket -R travis-cov --compilers coffee:coffee-script/register"
@@ -74,7 +75,7 @@
     ],
     "readme": "Please reade the README.md file.",
     "readmeFilename": "README.md",
-    "_id": "waferpie@0.9.5",
+    "_id": "waferpie@0.9.6",
     "_from": "waferpie@",
     "config": {
         "blanket": {
