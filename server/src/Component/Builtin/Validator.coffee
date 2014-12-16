@@ -4,133 +4,99 @@ class Validator
     # @constructor
     # @method Validator
     # @param {object} params Must contain the validation rules (validate property) and may contain the timeout (in millis)
-    constructor: (params) ->
-        params = params or {}
-        @_timeout = params.timeout or 10000
-        @_rules = params.validate
-        return
+    constructor: (params = {}) ->
+        @_timeout = params.timeout ? 10000
+        @_validationObject = params.validate
+
+    init: ->
+        @_rules = @component 'Rules'
+        @_navigator = @component 'Navigator'
 
     # Validate fields
     _succeeded: (fieldErrors) ->
-        key = undefined
-        for key of fieldErrors
-            if fieldErrors.hasOwnProperty(key)
-                if typeof fieldErrors[key] isnt 'object'
-                    return false  if fieldErrors[key] is false
-                else return false  unless @_succeeded(fieldErrors[key])
+        for expression of fieldErrors
+            return false if fieldErrors[expression]?
         true
-
 
     # Find all fields to validate
-    _hasValidatedAllFields: (fieldErrors, validate) ->
-        key = undefined
-        for key of validate
-            if validate.hasOwnProperty(key)
-                if typeof validate[key] isnt 'object' or validate[key] instanceof Array
-                    return false  if fieldErrors[key] is undefined
-                else
-                    fieldErrors[key] = {}  if fieldErrors[key] is undefined
-                    return false  unless @_hasValidatedAllFields(fieldErrors[key], validate[key])
+    _hasValidatedAllFields: (validatedFields, validate) ->
+        for expression of validate
+            return false unless validatedFields[expression]?
         true
-
-    _validate: (data, validatedFields, fieldErrors, validate, originalData) ->
-        n = undefined
-        originalData = originalData or data
-        validateFunctionCallback = (validationErrorObject) ->
-            fieldErrors[n] = validationErrorObject ? true
-            validatedFields[n] = (if validationErrorObject then false else true)
-
-        for n of validate
-            if validate.hasOwnProperty(n)
-                if typeof validate[n] is 'function'
-                    validate[n] (if data is undefined then undefined else data[n]), originalData, validateFunctionCallback
-                else
-                    fieldErrors[n] = {}  if fieldErrors[n] is undefined
-                    if validate[n] isnt undefined
-                        @_validate (if data is undefined then undefined else data[n]), validatedFields, fieldErrors[n], validate[n], originalData
-
 
     # Validate all properties of a json
     # @method validate
     # @param {object} data The json object to be validated
     # @param {function} callback
     validate: (data, callback) ->
-        validate = @_rules
+        validate = @_validationObject
         fieldErrors = {}
         validatedFields = {}
-        that = this
         expired = false
         succeeded = false
 
-        # Fire all validations callbacks
-        @_validate data, validatedFields, fieldErrors, validate
+        for expression of validate
+            fieldRule = validate[expression]
+
+            value = @_navigator.get data, expression
+
+            if typeof fieldRule is 'function'
+                fieldRule(value, data,
+                    ((expression) ->
+                        return (error) ->
+                            validatedFields[expression] = true
+                            fieldErrors[expression] = error if error
+                    )(expression)
+                )
+            else
+                result = @_rules.test(value, fieldRule)
+                fieldErrors[expression] = result if result
+                validatedFields[expression] = true
 
         # Start a timer to control validations
         timer = setTimeout(->
             expired = true
-            return
         , @_timeout)
 
-        # Timeout
-        timeoutFunc = ->
+        timeoutFunc = =>
             if expired
                 callback
                     name: 'ValidationExpired'
-                , fieldErrors
-            else if that._hasValidatedAllFields(fieldErrors, validate)
+                , validatedFields, fieldErrors
+            else if @_hasValidatedAllFields(validatedFields, validate)
                 clearTimeout timer
-                succeeded = that._succeeded(validatedFields)
+                succeeded = @_succeeded(fieldErrors)
                 unless succeeded
                     return callback
                         name: 'ValidationFailed'
                         fields: fieldErrors
-                    , fieldErrors
-                callback null, fieldErrors
+                    , validatedFields, fieldErrors
+                callback null, validatedFields, fieldErrors
             else
-                setTimeout timeoutFunc, that.timeout / 500
+                setTimeout timeoutFunc, @timeout / 500
 
         timeoutFunc()
 
-    _matchAgainst: (data, level, validate) ->
-        if level is undefined
-            level = 1
-            validate = @_rules
-        else
-            level += 1
+    _matchAgainst: (data, level = 1, validate = @_validationObject, expression = '') ->
 
         # check schema field presence
-        for n of data
-            if data.hasOwnProperty(n)
+        for key of data
+            # schema for this field was not set, block
+            if validate[expression + key] is undefined
+                return (
+                    field: expression + key
+                    level: level
+                    error: 'denied'
+                )
 
-                # schema for this field was not set, block
-                if validate[n] is undefined
-                    return (
-                        field: n
-                        level: level
-                        error: 'denied'
-                    )
-
-                # validate set and it is an object: recursive
-                if typeof validate[n] is 'object'
-                    test = @_matchAgainst(data[n], level, validate[n])
-                    return test  if test isnt true
-
-        # check for required fields
-        for n of validate
-            if validate.hasOwnProperty(n)
-                if validate[n] is true and data[n] is undefined
-
-                    # required field not present
-                    return (
-                        field: n
-                        level: level
-                        error: 'required'
-                    )
+            # validate set and it is an object: recursive
+            if data[key] isnt null and typeof data[key] is 'object'
+                test = @_matchAgainst(data[key], level + 1, validate[expression + key], expression + key + '.')
+                return test if test isnt true
         true
 
     _isJSONValid: (jsonOb) ->
-        newJSON = undefined
-        return false  if jsonOb is undefined or jsonOb is null
+        return false unless jsonOb?
         try
             newJSON = JSON.parse(JSON.stringify(jsonOb))
         catch e

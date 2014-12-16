@@ -5,10 +5,11 @@ class FilterFactory
 
     # Creates an instance of each filter declared in the @_application object and performs injection based
     # on the given controller instance
-    createAll: (controllerInstance) ->
+    createForController: (controllerInstance) ->
         filters = []
         for filterName of @_application.filters
             filters.push @_create(filterName, controllerInstance)
+        controllerInstance.filters = filters
         filters
 
     # Creates an instance of a given filter and copy most properties from the controllerInstance
@@ -37,6 +38,7 @@ class FilterFactory
 
         filterInstance.name = filterName
         filterInstance.params = controllerInstance.params
+        @inject?(filterInstance)
         filterInstance
 
 module.exports = FilterFactory

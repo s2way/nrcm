@@ -71,6 +71,7 @@ emailRegex = ///(?:(?:\r\n)?[ \t])*(?:(?:(?:[^()<>@,;:\\".\[\] \000-\031]+(?:(?:
 ///
 
 class Rules
+    @static = true
     # Type validation rules
     isNumber: (value) ->
         return typeof value is 'number' and isFinite value
@@ -110,7 +111,7 @@ class Rules
         return @isNumber(value) && value >= min
 
     # Other rules
-    alphaNumeric: (value, min) ->
+    alphaNumeric: (value) ->
         return @regex value, /^[a-zA-Z0-9_]*$/
     email: (value) ->
         return @regex value, emailRegex
@@ -135,9 +136,13 @@ class Rules
             rule = {} unless rule?
             ruleMethod = rule.rule ? key
             ruleMethodParams = rule.params
+            required = rule.required ? false
             ruleExists = @[ruleMethod]?
-            throw new Exceptions.IllegalArgument 'Rule ' + ruleMethod + ' not found' unless ruleExists
-            passed = @[ruleMethod].apply(@, [value].concat ruleMethodParams)
+            throw new Exceptions.IllegalArgument "Rule #{ruleMethod} not found" unless ruleExists
+            if required is false and value is undefined
+                passed = true
+            else
+                passed = @[ruleMethod].apply(@, [value].concat ruleMethodParams)
             unless passed
                 failedRules[key] = rule
                 failureCounter += 1

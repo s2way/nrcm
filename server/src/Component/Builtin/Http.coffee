@@ -12,8 +12,8 @@ class Http
         @_port = options.port or 80
         @_contentType = options.contentType or 'application/json'
         @_maxRedirects = options.maxRedirects or 100
-        @_secureProtocol = options.secureProtocol or ''
         @_agent = options.agent or ''
+        @_secureProtocol = options.secureProtocol or ''
         @_ssl = options.ssl or false
         @_protocol = (if @_ssl is true then require('https') else require('http'))
 
@@ -118,7 +118,7 @@ class Http
         payload = @_parsePayload(options)
         resource = options.resource
         headers = options.headers or @_headers or {}
-        resource += '?' + @_toUrlEncoded(options.query)  if options.query
+        resource += '?' + @_toUrlEncoded(options.query) if options.query
         $this = this
         request = @_protocol.request(
             hostname: @_hostname

@@ -10,7 +10,7 @@ describe 'WaferPie.js', ->
     clearStructure = (dir) ->
         fs.rmdirSync(path.join(dir, 'src', 'Component'))
         fs.rmdirSync(path.join(dir, 'src', 'Controller'))
-        fs.unlinkSync(path.join(dir, 'src', 'Config', 'core.json'))
+        fs.unlinkSync(path.join(dir, 'src', 'Config', 'core.yml'))
         fs.rmdirSync(path.join(dir, 'src', 'Config'))
         fs.rmdirSync(path.join(dir, 'src', 'Filter'))
         fs.rmdirSync(path.join(dir, 'src', 'Model'))
@@ -74,21 +74,6 @@ describe 'WaferPie.js', ->
             )
             fs.unlinkSync(configFileName)
 
-        it 'should throw a Fatal exception if the core configuration file is not valid', ->
-            sync.createDirIfNotExists(path.join('testing'))
-            sync.createDirIfNotExists(path.join('testing', 'src'))
-            sync.createDirIfNotExists(path.join('testing', 'src', 'Config'))
-            sync.createFileIfNotExists(path.join('testing', 'src', 'Config', 'core.json'), '')
-
-            expect( ->
-                wafer.setUp('testing')
-                assert.fail()
-            ).to.throwException((e) ->
-                expect(e.name).to.be('Fatal')
-                expect(e.message).to.be('The core configuration file is not valid')
-            )
-            clearStructure 'testing'
-
     it 'should start the application', ->
         sync.createDirIfNotExists(path.join('testing1'))
         sync.createDirIfNotExists(path.join('testing1', 'src'))
@@ -112,7 +97,7 @@ describe 'WaferPie.js', ->
         wafer.setUp('testing2')
         expect(fs.existsSync(path.join('testing2', 'src', 'Controller'))).to.be.ok()
         expect(fs.existsSync(path.join('testing2', 'src', 'Component'))).to.be.ok()
-        expect(fs.existsSync(path.join('testing2', 'src', 'Config', 'core.json'))).to.be.ok()
+        expect(fs.existsSync(path.join('testing2', 'src', 'Config', 'core.yml'))).to.be.ok()
         expect(fs.existsSync(path.join('testing2', 'src', 'Filter'))).to.be.ok()
         expect(fs.existsSync(path.join('testing2', 'src', 'Model'))).to.be.ok()
         expect(fs.existsSync(path.join('testing2', 'test', 'Controller'))).to.be.ok()
@@ -188,12 +173,27 @@ describe 'WaferPie.js', ->
 
     describe 'setUp', ->
 
+        it 'should throw a Fatal exception if the core configuration file is not valid', ->
+            sync.createDirIfNotExists(path.join('testing'))
+            sync.createDirIfNotExists(path.join('testing', 'src'))
+            sync.createDirIfNotExists(path.join('testing', 'src', 'Config'))
+            sync.createFileIfNotExists(path.join('testing', 'src', 'Config', 'core.yml'), 'invalid')
+
+            expect( ->
+                wafer.setUp('testing')
+            ).to.throwException((e) ->
+                expect(e.name).to.be('Fatal')
+                expect(e.message).to.be('The core configuration file is not valid')
+            )
+            clearStructure 'testing'
+
+
         it 'should throw a Fatal exception if the requestTimeout in is not a number', ->
-            coreFile = path.join('testing7', 'src', 'Config', 'core.json')
+            coreFile = path.join('testing7', 'src', 'Config', 'core.yml')
             sync.createDirIfNotExists(path.join('testing7'))
             sync.createDirIfNotExists(path.join('testing7', 'src'))
             sync.createDirIfNotExists(path.join('testing7', 'src', 'Config'))
-            sync.createFileIfNotExists(coreFile, '{ "requestTimeout": "string" }')
+            sync.createFileIfNotExists(coreFile, 'requestTimeout: string')
 
             expect( ->
                 wafer.setUp('testing7')
@@ -205,11 +205,11 @@ describe 'WaferPie.js', ->
             clearStructure 'testing7'
 
         it 'should throw a Fatal exception if the requestTimeout is not defined', ->
-            coreFile = path.join('testing8', 'src', 'Config', 'core.json')
+            coreFile = path.join('testing8', 'src', 'Config', 'core.yml')
             sync.createDirIfNotExists(path.join('testing8'))
             sync.createDirIfNotExists(path.join('testing8', 'src'))
             sync.createDirIfNotExists(path.join('testing8', 'src', 'Config'))
-            sync.createFileIfNotExists(coreFile, '{ }')
+            sync.createFileIfNotExists(coreFile, 'config: value')
 
             expect( ->
                 wafer.setUp('testing8')

@@ -15,7 +15,7 @@ class Response
         contentType = headers['Content-Type'] ? 'application/json'
         stringBody = @_convertOutput body, contentType
         headers['Content-Type'] = contentType
-        headers['Content-Length'] = stringBody.length if stringBody.length > 0
+        headers['Content-Length'] = (new Buffer(stringBody)).length if stringBody.length > 0
         headers['Server'] = 'WaferPie'
         @_response.writeHead statusCode, headers
         @_response.end stringBody

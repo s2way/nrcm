@@ -63,10 +63,13 @@ describe 'Router.js', ->
     describe 'compose()', ->
         router = new Router('/#locale/#service/$application/$controller')
         it 'should compose the resource object into a string according to the format', ->
-            expectedUrl = '/pt_BR/serv-ice/sample/sub/my_controller/seg/ments'
+            expectedUrl = '/pt_BR/serv-ice/sample/sub/my_controller/seg/ments?a=123&b=false'
             result = router.compose(
                 controller: 'Sub.MyController'
                 application: 'sample'
+                query:
+                    a: '123',
+                    b: false
                 segments: ['seg', 'ments']
                 prefixes:
                     locale: 'pt_BR'

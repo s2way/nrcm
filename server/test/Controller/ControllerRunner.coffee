@@ -20,7 +20,7 @@ describe 'ControllerRunner', ->
                 before: ->
                     done()
             runner.run instance, 10000, ->
-                expect.fail()
+                expect().fail()
 
         it 'should call the after() callback if it is defined', (done) ->
             instance =
@@ -31,7 +31,7 @@ describe 'ControllerRunner', ->
                 after: ->
                     done()
             runner.run instance, 10000, ->
-                expect.fail()
+                expect().fail()
 
         it 'should call the get() method if the instance has the method property defined as "get"', (done) ->
             instance =
@@ -40,7 +40,7 @@ describe 'ControllerRunner', ->
                 get: ->
                     done()
             runner.run instance, 10000, ->
-                expect.fail()
+                expect().fail()
 
         it 'should call the callback passing a Timeout exception if the timeout has occured', (done) ->
             instance =
@@ -58,7 +58,7 @@ describe 'ControllerRunner', ->
                 filters: []
                 method: 'get'
                 before: (callback) -> beforeCalled = true ; callback(true)
-                after: -> expect.fail()
+                after: -> expect().fail()
                 get: ->
                 afterTimeout: ->
                     expect(beforeCalled).to.be true
@@ -73,9 +73,8 @@ describe 'ControllerRunner', ->
                 get: (callback) ->
                     callback {}
                 after: ->
-                    setTimeout ->
+                    setImmediate ->
                         throw afterError
-                    , 10
             runner.run instance, 10000, (e) ->
                 expect(e).to.be afterError
                 done()
@@ -85,9 +84,8 @@ describe 'ControllerRunner', ->
             instance =
                 filters: []
                 before: ->
-                    setTimeout ->
+                    setImmediate ->
                         throw beforeError
-                    , 10
             runner.run instance, 10000, (e) ->
                 expect(e).to.be beforeError
                 done()
@@ -113,6 +111,21 @@ describe 'ControllerRunner', ->
                 expect(error).not.to.be.ok()
                 expect(response).to.be.ok()
                 done()
+
+        it 'should call after() and it should be able to see the responseBody', (done) ->
+            instance =
+                filters: []
+                method: 'get'
+                before: (callback) -> callback true
+                get: (callback) -> callback {}
+                after: (callback) ->
+                    expect(@responseBody).to.be.ok()
+                    callback()
+            runner.run instance, 10000, (error, response) ->
+                expect(error).not.to.be.ok()
+                expect(response).to.be.ok()
+                done()
+
 
         it 'should call get() and pass the response to the callback', (done) ->
             instance =
@@ -227,12 +240,12 @@ describe 'ControllerRunner', ->
             bFilter =
                 responseHeaders: {}
                 before: ->
-                    expect.fail()
+                    expect().fail()
             controller =
                 method: 'get'
                 filters: [aFilter, bFilter]
                 get: ->
-                    expect.fail()
+                    expect().fail()
 
             runner.run controller, 10000, (error, response) ->
                 expect(error).not.to.be.ok()
@@ -247,12 +260,12 @@ describe 'ControllerRunner', ->
                     throw name: 'MyError'
             bFilter =
                 before: ->
-                    expect.fail()
+                    expect().fail()
             controller =
                 method: 'get'
                 filters: [aFilter, bFilter]
                 get: ->
-                    expect.fail()
+                    expect().fail()
 
             runner.run controller, 10000, (error) ->
                 expect(error.name).to.be('MyError')
@@ -261,7 +274,7 @@ describe 'ControllerRunner', ->
         it 'should stop the filter chain if an exception occurs in the after method of a filter', (done) ->
             aFilter =
                 after: ->
-                    expect.fail()
+                    expect().fail()
             bFilter =
                 after: ->
                     throw name: 'MyError'
@@ -285,59 +298,57 @@ describe 'ControllerRunner', ->
                     callback()
                     done()
                 after: ->
-                    expect.fail()
+                    expect().fail()
             bFilter =
                 before: (callback) -> callback()
                 afterTimeout: (callback) ->
                     bTimeoutCalled = true
                     callback()
                 after: ->
-                    expect.fail()
+                    expect().fail()
             controller =
                 method: 'get'
                 filters: [aFilter, bFilter]
                 get: ->
 
-            runner.run controller, 1, (error) ->
+            runner.run controller, 10, (error) ->
                 expect(error.name).to.be 'Timeout'
 
         it 'should not call controller.afterTimeout() if the controller.method() is not called', (done) ->
             aFilter =
                 afterTimeout: (callback) ->
                     callback()
-                    setTimeout ->
+                    setImmediate ->
                         done()
-                    , 30
                 before: ->
                     # The callback is not called, so the controller.get() will never be called
                     # Therefore controller.afterTimeout() should also not be called!
             controller =
-                afterTimeout: -> expect.fail()
+                afterTimeout: -> expect().fail()
                 method: 'get'
                 filters: [aFilter]
-                get: -> expect.fail()
+                get: -> expect().fail()
 
-            runner.run controller, 10, (error) ->
+            runner.run controller, 100, (error) ->
                 expect(error.name).to.be 'Timeout'
 
         it 'should not call bFilter.afterTimeout() if the aFilter.before() callback is not called', (done) ->
             aFilter =
                 afterTimeout: (callback) ->
                     callback()
-                    setTimeout ->
+                    setImmediate ->
                         done()
-                    , 30
                 before: ->
                     # The callback is not called, so the B filter will never execute
                     # Therefore bFilter.afterTimeout() should also not be called!
             bFilter =
-                afterTimeout: -> expect.fail()
+                afterTimeout: -> expect().fail()
             controller =
                 method: 'get'
                 filters: [aFilter, bFilter]
-                get: -> expect.fail()
+                get: -> expect().fail()
 
-            runner.run controller, 10, (error) ->
+            runner.run controller, 100, (error) ->
                 expect(error.name).to.be 'Timeout'
 
 
@@ -350,23 +361,22 @@ describe 'ControllerRunner', ->
                     expect(bAfterError).to.be true
                     callback()
                     done()
-                after: -> expect.fail()
-                afterTimeout: -> expect.fail()
+                after: -> expect().fail()
+                afterTimeout: -> expect().fail()
             bFilter =
                 before: (callback) -> callback()
                 afterError: (callback) ->
                     bAfterError = true
                     callback()
-                after: -> expect.fail()
-                afterTimeout: -> expect.fail()
+                after: -> expect().fail()
+                afterTimeout: -> expect().fail()
             controller =
                 method: 'get'
                 filters: [aFilter, bFilter]
                 get: ->
-                    setTimeout ->
+                    setImmediate ->
                         throw name: 'MyError'
-                    , 10
-                after: -> expect.fail()
+                after: -> expect().fail()
 
             runner.run controller, 10000, (error) ->
                 expect(error.name).to.be 'MyError'
@@ -375,18 +385,16 @@ describe 'ControllerRunner', ->
             aFilter =
                 afterError: (callback) ->
                     callback()
-                    setTimeout ->
+                    setImmediate ->
                         done()
-                    , 30
                 before: ->
-                    setTimeout ->
+                    setImmediate ->
                         throw name: 'MyError'
-                    , 10
             controller =
-                afterError: -> expect.fail()
+                afterError: -> expect().fail()
                 method: 'get'
                 filters: [aFilter]
-                get: -> expect.fail()
+                get: -> expect().fail()
 
             runner.run controller, 10000, (error) ->
                 expect(error.name).to.be 'MyError'
@@ -395,19 +403,18 @@ describe 'ControllerRunner', ->
             aFilter =
                 afterError: (callback) ->
                     callback()
-                    setTimeout ->
+                    setImmediate ->
                         done()
                     , 30
                 before: ->
-                    setTimeout ->
+                    setImmediate ->
                         throw name: 'MyError'
-                    , 10
             bFilter =
-                afterTimeout: -> expect.fail()
+                afterTimeout: -> expect().fail()
             controller =
                 method: 'get'
                 filters: [aFilter, bFilter]
-                get: -> expect.fail()
+                get: -> expect().fail()
 
             runner.run controller, 10000, (error) ->
                 expect(error.name).to.be 'MyError'

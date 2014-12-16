@@ -79,6 +79,7 @@ class Router
             for segment in requestObject.segments
                 requestUrl += '/' + segment
 
+        requestUrl += url.format(query: requestObject.query)
         requestUrl
 
     # It decomposes the url

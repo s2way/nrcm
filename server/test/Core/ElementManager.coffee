@@ -174,12 +174,13 @@ describe 'ElementManager.js', ->
                 expect(componentInstance.model('InvalidModel')).to.be null
                 return
 
-            it 'should always return the same componentInstance if the component is marked as singleInstance', ->
+            it 'should always return the same componentInstance if the component is marked as static', ->
+                MyComponent = -> return
+                MyComponent.static = true
+
                 factory = new ElementManager(
                     components:
-                        MyComponent: ->
-                            @singleInstance = true
-                            return
+                        MyComponent: MyComponent
 
                     core: {}
                 )
@@ -189,7 +190,7 @@ describe 'ElementManager.js', ->
                 expect(factory._getComponents()).to.contain componentInstance
                 return
 
-            it 'should always return a different componentInstance if the component is not marked as singleInstance', ->
+            it 'should always return a different componentInstance if the component is not marked as static', ->
                 factory = new ElementManager(
                     components:
                         MyComponent: ->
@@ -203,10 +204,3 @@ describe 'ElementManager.js', ->
                 expect(factory._getComponents()).to.have.length 2
                 expect(factory._getComponents()).to.contain componentInstance
                 expect(factory._getComponents()).to.contain componentInstance2
-                return
-
-            return
-
-        return
-
-    return

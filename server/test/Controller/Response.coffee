@@ -15,13 +15,26 @@ describe 'Response', ->
                     expect(headers['Content-Length']).to.be 2
                     expect(headers['Content-Type']).to.be 'application/json'
                     expect(headers['Server']).to.be 'WaferPie'
-                end: (body, encoding) ->
+                end: (body) ->
                     expect(writeHeadCalled).to.be true
                     expect(body).to.be '{}'
                     done()
             )
             response.send {}, {
                 'Content-Type': 'application/json'
+            }, 200
+
+        it 'should count correctly the number of bytes of the response if there are special chars', (done) ->
+            response = new Response(
+                writeHead: (statusCode, headers) ->
+                    expect(statusCode).to.be 200
+                    expect(headers['Content-Length']).to.be 6
+                    expect(headers['Content-Type']).to.be 'text/plain'
+                    done()
+                end: ->
+            )
+            response.send 'André', {
+                'Content-Type': 'text/plain'
             }, 200
 
         it 'should convert the body to a XML if the Content-Type is text/xml', (done) ->

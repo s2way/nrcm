@@ -192,6 +192,36 @@ describe 'Rules', ->
             expect(result).to.have.property('maxLength')
             expect(result).not.to.have.property('notEmpty')
 
+        it 'should return all rules failed if they are marked as required: false and the data is undefined', ->
+            rules =
+                notEmpty:
+                    rule: 'notEmpty'
+                    message: 'This field cannot be empty'
+                    required: true
+                maxLength:
+                    message: 'This field has exceeded the max length'
+                    params: [4]
+                    required: true
+
+            result = instance.test undefined, rules
+            expect(result).to.be.an 'object'
+            expect(result).to.have.property('maxLength')
+            expect(result).to.have.property('notEmpty')
+
+        it 'should return success if the rules are marked as required: false and the data is undefined', ->
+            rules =
+                notEmpty:
+                    rule: 'notEmpty'
+                    message: 'This field cannot be empty'
+                    required: false
+                maxLength:
+                    message: 'This field has exceeded the max length'
+                    params: [4]
+                # required: false # The default value is false!
+
+            result = instance.test undefined, rules
+            expect(result).to.be null
+
         it 'should return null when all fields have passed the validation', ->
             rules =
                 notEmpty: {}
@@ -203,3 +233,4 @@ describe 'Rules', ->
             expect(->
                 instance.test 'nothing', rules
             ).to.throwException((e) -> expect(e.name).to.be 'IllegalArgument')
+

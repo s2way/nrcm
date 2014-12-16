@@ -21,6 +21,7 @@ describe 'RequestHandler', ->
 
     applications =
         app:
+            components: AnotherController
             controllers:
                 MyController: MyController
                 AnotherController: AnotherController
@@ -179,4 +180,19 @@ describe 'RequestHandler', ->
             response.send = (body) ->
                 expect(body.error).to.be 'Unknown'
                 done()
+            handler.process request, response
+
+        it 'should destroy the ElementManager right before answering the request', (done) ->
+            destroyCalled = false
+            request = new Request
+                method: 'GET'
+                url: 'http://localhost:3232/1/app/my_controller'
+            request.receive = (callback) ->
+                callback ''
+            response = new Response
+            response.send = ->
+                expect(destroyCalled).to.be true
+                done()
+            handler._createElementManager = ->
+                return destroy: -> destroyCalled = true
             handler.process request, response
