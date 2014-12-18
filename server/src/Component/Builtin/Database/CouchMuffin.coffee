@@ -1,17 +1,15 @@
-n1ql = require('couchbase').N1q1Query
+_ = require 'underscore'
 
 class CouchMuffin
     constructor: (params) ->
         @_dataSourceName = params?.dataSourceName ? 'default'
-        @_path = params?.path
         @_type = params?.type
         @_validate = params?.validate
+        @_keyPrefix = '' || params?.keyPrefix
 
     init: ->
-        @_datasource = @component 'DataSource.Couchbase', @_dataSourceName
+        @_dataSource = @component 'DataSource.Couchbase', @_dataSourceName
         @_validator = @component 'Validator', validate: @_validate
-        @_bucketName = @_datasource.bucket
-        @_bucket = @_datasource.openBucket()
         @_cherries = @component 'Cherries'
         @$ = @component 'QueryBuilder'
 
@@ -25,7 +23,7 @@ class CouchMuffin
     # Bind all methods from MyNinja into the model instance (expect for init() and bind() itself)
     bind: (model) ->
 #        methodsToBind = ['findById', 'find', 'findAll', 'removeAll', 'removeById', 'remove', 'query', 'updateAll', 'save']
-        methodsToBind = ['findById']
+        methodsToBind = ['findById', 'findManyById', 'removeById']
         for methodName in methodsToBind
             muffinMethod = @[methodName]
             ((muffinMethod) =>
@@ -34,17 +32,52 @@ class CouchMuffin
             )(muffinMethod)
 
     # Finds a single record using the primary key
-    # @param {object} id The record id
+    # @param {string} id The record id
     # @param {function} callback Called when the operation is completed (error, result)
     findById: (id, callback) ->
-        sql = @$.selectStarFrom(@_bucketName + '.' + @_path).where(
-            @$.equal(@_key, @$.value(id))
-        ).limit(1).build()
+        @findManyById id, callback
 
-        @_query sql, (error, result) ->
-            return callback(error) if error
-            return callback(null, null) if result.length is 0
-            return callback(null, result[0])
+    # Finds many records using the primary key
+    # @param {array|string} ids The records id within an array of Strings
+    # @param {function} callback Called when the operation is completed (error, result)
+    findManyById: (ids, callback) ->
+        idsWithPrefix = []
+        idsWithPrefix = ("#{@_keyPrefix}#{value}" for value in ids)
+        @_dataSource.bucket.getMulti idsWithPrefix, (error, result) ->
+            return callback error if error
+            return callback null, null if result.length is 0
+            return callback null, result
+
+    # Remove a single record using the primary key
+    # @param {array|string} ids The records id within an array of Strings
+    # @param {function} callback Called when the operation is completed (error, result)
+    removeById: (id, options, callback) ->
+        options = {} || options
+        idWithPrefix = "#{@_keyPrefix}#{id}"
+        @_dataSource.bucket.remove idWithPrefix, options, (error, result) ->
+            return callback error if error
+            return callback null, null if result.length is 0
+            return callback null, result
+
+    # Inserts a single record using the primary key, it fails if the key already exists
+    # @param {string} id The record id
+    # @param {Object} data The document itself
+    # @param {Object} [options]
+    #  @param {number} [options.expiry=0]
+    #  Set the initial expiration time for the document.  A value of 0 represents
+    #  never expiring.
+    #  @param {number} [options.persist_to=0]
+    #  Ensures this operation is persisted to this many nodes
+    #  @param {number} [options.replicate_to=0]
+    #  Ensures this operation is replicated to this many nodes
+    # @param {function} callback Called after the operation (error, result)
+    # @param {function} callback Called when the operation is completed (error, result)
+    insert: (id, data, options, callback) ->
+        options = {} || options
+        @_dataSource.bucket.add id, data, options, (error, result) ->
+            return callback error if error
+            return callback null, null if result.length is 0
+            return callback null, result
 
 #    # Finds a single record using the specified conditions
 #    find: (params) ->
@@ -59,20 +92,22 @@ class CouchMuffin
 #        @_mysql.query sql, [], (error, results) ->
 #            return callback(error) if error
 #            return callback(null, results[0])
-#
-#    # Finds several records using the specified conditions
-#    findAll: (params) ->
-#        callback = params.callback ? ->
-#        conditions = params.conditions ? null
-#        builder = @$.selectStarFrom(@_table)
-#        builder.where(conditions) if conditions
-#        builder.groupBy(params.groupBy) if params.groupBy?
-#        builder.having(params.having) if params.having?
-#        sql = builder.build()
-#        @_mysql.query sql, [], (error, results) ->
-#            return callback(error) if error
-#            return callback(null, results)
-#
+
+    # Finds several records using the specified conditions
+    findAll: (params) ->
+        callback = params.callback ? ->
+
+        conditions = params.conditions ? null
+        builder = @$.selectStarFrom(@_table)
+        builder.where(conditions) if conditions
+        builder.groupBy(params.groupBy) if params.groupBy?
+        builder.having(params.having) if params.having?
+        sql = builder.build()
+
+        @_query sql, (error, results) ->
+            return callback(error) if error
+            return callback(null, results)
+
 #    # Deletes all records from the table - BE CAREFUL
 #    # @param {function} callback Called when the operation is completed (error)
 #    removeAll: (callback) ->
