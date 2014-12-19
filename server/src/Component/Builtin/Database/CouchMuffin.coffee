@@ -16,12 +16,10 @@ class CouchMuffin
         @_cherries = @component 'Cherries'
         @$ = @component 'QueryBuilder', true
 
-    _query: (statement, callback) ->
+    _query: (query, callback) ->
         @_bucket.query query, (error, result) ->
-            if error
-                callback error
-            else
-                callback null, result
+            callback error if error
+            callback null, result
 
     _createCounter: (callback) ->
         @insert @_counterKey, 1, (error) ->
@@ -40,8 +38,7 @@ class CouchMuffin
 
     # Bind all methods from MyNinja into the model instance (expect for init() and bind() itself)
     bind: (model) ->
-#        methodsToBind = ['findById', 'find', 'findAll', 'removeAll', 'removeById', 'remove', 'query', 'updateAll', 'save']
-        methodsToBind = ['findById', 'findManyById', 'removeById', 'save', 'insert']
+        methodsToBind = ['findById', 'findManyById', 'removeById', 'save', 'insert', 'findAll']
         for methodName in methodsToBind
             muffinMethod = @[methodName]
             ((muffinMethod) =>
@@ -177,8 +174,6 @@ class CouchMuffin
 
     # Finds several records using the specified conditions
     findAll: (params, callback) ->
-        callback = params.callback ? ->
-
         conditions = params.conditions ? null
         builder = @$.selectStarFrom(@_dataSource.bucketName)
         builder.where(conditions) if conditions
@@ -186,9 +181,7 @@ class CouchMuffin
         builder.having(params.having) if params.having?
         sql = builder.build()
 
-        @_query sql, (error, results) ->
-            return callback(error) if error
-            return callback(null, results)
+        @_query sql, callback
 
 #    # Deletes all records from the table - BE CAREFUL
 #    # @param {function} callback Called when the operation is completed (error)
