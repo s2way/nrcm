@@ -1,4 +1,5 @@
 _ = require 'underscore'
+uuid = require 'node-uuid'
 
 class CouchMuffin
     constructor: (params) ->
@@ -6,12 +7,14 @@ class CouchMuffin
         @_type = params?.type
         @_validate = params?.validate
         @_keyPrefix = '' || params?.keyPrefix
+        @_autoId = '' || params?.autoId
+        @_counterKey = "#{@_keyPrefix}counter"
 
     init: ->
         @_dataSource = @component 'DataSource.Couchbase', @_dataSourceName
         @_validator = @component 'Validator', validate: @_validate
         @_cherries = @component 'Cherries'
-        @$ = @component 'QueryBuilder'
+        @$ = @component 'QueryBuilder', true
 
     _query: (statement, callback) ->
         @_bucket.query query, (error, result) ->
@@ -20,10 +23,25 @@ class CouchMuffin
             else
                 callback null, result
 
+    _createCounter: (callback) ->
+        @insert @_counterKey, 1, (error) ->
+            return callback error if error
+            return callback null, 1
+
+    _uuid: ->
+        uuid.v4()
+
+    _counter: (callback) ->
+        @_dataSource.bucket.counter @_counterKey, 1, (error, result) ->
+            _createCounter callback if error and error.code == 13
+            return callback error if error
+            return callback null, null if result.length is 0
+            return callback null, result.value
+
     # Bind all methods from MyNinja into the model instance (expect for init() and bind() itself)
     bind: (model) ->
 #        methodsToBind = ['findById', 'find', 'findAll', 'removeAll', 'removeById', 'remove', 'query', 'updateAll', 'save']
-        methodsToBind = ['findById', 'findManyById', 'removeById']
+        methodsToBind = ['findById', 'findManyById', 'removeById', 'save', 'insert']
         for methodName in methodsToBind
             muffinMethod = @[methodName]
             ((muffinMethod) =>
@@ -52,12 +70,51 @@ class CouchMuffin
     # @param {array|string} ids The records id within an array of Strings
     # @param {function} callback Called when the operation is completed (error, result)
     removeById: (id, options, callback) ->
-        options = {} || options
+        if options instanceof Function
+            callback = arguments[1]
+            options = {}
         idWithPrefix = "#{@_keyPrefix}#{id}"
         @_dataSource.bucket.remove idWithPrefix, options, (error, result) ->
             return callback error if error
             return callback null, null if result.length is 0
             return callback null, result
+
+    # Inserts a single record using the primary key, it updates if the key already exists
+    # @param {string} id The record id
+    # @param {Object} data The document itself
+    # @param {Object} [options]
+    #  @param {number} [options.expiry=0]
+    #  Set the initial expiration time for the document.  A value of 0 represents
+    #  never expiring.
+    #  @param {number} [options.persist_to=0]
+    #  Ensures this operation is persisted to this many nodes
+    #  @param {number} [options.replicate_to=0]
+    #  Ensures this operation is replicated to this many nodes
+    # @param {function} callback Called after the operation (error, result)
+    # @param {function} callback Called when the operation is completed (error, result)
+    save: (id, data, options, callback) ->
+        return callback error: 'InvalidId' if id is null
+
+        if options instanceof Function
+            callback = arguments[2]
+            options = {}
+
+        afterValidate = (error = null) =>
+            return callback(error) if error
+
+            if match and @_validate?
+                matched = @_validator.match data
+                return callback(name: 'MatchFailed', fields: matched) unless matched is true
+
+            @_dataSource.bucket.upsert id, data, options, (error, result) ->
+                return callback error if error
+                return callback null, null if result.length is 0
+                return callback null, result
+
+        if @_validate?
+            @_validator.validate data, afterValidate
+        else
+            afterValidate()
 
     # Inserts a single record using the primary key, it fails if the key already exists
     # @param {string} id The record id
@@ -73,11 +130,36 @@ class CouchMuffin
     # @param {function} callback Called after the operation (error, result)
     # @param {function} callback Called when the operation is completed (error, result)
     insert: (id, data, options, callback) ->
-        options = {} || options
-        @_dataSource.bucket.add id, data, options, (error, result) ->
+        if options instanceof Function
+            callback = arguments[2]
+            options = {}
+
+        afterId = (error, newId) =>
             return callback error if error
-            return callback null, null if result.length is 0
-            return callback null, result
+
+            afterValidate = (error = null) =>
+                return callback error if error
+
+                if match and @_validate?
+                    matched = @_validator.match data
+                    return callback name: 'MatchFailed', fields: matched unless matched is true
+
+                @_dataSource.bucket.insert newId, data, options, (error, result) ->
+                    return callback error if error
+                    return callback null, null if result.length is 0
+                    return callback null, result
+
+            if @_validate?
+                @_validator.validate data, afterValidate
+            else
+                afterValidate()
+
+        if id is null
+            afterId null, @_uuid() if @_autoId == 'uuid'
+            @_counter afterId if @_autoId == 'counter'
+            return callback error: 'InvalidId'
+        else
+            afterId null, id
 
 #    # Finds a single record using the specified conditions
 #    find: (params) ->
@@ -94,11 +176,11 @@ class CouchMuffin
 #            return callback(null, results[0])
 
     # Finds several records using the specified conditions
-    findAll: (params) ->
+    findAll: (params, callback) ->
         callback = params.callback ? ->
 
         conditions = params.conditions ? null
-        builder = @$.selectStarFrom(@_table)
+        builder = @$.selectStarFrom(@_dataSource.bucketName)
         builder.where(conditions) if conditions
         builder.groupBy(params.groupBy) if params.groupBy?
         builder.having(params.having) if params.having?
@@ -152,50 +234,5 @@ class CouchMuffin
 #
 #        sql = @$.update(@_table).set(data).where(conditions).build()
 #        @_mysql.query sql, [], callback
-#
-#    # Saves the specified data if it is validated and matched against the validate object
-#    save: (params) ->
-#        callback = params.callback ? ->
-#        data = params.data ? {}
-#        escape = params.escape ? true
-#        validate = params.validate ? true
-#        match = params.match ? true
-#
-#        # Make copies of data so that the modification of the JSON won't affected the original one
-#        original = @_cherries.copy(data)
-#        data = @_cherries.copy(data)
-#
-#        if escape
-#            for prop of data
-#                data[prop] = @$.value(data[prop])
-#
-#        afterValidate = (error = null) =>
-#            return callback(error) if error
-#
-#            if match and @_validate?
-#                matched = @_validator.match data
-#                return callback(name: 'MatchFailed', fields: matched) unless matched is true
-#
-#            if data[@_primaryKey]?
-#                primaryKeyValue = data[@_primaryKey]
-#                delete data[@_primaryKey]
-#                sql = @$.update(@_table).set(data).where(
-#                    @$.equal(@_primaryKey, primaryKeyValue)
-#                ).build()
-#                @_mysql.query sql, [], (error) =>
-#                    return callback(error) if error
-#                    original[@_primaryKey] = primaryKeyValue
-#                    return callback(null, original)
-#            else
-#                sql = @$.insertInto(@_table).set(data).build()
-#                @_mysql.query sql, [], (error, results) =>
-#                    return callback(error) if error
-#                    original[@_primaryKey] = results.insertId
-#                    return callback(null, original)
-#
-#        if validate and @_validate?
-#            @_validator.validate data, afterValidate
-#        else
-#            afterValidate()
 
 module.exports = CouchMuffin
