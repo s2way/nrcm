@@ -1,5 +1,23 @@
 Exceptions = require('../../../Util/Exceptions')
 
+# The Couchbase DataSource uses the following definition
+#
+#<DataSourceName>
+# type = Couchbase ** must be like this ** <DataSourceType>
+# host = ** required <host>
+# port = ** required <port>
+# bucket = ** required <bucketName>
+# n1qlHost: "127.0.0.1" <N1QL query language host>
+# n1qlPort: 8093  <N1QL query language port>
+#
+#ephemeral:
+#    type: "Couchbase"
+#    host: "127.0.0.1"
+#    port: 8091
+#    bucket: "ephemeral"
+#    n1qlHost: "127.0.0.1"
+#    n1qlPort: 8093
+
 class Couchbase
     constructor: (dataSourceName) ->
         dataSourceName = dataSourceName or 'default'
@@ -17,6 +35,7 @@ class Couchbase
         @bucketName = @_dataSource.bucket
         @cluster = new @_couchbase.Cluster "#{@_dataSource.host}:#{@_dataSource.port}"
         @bucket = @cluster.openBucket @bucketName
+        @bucket.enableN1ql "#{@_dataSource.n1qlHost}:#{@_dataSource.n1qlPort}" if @_dataSource.n1qlPort?
 
     # Close the database connection
     destroy: ->
