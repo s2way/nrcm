@@ -373,3 +373,56 @@ describe 'CouchMuffin', ->
             model = {}
             instance.bind model
             model.findAll(myParams)
+
+    describe 'find', ->
+        it 'should find one record', (done) ->
+            stdError = null
+            stdResult = stdMyData.MyKey.value
+            queryParams =
+                conditions: "_type = '_tableName'"
+                groupBy: " GROUP BY test"
+                having: " HAVING test > 1"
+
+            loader.mockComponent 'DataSource.Couchbase',
+                init: ->
+                bucket:
+                    query: (query, callback) ->
+                        callback stdError, stdResult
+                    n1ql:
+                        fromString: (str) ->
+                            str
+                bucketName: "teste"
+
+            instance = loader.createComponent 'Database.CouchMuffin', params
+
+            instance.init()
+            instance.find queryParams, (error, result) ->
+                expect(result).to.be stdResult
+                done()
+
+    describe 'findAll', ->
+        it 'should find all records', (done) ->
+            stdError = null
+            stdResult = stdMyData.MyKey.value
+            queryParams =
+                conditions: "_type = '_tableName'"
+                groupBy: " GROUP BY test"
+                limit: " LIMIT 1"
+                having: " HAVING test > 1"
+
+            loader.mockComponent 'DataSource.Couchbase',
+                init: ->
+                bucket:
+                    query: (query, callback) ->
+                        callback stdError, stdResult
+                    n1ql:
+                        fromString: (str) ->
+                            str
+                bucketName: "teste"
+
+            instance = loader.createComponent 'Database.CouchMuffin', params
+
+            instance.init()
+            instance.findAll queryParams, (error, result) ->
+                expect(result).to.be stdResult
+                done()

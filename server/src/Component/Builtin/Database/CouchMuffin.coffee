@@ -17,7 +17,7 @@ class CouchMuffin
         @$ = @component 'QueryBuilder', true
 
     _query: (query, callback) ->
-        @_bucket.query (@_bucket.n1ql.fromString query), (error, result) ->
+        @_dataSource.bucket.query (@_dataSource.bucket.n1ql.fromString query), (error, result) ->
             callback error if error
             callback null, result
 

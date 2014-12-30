@@ -25,3 +25,30 @@ describe "Couchbase.js", ->
                 instance.init()
             ).to.throwException (e) ->
                 expect(e.name).to.be "IllegalArgument"
+
+        it "should initialize the couchbase", ->
+            instance = new Couchbase()
+            instance.core = dataSources:
+                default:
+                    host: "127.0.0.1"
+                    port: 8091
+                    bucket: "default"
+                    n1qlHost: "127.0.0.1"
+                    n1qlPort: 8093
+            expect(->
+                instance.init()
+            ).to.not.throwException (e) ->
+                expect(e).to.not.be.ok()
+
+    describe "destroy", ->
+        it "should close the session", ->
+            instance = new Couchbase()
+            instance.core = dataSources:
+                default:
+                    host: "127.0.0.1"
+                    port: 8091
+                    bucket: "default"
+                    n1qlHost: "127.0.0.1"
+                    n1qlPort: 8093
+
+            expect(instance.destroy()).to.not.be.ok()

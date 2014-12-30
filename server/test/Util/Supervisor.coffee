@@ -61,4 +61,5 @@ describe 'Supervisor.js', ->
             supervisor.run()
             supervisor.stop()
             expect(supervisor._isRunning).to.be(false)
+            supervisor._runner 'geo', supervisor
             done()
