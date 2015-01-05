@@ -61,5 +61,4 @@ class Cherries
 
         Sync.loadNodeFilesIntoArray elementNames
 
-
 module.exports = Cherries

@@ -97,7 +97,9 @@ class RequestHandler
             , {}, 200
 
 
-    # It executes a function within the controller
+    # It receives the request payload
+    # It prepares the controller for execution
+    # It fires the ControllerRunner
     _invokeController: (instance) ->
         throw new Exceptions.MethodNotFound() if instance[@_request.method] is undefined
 
