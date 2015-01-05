@@ -16,7 +16,7 @@ describe 'Supervisor.js', ->
     configOk =
         nodeName: "geo"
         dataSource: {}
-        intervalInSeconds: 30
+        intervalInSeconds: 0.0001
     monitoring =
         requests: 0
         responseAvg: 0
@@ -51,9 +51,11 @@ describe 'Supervisor.js', ->
         it 'should start the timmer if everything is fine', (done) ->
             supervisor = new Supervisor(null, configOk, monitoring)
             supervisor.es = {}
-            supervisor.run()
-            expect(supervisor._isRunning).to.not.be(false)
-            done()
+            supervisor.run(->
+                expect(supervisor._isRunning).to.not.be(false)
+                supervisor.stop()
+                done()
+            )
 
         it 'should stop the timmer if everything is fine', (done) ->
             supervisor = new Supervisor(null, configOk, monitoring)
