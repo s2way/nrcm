@@ -1,4 +1,5 @@
 # WaferPie
+![Build Status](https://travis-ci.org/s2way/waferpie.svg)
 
 WaferPie is a Controller Model framework for NodeJS.
 
