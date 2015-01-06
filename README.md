@@ -1,10 +1,6 @@
 # WaferPie
 ![Build Status](https://travis-ci.org/s2way/waferpie.svg)
 
-WaferPie is a Controller Model framework for NodeJS.
-
-It is an ultra lightweight implementation of a RESTful API that acts as a content provider.
-
 For Web API developers who need a scalable and lightweight solution, WaferPie is a RESTFul framework built with NodeJS that is lean, open-source and infrastructure-oriented. Unlike all others, our framework runs entirely from RAM memory.
 
 ## Features
