@@ -45,6 +45,7 @@ describe 'CouchMuffin', ->
                 init: ->
                 bucket:
                     getMulti: (ids, callback) ->
+                        expect(ids).to.eql ['testing.test_MyKey']
                         callback stdError, stdResult
 
             instance = loader.createComponent 'Database.CouchMuffin', params

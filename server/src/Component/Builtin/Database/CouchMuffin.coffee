@@ -49,7 +49,7 @@ class CouchMuffin
     # @param {string} id The record id
     # @param {function} callback Called when the operation is completed (error, result)
     findById: (id, callback) ->
-        @findManyById id, callback
+        @findManyById [id], callback
 
     # Finds many records using the primary key
     # @param {array|string} ids The records id within an array of Strings
