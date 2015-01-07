@@ -153,8 +153,8 @@ class CouchMuffin
                 afterValidate()
 
         if id is null
-            afterId null, @_uuid() if @_autoId == 'uuid'
-            @_counter afterId if @_autoId == 'counter'
+            afterId null, @_uuid() if @_autoId is 'uuid'
+            @_counter afterId if @_autoId is 'counter'
             return callback error: 'InvalidId' if @_autoId isnt 'uuid' and @_autoId isnt 'counter'
         else
             afterId null, id

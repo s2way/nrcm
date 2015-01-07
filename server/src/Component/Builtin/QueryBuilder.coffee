@@ -23,6 +23,11 @@ class QueryBuilder
         @query += "SELECT META(), VALUE() FROM " + table + " " if @n1ql
         this
 
+    selectCountStarFrom: (table) ->
+        throw new Exceptions.IllegalArgument() if table is undefined
+        @query += "SELECT COUNT(*) AS count FROM " + table + " " if !@n1ql
+        this
+
     select: ->
         throw new Exceptions.IllegalArgument() if arguments.length is 0
         @query += "SELECT " + @_fieldsToCommaList(arguments) + " "

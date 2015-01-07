@@ -19,6 +19,17 @@ describe 'QueryBuilder.js', ->
             catch e
                 assert.equal "IllegalArgument", e.name
 
+    describe 'selectCountStarFrom', ->
+        it 'should output SELECT COUNT(*) AS count FROM + table', ->
+            assert.equal "SELECT COUNT(*) AS count FROM sky", $.selectCountStarFrom("sky").build()
+
+        it 'should throw an exception if the parameter table is not passed', ->
+            expect(->
+                $.selectCountStarFrom()
+            ).to.throwException((e) ->
+                expect(e.name).to.be 'IllegalArgument'
+            )
+
     describe 'select', ->
         it 'should output SELECT + the parameters if they are passed', ->
             assert.equal "SELECT c1, c2, c3", $.select("c1", "c2", "c3").build()

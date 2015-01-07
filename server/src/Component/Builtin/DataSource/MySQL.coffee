@@ -1,4 +1,4 @@
-Exceptions = require('../../../Util/Exceptions')
+Exceptions = require '../../../Util/Exceptions'
 
 class MySQL
     @static = true
@@ -7,7 +7,7 @@ class MySQL
     # @param {string} dataSourceName The name of the DataSource defined in the application core.yml
     # @constructor
     constructor: (@_dataSourceName = 'default') ->
-        @_mysql = require('mysql')
+        @_mysql = require 'mysql'
         @_connections = {}
         @_databaseSelected = {}
 
