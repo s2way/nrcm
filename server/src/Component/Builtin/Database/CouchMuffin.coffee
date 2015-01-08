@@ -58,7 +58,7 @@ class CouchMuffin
         idsWithPrefix = []
         idsWithPrefix = ("#{@_keyPrefix}#{value}" for value in ids)
         @_dataSource.bucket.getMulti idsWithPrefix, (error, result) ->
-            return callback error if error
+            return callback error if error and !_.isNumber error
             return callback null, result
 
     # Remove a single record using the primary key
