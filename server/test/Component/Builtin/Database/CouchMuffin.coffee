@@ -118,6 +118,8 @@ describe 'CouchMuffin', ->
             stdError = null
             stdResult = stdMyData.MyKey
             delete stdResult.value
+            paramsToSave =
+                id: 'MyKey'
 
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
@@ -128,7 +130,7 @@ describe 'CouchMuffin', ->
             instance = loader.createComponent 'Database.CouchMuffin', params
 
             instance.init()
-            instance.removeById 'MyKey', (error, result) ->
+            instance.removeById paramsToSave, (error, result) ->
                 expect(error).not.to.be.ok()
                 expect(result).to.be stdResult
                 done()
@@ -136,6 +138,8 @@ describe 'CouchMuffin', ->
         it 'should pass the error to the callback if something occurs', (done) ->
             stdError = stdMyError
             stdResult = null
+            paramsToSave =
+                id: 'MyKey'
 
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
@@ -146,7 +150,7 @@ describe 'CouchMuffin', ->
             instance = loader.createComponent 'Database.CouchMuffin', params
 
             instance.init()
-            instance.removeById 'MyKey', (error, result) ->
+            instance.removeById paramsToSave, (error, result) ->
                 expect(error.name).to.be('MyError')
                 expect(result).not.to.be.ok()
                 done()
@@ -156,6 +160,9 @@ describe 'CouchMuffin', ->
         it 'should save the record by id', (done) ->
             stdError = null
             stdResult = stdMyData.MyKey.value
+            paramsToSave =
+                id: 'MyKey'
+                data: stdResult
 
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
@@ -166,7 +173,7 @@ describe 'CouchMuffin', ->
             instance = loader.createComponent 'Database.CouchMuffin', params
 
             instance.init()
-            instance.save 'MyKey', stdResult, {}, (error, result) ->
+            instance.save paramsToSave, (error, result) ->
                 expect(error).not.to.be.ok()
                 expect(result).to.be stdResult
                 done()
@@ -177,6 +184,10 @@ describe 'CouchMuffin', ->
             stdOptions =
                 validate: false
                 match: false
+            paramsToSave =
+                id: 'MyKey'
+                data: stdResult
+                options: stdOptions
 
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
@@ -187,7 +198,7 @@ describe 'CouchMuffin', ->
             instance = loader.createComponent 'Database.CouchMuffin', params
 
             instance.init()
-            instance.save 'MyKey', stdResult, stdOptions, (error, result) ->
+            instance.save paramsToSave, (error, result) ->
                 expect(error).not.to.be.ok()
                 expect(result).to.be stdResult
                 done()
@@ -195,6 +206,9 @@ describe 'CouchMuffin', ->
         it 'should pass the error to the callback if something occurs', (done) ->
             stdError = stdMyError
             stdResult = stdMyData.MyKey.value
+            paramsToSave =
+                id: 'MyKey'
+                data: stdResult
 
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
@@ -205,7 +219,7 @@ describe 'CouchMuffin', ->
             instance = loader.createComponent 'Database.CouchMuffin', params
 
             instance.init()
-            instance.save 'MyKey', stdResult, {}, (error, result) ->
+            instance.save paramsToSave, (error, result) ->
                 expect(error.name).to.be('MyError')
                 expect(result).not.to.be.ok()
                 done()
@@ -213,6 +227,8 @@ describe 'CouchMuffin', ->
         it 'should pass the error to the callback if validation fails', (done) ->
             stdError = stdMyError
             stdResult = null
+            paramsToSave =
+                id: 'MyKey'
 
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
@@ -223,7 +239,7 @@ describe 'CouchMuffin', ->
             instance = loader.createComponent 'Database.CouchMuffin', params
 
             instance.init()
-            instance.save 'MyKey', {}, {}, (error, result) ->
+            instance.save params, (error, result) ->
                 expect(error.name).to.be('ValidationFailed')
                 expect(result).not.to.be.ok()
                 done()
@@ -233,6 +249,9 @@ describe 'CouchMuffin', ->
         it 'should insert the record using the id passed', (done) ->
             stdError = null
             stdResult = stdMyData.MyKey.value
+            paramsToSave =
+                id: 'MyKey'
+                data: stdResult
 
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
@@ -243,7 +262,7 @@ describe 'CouchMuffin', ->
             instance = loader.createComponent 'Database.CouchMuffin', params
 
             instance.init()
-            instance.insert 'MyKey', stdResult, {}, (error, result) ->
+            instance.insert paramsToSave, (error, result) ->
                 expect(error).not.to.be.ok()
                 expect(result).to.be stdResult
                 done()
@@ -254,6 +273,11 @@ describe 'CouchMuffin', ->
             stdOptions =
                 validate: false
                 match: false
+            paramsToSave =
+                id: 'MyKey'
+                data: stdResult
+                options: stdOptions
+
 
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
@@ -264,7 +288,7 @@ describe 'CouchMuffin', ->
             instance = loader.createComponent 'Database.CouchMuffin', params
 
             instance.init()
-            instance.insert 'MyKey', stdResult, stdOptions, (error, result) ->
+            instance.insert paramsToSave, (error, result) ->
                 expect(error).not.to.be.ok()
                 expect(result).to.be stdResult
                 done()
@@ -272,6 +296,9 @@ describe 'CouchMuffin', ->
         it 'should pass the error to the callback if something occurs', (done) ->
             stdError = stdMyError
             stdResult = stdMyData.MyKey.value
+            paramsToSave =
+                id: 'MyKey'
+                data: stdResult
 
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
@@ -282,7 +309,7 @@ describe 'CouchMuffin', ->
             instance = loader.createComponent 'Database.CouchMuffin', params
 
             instance.init()
-            instance.insert 'MyKey', stdResult, {}, (error, result) ->
+            instance.insert paramsToSave, (error, result) ->
                 expect(error.name).to.be('MyError')
                 expect(result).not.to.be.ok()
                 done()
@@ -290,6 +317,8 @@ describe 'CouchMuffin', ->
         it 'should pass the error to the callback if validation fails', (done) ->
             stdError = stdMyError
             stdResult = null
+            paramsToSave =
+                id: 'MyKey'
 
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
@@ -300,7 +329,7 @@ describe 'CouchMuffin', ->
             instance = loader.createComponent 'Database.CouchMuffin', params
 
             instance.init()
-            instance.insert 'MyKey', {}, {}, (error, result) ->
+            instance.insert paramsToSave, (error, result) ->
                 expect(error.name).to.be('ValidationFailed')
                 expect(result).not.to.be.ok()
                 done()
@@ -308,6 +337,8 @@ describe 'CouchMuffin', ->
         it 'should insert the record using an uuid', (done) ->
             stdError = null
             stdResult = stdMyData.MyKey.value
+            paramsToSave =
+                data: stdResult
 
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
@@ -318,7 +349,7 @@ describe 'CouchMuffin', ->
             instance = loader.createComponent 'Database.CouchMuffin', params
 
             instance.init()
-            instance.insert null, stdResult, {}, (error, result) ->
+            instance.insert paramsToSave, (error, result) ->
                 expect(error).not.to.be.ok()
                 expect(result).to.be stdResult
                 done()
@@ -327,6 +358,8 @@ describe 'CouchMuffin', ->
             stdError = null
             stdResult = stdMyData.MyKey.value
             params.autoId = 'counter'
+            paramsToSave =
+                data: stdResult
 
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
@@ -339,7 +372,7 @@ describe 'CouchMuffin', ->
             instance = loader.createComponent 'Database.CouchMuffin', params
 
             instance.init()
-            instance.insert null, stdResult, {}, (error, result) ->
+            instance.insert paramsToSave, (error, result) ->
                 expect(error).not.to.be.ok()
                 expect(result).to.be stdResult
                 done()
@@ -348,6 +381,8 @@ describe 'CouchMuffin', ->
             stdError = null
             stdResult = stdMyData.MyKey.value
             params.autoId = ''
+            paramsToSave =
+                data: stdResult
 
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
@@ -358,7 +393,7 @@ describe 'CouchMuffin', ->
             instance = loader.createComponent 'Database.CouchMuffin', params
 
             instance.init()
-            instance.insert null, stdResult, {}, (error, result) ->
+            instance.insert paramsToSave, (error, result) ->
                 expect(error).to.be.ok()
                 expect(result).not.to.be.ok()
                 done()

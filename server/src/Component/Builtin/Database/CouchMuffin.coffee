@@ -64,35 +64,34 @@ class CouchMuffin
     # Remove a single record using the primary key
     # @param {array|string} ids The records id within an array of Strings
     # @param {function} callback Called when the operation is completed (error, result)
-    removeById: (id, options, callback) ->
-        if options instanceof Function
-            callback = arguments[1]
-            options = {}
+    removeById: (params, callback) ->
+        id = params.id || null
+        options = params.options || {}
+
         idWithPrefix = "#{@_keyPrefix}#{id}"
         @_dataSource.bucket.remove idWithPrefix, options, (error, result) ->
             return callback error if error
             return callback null, result
 
     # Inserts a single record using the primary key, it updates if the key already exists
-    # @param {string} id The record id
-    # @param {Object} data The document itself
-    # @param {Object} [options]
-    #  @param {number} [options.expiry=0]
-    #  Set the initial expiration time for the document.  A value of 0 represents
-    #  never expiring.
-    #  @param {number} [options.persist_to=0]
-    #  Ensures this operation is persisted to this many nodes
-    #  @param {number} [options.replicate_to=0]
-    #  Ensures this operation is replicated to this many nodes
+    # @param {string} [params]
+    #  @param {string} id The record id
+    #  @param {Object} data The document itself
+    #  @param {Object} [options]
+    #   @param {number} [options.expiry=0]
+    #   Set the initial expiration time for the document.  A value of 0 represents
+    #   never expiring.
+    #   @param {number} [options.persist_to=0]
+    #   Ensures this operation is persisted to this many nodes
+    #   @param {number} [options.replicate_to=0]
+    #   Ensures this operation is replicated to this many nodes
     # @param {function} callback Called after the operation (error, result)
     # @param {function} callback Called when the operation is completed (error, result)
-    save: (id, data, options, callback) ->
+    save: (params, callback) ->
         return callback error: 'InvalidId' if id is null
-
-        if options instanceof Function
-            callback = arguments[2]
-            options = {}
-
+        id = params.id || null
+        data = params.data || {}
+        options = params.options || {}
         validate = options.validate ? true
         match = options.match ? true
 
@@ -125,11 +124,10 @@ class CouchMuffin
     #  Ensures this operation is replicated to this many nodes
     # @param {function} callback Called after the operation (error, result)
     # @param {function} callback Called when the operation is completed (error, result)
-    insert: (id, data, options, callback) ->
-        if options instanceof Function
-            callback = arguments[2]
-            options = {}
-
+    insert: (params, callback) ->
+        id = params.id || null
+        data = params.data || {}
+        options = params.options || {}
         validate = options.validate ? true
         match = options.match ? true
 
