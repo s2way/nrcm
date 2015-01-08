@@ -389,9 +389,9 @@ describe 'CouchMuffin', ->
                 bucket:
                     query: (query, callback) ->
                         callback stdError, stdResult
-                    n1ql:
-                        fromString: (str) ->
-                            str
+                n1ql:
+                    fromString: (str) ->
+                        str
                 bucketName: "teste"
 
             instance = loader.createComponent 'Database.CouchMuffin', params
@@ -416,9 +416,9 @@ describe 'CouchMuffin', ->
                 bucket:
                     query: (query, callback) ->
                         callback stdError, stdResult
-                    n1ql:
-                        fromString: (str) ->
-                            str
+                n1ql:
+                    fromString: (str) ->
+                        str
                 bucketName: "teste"
 
             instance = loader.createComponent 'Database.CouchMuffin', params
