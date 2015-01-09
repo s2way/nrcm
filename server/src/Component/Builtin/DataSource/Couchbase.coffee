@@ -23,7 +23,7 @@ class Couchbase
         dataSourceName = dataSourceName or 'default'
         @_couchbase = require 'couchbase'
         @_dataSourceName = dataSourceName
-        @n1ql = require('couchbase').N1q1Query
+        @n1ql = require('couchbase').N1qlQuery
 
     # Component initialization
     # Check if the data source specified in the constructor exists
