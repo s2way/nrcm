@@ -22,7 +22,10 @@ class CouchMuffin
             callback null, result
 
     _createCounter: (callback) ->
-        @insert @_counterKey, 1, (error) ->
+        data =
+            id: @_counterKey
+            data: 1
+        @insert data, (error) ->
             return callback error if error
             return callback null, 1
 
@@ -30,7 +33,7 @@ class CouchMuffin
         uuid.v4()
 
     _counter: (callback) ->
-        @_dataSource.bucket.counter @_counterKey, 1, (error, result) ->
+        @_dataSource.bucket.counter @_counterKey, 1, (error, result) =>
             return @_createCounter callback if error and error.code == 13
             return callback error if error
             return callback null, result.value
