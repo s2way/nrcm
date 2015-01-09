@@ -18,10 +18,10 @@ describe 'CouchMuffin', ->
             autoId: 'uuid'
             validate:
                 string: (value, data, callback) ->
-                    return callback(error: '') if typeof value isnt 'string'
+                    return callback error: '' if typeof value isnt 'string'
                     callback()
                 number: (value, data, callback) ->
-                    return callback(error: '') if typeof value isnt 'number'
+                    return callback error: '' if typeof value isnt 'number'
                     callback()
         loader = new Loader
         stdMyData =
@@ -70,7 +70,7 @@ describe 'CouchMuffin', ->
 
             instance.init()
             instance.findById 'MyKey', (error, result) ->
-                expect(error.name).to.be('MyError')
+                expect(error.name).to.be 'MyError'
                 expect(result).not.to.be.ok()
                 done()
 
@@ -108,7 +108,7 @@ describe 'CouchMuffin', ->
 
             instance.init()
             instance.findManyById ['MyKey','MyKey1'], (error, result) ->
-                expect(error.name).to.be('MyError')
+                expect(error.name).to.be 'MyError'
                 expect(result).not.to.be.ok()
                 done()
 
@@ -151,7 +151,7 @@ describe 'CouchMuffin', ->
 
             instance.init()
             instance.removeById paramsToSave, (error, result) ->
-                expect(error.name).to.be('MyError')
+                expect(error.name).to.be 'MyError'
                 expect(result).not.to.be.ok()
                 done()
 
@@ -220,7 +220,7 @@ describe 'CouchMuffin', ->
 
             instance.init()
             instance.save paramsToSave, (error, result) ->
-                expect(error.name).to.be('MyError')
+                expect(error.name).to.be 'MyError'
                 expect(result).not.to.be.ok()
                 done()
 
