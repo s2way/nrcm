@@ -377,6 +377,32 @@ describe 'CouchMuffin', ->
                 expect(result).to.be stdResult
                 done()
 
+        it 'should insert the record using a counter and create it if does not exist', (done) ->
+            stdError = null
+            stdResult = stdMyData.MyKey.value
+            params.autoId = 'counter'
+            paramsToSave =
+                data: stdResult
+            errorNotExist =
+                code: 13
+
+            loader.mockComponent 'DataSource.Couchbase',
+                init: ->
+                bucket:
+                    insert: (id, data, options, callback) ->
+                        callback stdError, stdResult if data != 1
+                        callback null, 1 if data == 1
+                    counter: (id, delta, callback) ->
+                        callback errorNotExist
+
+            instance = loader.createComponent 'Database.CouchMuffin', params
+
+            instance.init()
+            instance.insert paramsToSave, (error, result) ->
+                expect(error).not.to.be.ok()
+                expect(result).to.be stdResult
+                done()
+
         it 'should pass error to the callback if there is no rule for auto id', (done) ->
             stdError = null
             stdResult = stdMyData.MyKey.value

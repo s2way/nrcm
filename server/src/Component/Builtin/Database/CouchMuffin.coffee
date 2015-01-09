@@ -25,6 +25,9 @@ class CouchMuffin
         data =
             id: @_counterKey
             data: 1
+            options:
+                validate: false
+                match: false
         @insert data, (error) ->
             return callback error if error
             return callback null, 1
@@ -34,7 +37,7 @@ class CouchMuffin
 
     _counter: (callback) ->
         @_dataSource.bucket.counter @_counterKey, 1, (error, result) =>
-            return @_createCounter callback if error and error.code == 13
+            return @_createCounter callback if error and error.code is 13
             return callback error if error
             return callback null, result.value
 
