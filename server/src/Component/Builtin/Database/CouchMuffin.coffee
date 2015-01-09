@@ -100,6 +100,9 @@ class CouchMuffin
         options = params.options || {}
         validate = options.validate ? true
         match = options.match ? true
+        idWithPrefix = "#{@_keyPrefix}#{id}"
+
+        return callback error: 'InvalidId' if id?
 
         afterValidate = (error = null) =>
             return callback(error) if error
@@ -108,7 +111,7 @@ class CouchMuffin
                 matched = @_validator.match data
                 return callback name: 'MatchFailed', fields: matched unless matched is true
 
-            @_dataSource.bucket.upsert id, data, options, (error, result) ->
+            @_dataSource.bucket.upsert idWithPrefix, data, options, (error, result) ->
                 return callback error if error
                 return callback null, result
 
