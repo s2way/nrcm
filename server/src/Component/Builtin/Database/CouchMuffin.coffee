@@ -31,7 +31,7 @@ class CouchMuffin
 
     _counter: (callback) ->
         @_dataSource.bucket.counter @_counterKey, 1, (error, result) ->
-            @_createCounter callback if error and error.code == 13
+            return @_createCounter callback if error and error.code == 13
             return callback error if error
             return callback null, result.value
 
