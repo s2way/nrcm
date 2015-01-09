@@ -19,7 +19,6 @@ Exceptions = require('../../../Util/Exceptions')
 #    n1qlPort: 8093
 
 class Couchbase
-    @static = true
 
     constructor: (dataSourceName) ->
         dataSourceName = dataSourceName or 'default'
