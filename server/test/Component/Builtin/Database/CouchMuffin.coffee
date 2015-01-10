@@ -23,6 +23,7 @@ describe 'CouchMuffin', ->
                 number: (value, data, callback) ->
                     return callback error: '' if typeof value isnt 'number'
                     callback()
+            trackDates: true
         loader = new Loader
         stdMyData =
             MyKey:

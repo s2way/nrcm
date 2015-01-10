@@ -3,11 +3,12 @@ uuid = require 'node-uuid'
 
 class CouchMuffin
     constructor: (options) ->
-        @_dataSourceName = options?.dataSourceName ? 'default'
+        @_dataSourceName = options?.dataSourceName || 'default'
         @_type = options?.type
         @_validate = options?.validate
         @_keyPrefix = '' || options?.keyPrefix
         @_autoId = '' || options?.autoId
+        @_trackDates = options?.trackDates
         @_counterKey = "#{@_keyPrefix}counter"
 
     init: ->
@@ -15,6 +16,15 @@ class CouchMuffin
         @_validator = @component 'Validator', validate: @_validate
         @_cherries = @component 'Cherries'
         @$ = @component 'QueryBuilder', true
+
+    _addType: (data) ->
+        data._type = @_type unless @_type?
+
+    _addCreatedAt: (data) ->
+        data._createdAt = new Date().toISOString() if @_trackDates
+
+    _addLastUpdate: (data) ->
+        data._lastUpdate = new Date().toISOString() if @_trackDates
 
     _query: (query, callback) ->
         @_dataSource.bucket.query (@_dataSource.n1ql.fromString query), (error, result) ->
@@ -95,14 +105,12 @@ class CouchMuffin
     # @param {function} callback Called when the operation is completed (error, result)
     save: (params, callback) ->
         return callback error: 'InvalidId' if id is null
-        id = params.id || null
+        id = params.id
         data = params.data || {}
         options = params.options || {}
         validate = options.validate ? true
         match = options.match ? true
         idWithPrefix = "#{@_keyPrefix}#{id}"
-
-        return callback error: 'InvalidId' if id?
 
         afterValidate = (error = null) =>
             return callback(error) if error
@@ -110,6 +118,9 @@ class CouchMuffin
             if match and @_validate?
                 matched = @_validator.match data
                 return callback name: 'MatchFailed', fields: matched unless matched is true
+
+            @_addType data
+            @_addLastUpdate data
 
             @_dataSource.bucket.upsert idWithPrefix, data, options, (error, result) ->
                 return callback error if error
@@ -149,6 +160,9 @@ class CouchMuffin
                 if match and @_validate?
                     matched = @_validator.match data
                     return callback name: 'MatchFailed', fields: matched unless matched is true
+
+                @_addType data
+                @_addCreatedAt data
 
                 @_dataSource.bucket.insert newId, data, options, (error, result) ->
                     return callback error if error
