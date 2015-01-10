@@ -6,7 +6,7 @@ class Message
         @tc = new TextChocolate @configs?.strings, lang if @configs?.strings
 
     get: (message, type, lang) ->
-        @tc.lang lang unless lang?
+        @tc.lang lang if lang?
         return @tc.translate message, type if @tc
         message
 
