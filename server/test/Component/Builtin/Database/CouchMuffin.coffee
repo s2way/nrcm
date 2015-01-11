@@ -168,7 +168,7 @@ describe 'CouchMuffin', ->
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
                 bucket:
-                    upsert: (id, data, options, callback) ->
+                    replace: (id, data, options, callback) ->
                         callback stdError, stdResult
 
             instance = loader.createComponent 'Database.CouchMuffin', params
@@ -193,7 +193,7 @@ describe 'CouchMuffin', ->
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
                 bucket:
-                    upsert: (id, data, options, callback) ->
+                    replace: (id, data, options, callback) ->
                         callback stdError, stdResult
 
             instance = loader.createComponent 'Database.CouchMuffin', params
@@ -214,7 +214,7 @@ describe 'CouchMuffin', ->
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
                 bucket:
-                    upsert: (id, data, options, callback) ->
+                    replace: (id, data, options, callback) ->
                         callback stdError, null
 
             instance = loader.createComponent 'Database.CouchMuffin', params
@@ -234,7 +234,7 @@ describe 'CouchMuffin', ->
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
                 bucket:
-                    upsert: (id, data, options, callback) ->
+                    replace: (id, data, options, callback) ->
                         callback stdError, stdResult
 
             instance = loader.createComponent 'Database.CouchMuffin', params

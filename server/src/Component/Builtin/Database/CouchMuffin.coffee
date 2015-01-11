@@ -122,7 +122,7 @@ class CouchMuffin
             @_addType data
             @_addLastUpdate data
 
-            @_dataSource.bucket.upsert idWithPrefix, data, options, (error, result) ->
+            @_dataSource.bucket.replace idWithPrefix, data, options, (error, result) ->
                 return callback error if error
                 return callback null, result
 
