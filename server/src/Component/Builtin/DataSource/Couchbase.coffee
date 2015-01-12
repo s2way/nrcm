@@ -39,6 +39,6 @@ class Couchbase
 
     # Close the database connection
     destroy: ->
-        @bucket?.disconnect?()
+        # @bucket?.disconnect?()
 
 module.exports = Couchbase
