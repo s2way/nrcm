@@ -50,7 +50,7 @@ class CouchMuffin
         @_dataSource.bucket.counter @_counterKey, 1, (error, result) =>
             return @_createCounter callback if error and error.code is 13
             return callback error if error
-            return callback null, @_keyPrefix + result.value
+            return callback null, result.value
 
     # Bind all methods from MyNinja into the model instance (expect for init() and bind() itself)
     bind: (model) ->
