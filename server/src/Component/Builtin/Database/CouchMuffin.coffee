@@ -43,7 +43,8 @@ class CouchMuffin
             return callback null, @_keyPrefix + '1'
 
     _uuid: ->
-        uuid.v4()
+        uuid = uuid.v4()
+        return "#{@_keyPrefix}#{uuid}"
 
     _counter: (callback) ->
         @_dataSource.bucket.counter @_counterKey, 1, (error, result) =>
