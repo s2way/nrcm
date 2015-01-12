@@ -9,7 +9,6 @@ class CouchMuffin
         @_keyPrefix = '' || options?.keyPrefix
         @_autoId = '' || options?.autoId
         @_trackDates = options?.trackDates
-        @_counterKey = "#{@_keyPrefix}counter"
 
     init: ->
         @_dataSource = @component 'DataSource.Couchbase', @_dataSourceName
@@ -33,21 +32,21 @@ class CouchMuffin
 
     _createCounter: (callback) ->
         data =
-            id: @_counterKey
+            id: 'counter'
             data: 1
             options:
                 validate: false
                 match: false
         @insert data, (error) ->
             return callback error if error
-            return callback null, '1'
+            return callback null, 1
 
     _uuid: ->
         uid = uuid.v4()
         return "#{@_keyPrefix}#{uid}"
 
     _counter: (callback) ->
-        @_dataSource.bucket.counter @_keyPrefix + @_counterKey, 1, (error, result) =>
+        @_dataSource.bucket.counter "#{@_keyPrefix}counter", 1, (error, result) =>
             return @_createCounter callback if error and error.code is 13
             return callback error if error
             return callback null, result.value
@@ -150,7 +149,6 @@ class CouchMuffin
     # @param {function} callback Called when the operation is completed (error, result)
     insert: (params, callback) ->
         id = params.id || null
-        id = "#{@_keyPrefix}#{id}" if id?
         data = params.data || {}
         options = params.options || {}
         validate = options.validate ? true
@@ -158,6 +156,7 @@ class CouchMuffin
 
         afterId = (error, newId) =>
             return callback error if error
+            newIdWithPrefix = "#{@_keyPrefix}#{newId}"
 
             afterValidate = (error = null) =>
                 return callback error if error?
@@ -169,7 +168,7 @@ class CouchMuffin
                 @_addType data
                 @_addCreatedAt data
 
-                @_dataSource.bucket.insert newId, data, options, (error, result) ->
+                @_dataSource.bucket.insert newIdWithPrefix, data, options, (error, result) ->
                     return callback error if error?
                     return callback null, result
 
