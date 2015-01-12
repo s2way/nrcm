@@ -40,7 +40,7 @@ class CouchMuffin
                 match: false
         @insert data, (error) ->
             return callback error if error
-            return callback null, @_keyPrefix + '1'
+            return callback null, '1'
 
     _uuid: ->
         uid = uuid.v4()
