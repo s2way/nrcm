@@ -65,7 +65,10 @@ class CouchMuffin
     # @param {string} id The record id
     # @param {function} callback Called when the operation is completed (error, result)
     findById: (id, callback) ->
-        @findManyById [id], callback
+        idWithPrefix = "#{@_keyPrefix}#{id}"
+        @_dataSource.bucket.get idWithPrefix, (error, result) ->
+            return callback error if error?
+            return callback null, result
 
     # Finds many records using the primary key
     # @param {array|string} ids The records id within an array of Strings
@@ -74,7 +77,7 @@ class CouchMuffin
         idsWithPrefix = []
         idsWithPrefix = ("#{@_keyPrefix}#{value}" for value in ids)
         @_dataSource.bucket.getMulti idsWithPrefix, (error, result) ->
-            return callback error if error and !_.isNumber error
+            return callback error if error? and !_.isNumber error
             return callback null, result
 
     # Remove a single record using the primary key
@@ -86,7 +89,7 @@ class CouchMuffin
 
         idWithPrefix = "#{@_keyPrefix}#{id}"
         @_dataSource.bucket.remove idWithPrefix, options, (error, result) ->
-            return callback error if error
+            return callback error if error?
             return callback null, result
 
     # Inserts a single record using the primary key, it updates if the key already exists
@@ -113,7 +116,7 @@ class CouchMuffin
         idWithPrefix = "#{@_keyPrefix}#{id}"
 
         afterValidate = (error = null) =>
-            return callback(error) if error
+            return callback(error) if error?
 
             if match and @_validate?
                 matched = @_validator.match data
@@ -123,7 +126,7 @@ class CouchMuffin
             @_addLastUpdate data
 
             @_dataSource.bucket.replace idWithPrefix, data, options, (error, result) ->
-                return callback error if error
+                return callback error if error?
                 return callback null, result
 
         if validate and @_validate?
@@ -155,7 +158,7 @@ class CouchMuffin
             return callback error if error
 
             afterValidate = (error = null) =>
-                return callback error if error
+                return callback error if error?
 
                 if match and @_validate?
                     matched = @_validator.match data
@@ -165,7 +168,7 @@ class CouchMuffin
                 @_addCreatedAt data
 
                 @_dataSource.bucket.insert newId, data, options, (error, result) ->
-                    return callback error if error
+                    return callback error if error?
                     return callback null, result
 
             if validate and @_validate?
