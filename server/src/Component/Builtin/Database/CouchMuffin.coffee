@@ -150,6 +150,7 @@ class CouchMuffin
     # @param {function} callback Called when the operation is completed (error, result)
     insert: (params, callback) ->
         id = params.id || null
+        id = "#{@_keyPrefix}#{id}" if id?
         data = params.data || {}
         options = params.options || {}
         validate = options.validate ? true
