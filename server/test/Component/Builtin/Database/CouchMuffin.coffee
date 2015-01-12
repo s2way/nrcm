@@ -40,13 +40,13 @@ describe 'CouchMuffin', ->
 
         it 'should issue the query for finding a record by id', (done) ->
             stdError = null
-            stdResult = stdMyData
+            stdResult = stdMyData.MyKey
 
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
                 bucket:
-                    getMulti: (ids, callback) ->
-                        expect(ids).to.eql ['testing.test_MyKey']
+                    get: (ids, callback) ->
+                        expect(ids).to.eql 'testing.test_MyKey'
                         callback stdError, stdResult
 
             instance = loader.createComponent 'Database.CouchMuffin', params
@@ -64,7 +64,7 @@ describe 'CouchMuffin', ->
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
                 bucket:
-                    getMulti: (ids, callback) ->
+                    get: (ids, callback) ->
                         callback stdError, stdResult
 
             instance = loader.createComponent 'Database.CouchMuffin', params
