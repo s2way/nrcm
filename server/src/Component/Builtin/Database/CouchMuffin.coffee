@@ -53,7 +53,7 @@ class CouchMuffin
 
     # Bind all methods from MyNinja into the model instance (expect for init() and bind() itself)
     bind: (model) ->
-        methodsToBind = ['findById', 'findManyById', 'removeById', 'save', 'insert', 'find', 'findAll']
+        methodsToBind = ['findById', 'findManyById', 'removeById', 'save', 'insert', 'find', 'findAll', 'exist']
         for methodName in methodsToBind
             muffinMethod = @[methodName]
             ((muffinMethod) =>
@@ -133,6 +133,16 @@ class CouchMuffin
             @_validator.validate data, afterValidate
         else
             afterValidate()
+
+    exist: (params, callback) ->
+        callback error: 'InvalidId' if params.id is null
+        idWithPrefix = "#{@_keyPrefix}#{params.id}"
+        options = params.options || {}
+        expiry = options.expiry || 0
+        @_dataSource.bucket.touch idWithPrefix, expiry, options, (error, result) ->
+            return callback error if error?
+            return callback null, result
+
 
     # Inserts a single record using the primary key, it fails if the key already exists
     # @param {string} id The record id

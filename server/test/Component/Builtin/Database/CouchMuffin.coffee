@@ -36,6 +36,44 @@ describe 'CouchMuffin', ->
         stdMyError =
             name: 'MyError'
 
+    describe 'exists', ->
+
+        it 'should return success if the id exists', (done) ->
+            stdError = null
+            stdResult = stdMyData.MyKey
+
+            loader.mockComponent 'DataSource.Couchbase',
+                init: ->
+                bucket:
+                    touch: (id, expiry, options, callback) ->
+                        callback stdError, stdResult
+
+            instance = loader.createComponent 'Database.CouchMuffin', params
+
+            instance.init()
+            instance.exist 'MyKey', (error, result) ->
+                expect(error).not.to.be.ok()
+                expect(result).to.be stdResult
+                done()
+
+        it 'should return error if the id doest not exist', (done) ->
+            stdError = stdMyError
+            stdResult = null
+
+            loader.mockComponent 'DataSource.Couchbase',
+                init: ->
+                bucket:
+                    touch: (id, expiry, options, callback) ->
+                        callback stdError, stdResult
+
+            instance = loader.createComponent 'Database.CouchMuffin', params
+
+            instance.init()
+            instance.exist 'MyKey', (error, result) ->
+                expect(result).not.to.be.ok()
+                expect(error).to.be stdError
+                done()
+
     describe 'findById', ->
 
         it 'should issue the query for finding a record by id', (done) ->
