@@ -183,4 +183,5 @@ class WaferPie
 
 WaferPie.Testing = require './Util/Loader'
 WaferPie.Loader = require './Util/Loader'
+WaferPie.Sync = require './Util/Sync'
 module.exports = WaferPie
