@@ -184,4 +184,5 @@ class WaferPie
 WaferPie.Testing = require './Util/Loader'
 WaferPie.Loader = require './Util/Loader'
 WaferPie.Sync = require './Util/Sync'
+WaferPie.Cherries = require './Component/Builtin/Cherries'
 module.exports = WaferPie
