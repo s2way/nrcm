@@ -19,11 +19,15 @@ class ElementManager
 
     # Destroys all loaded component
     # The destruction of the components is asynchronous
-    destroy: ->
+    # @param {function} Will call this callback every time an exception occurs in a destroy method
+    destroy: (onError) ->
         componentsCreated = @_getComponents()
         for componentInstance in componentsCreated
             destroyComponent = (componentInstance) ->
-                componentInstance.destroy?()
+                try
+                    componentInstance.destroy?()
+                catch e
+                    onError?(e)
             setImmediate destroyComponent, componentInstance
 
     # Instantiate a component (builtin or application)
