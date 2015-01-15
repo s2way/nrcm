@@ -74,7 +74,10 @@ describe 'ElementManager.js', ->
 
         it 'should call the onError callback if an exception occurs in the component.destroy() method', (done) ->
             error = {}
-            component = destroy: -> throw error
+            component = destroy: ->
+                setTimeout ->
+                    throw error
+                , 50
             factory._getComponents = -> [component]
             factory.destroy((e) ->
                 expect(e).to.be error
