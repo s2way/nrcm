@@ -72,6 +72,18 @@ describe 'ElementManager.js', ->
             factory._getComponents = -> [component]
             factory.destroy()
 
+        it 'should call the onError callback if an exception occurs in the component.destroy() method', (done) ->
+            error = {}
+            component = destroy: ->
+                setTimeout ->
+                    throw error
+                , 50
+            factory._getComponents = -> [component]
+            factory.destroy((e) ->
+                expect(e).to.be error
+                done()
+            )
+
     describe 'inject', ->
 
         it 'should perform injection into the component if the inject() method is specified', ->
