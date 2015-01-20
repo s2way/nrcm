@@ -36,6 +36,27 @@ describe 'CouchMuffin', ->
         stdMyError =
             name: 'MyError'
 
+    describe 'invoked', ->
+
+        it 'should return the last method invoked', (done) ->
+            stdError = null
+            stdResult = stdMyData.MyKey
+
+            loader.mockComponent 'DataSource.Couchbase',
+                init: ->
+                bucket:
+                    touch: (id, expiry, options, callback) ->
+                        callback stdError, stdResult
+
+            instance = loader.createComponent 'Database.CouchMuffin', params
+
+            instance.init()
+            instance.exist 'MyKey', (error, result) ->
+                expect(error).not.to.be.ok()
+                expect(result).to.be stdResult
+                done()
+            expect(instance.invoked()).to.be.equal 'exist'
+
     describe 'exists', ->
 
         it 'should return success if the id exists', (done) ->

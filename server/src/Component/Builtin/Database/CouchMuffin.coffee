@@ -9,6 +9,7 @@ class CouchMuffin
         @_keyPrefix = '' || options?.keyPrefix
         @_autoId = '' || options?.autoId
         @_trackDates = options?.trackDates
+        @_method = ''
 
     init: ->
         @_dataSource = @component 'DataSource.Couchbase', @_dataSourceName
@@ -53,7 +54,7 @@ class CouchMuffin
 
     # Bind all methods from MyNinja into the model instance (expect for init() and bind() itself)
     bind: (model) ->
-        methodsToBind = ['findById', 'findManyById', 'removeById', 'save', 'insert', 'find', 'findAll', 'exist']
+        methodsToBind = ['findById', 'findManyById', 'removeById', 'save', 'insert', 'find', 'findAll', 'exist', 'invoked']
         for methodName in methodsToBind
             muffinMethod = @[methodName]
             ((muffinMethod) =>
@@ -61,10 +62,15 @@ class CouchMuffin
                     return muffinMethod.apply(@, arguments)
             )(muffinMethod)
 
+    # Returns the method that was invoked
+    invoked: ->
+        @_method
+
     # Finds a single record using the primary key (Facade to findManyById)
     # @param {string} id The record id
     # @param {function} callback Called when the operation is completed (error, result)
     findById: (id, callback) ->
+        @_method = 'findById'
         idWithPrefix = "#{@_keyPrefix}#{id}"
         @_dataSource.bucket.get idWithPrefix, (error, result) ->
             return callback error if error?
@@ -74,6 +80,7 @@ class CouchMuffin
     # @param {array|string} ids The records id within an array of Strings
     # @param {function} callback Called when the operation is completed (error, result)
     findManyById: (ids, callback) ->
+        @_method = 'findManyById'
         idsWithPrefix = []
         idsWithPrefix = ("#{@_keyPrefix}#{value}" for value in ids)
         @_dataSource.bucket.getMulti idsWithPrefix, (error, result) ->
@@ -84,6 +91,7 @@ class CouchMuffin
     # @param {array|string} ids The records id within an array of Strings
     # @param {function} callback Called when the operation is completed (error, result)
     removeById: (params, callback) ->
+        @_method = 'RemoveById'
         id = params.id || null
         options = params.options || {}
 
@@ -107,6 +115,7 @@ class CouchMuffin
     # @param {function} callback Called after the operation (error, result)
     # @param {function} callback Called when the operation is completed (error, result)
     save: (params, callback) ->
+        @_method = 'save'
         return callback error: 'InvalidId' if id is null
         id = params.id
         data = params.data || {}
@@ -135,6 +144,7 @@ class CouchMuffin
             afterValidate()
 
     exist: (params, callback) ->
+        @_method = 'exist'
         callback error: 'InvalidId' if params.id is null
         idWithPrefix = "#{@_keyPrefix}#{params.id}"
         options = params.options || {}
@@ -158,6 +168,7 @@ class CouchMuffin
     # @param {function} callback Called after the operation (error, result)
     # @param {function} callback Called when the operation is completed (error, result)
     insert: (params, callback) ->
+        @_method = 'insert'
         id = params.id || null
         data = params.data || {}
         options = params.options || {}
@@ -196,11 +207,13 @@ class CouchMuffin
 
     # Finds a single record using the specified conditions (Facade to findAll)
     find: (params, callback) ->
+        @_method = 'find'
         params.limit = 1
         @findAll params, callback
 
     # Finds several records using the specified conditions
     findAll: (params, callback) ->
+        @_method = 'findAll'
         conditions = params.conditions ? null
         builder = @$.selectStarFrom(@_dataSource.bucketName)
         builder.where(conditions) if conditions
