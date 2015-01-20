@@ -30,9 +30,6 @@ class Tasker
     _log: (message) ->
         @_serverLogger?.log? message
 
-    _error: (message) ->
-        @_serverLogger?.error? message
-
     _validateTasks: (tasks) ->
         for name, Task of tasks
             instance = @_coreElementManager.create 'component', name
