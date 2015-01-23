@@ -33,19 +33,17 @@ class Tasker
     _validateTasks: (tasks) ->
         for name, Task of tasks
             instance = @_coreElementManager.create 'component', name
-            _shallContinue = false
+            _shouldSkip = false
 
             Tasker._requiredAttributes.forEach (attr) ->
                 unless instance[attr]?
-                    delete tasks[attr]
-                    _shallContinue = true
+                    _shouldSkip = true
 
             Tasker._requiredFunctions.forEach (attr) ->
                 unless instance[attr] instanceof Function
-                    delete tasks[name]
-                    _shallContinue = true
+                    _shouldSkip = true
 
-            continue if _shallContinue
+            continue if _shouldSkip
 
             @_launchTask instance
 
