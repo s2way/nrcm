@@ -16,6 +16,7 @@ describe 'CouchMuffin', ->
             type: 'testing'
             keyPrefix: 'testing.test_'
             autoId: 'uuid'
+            manualId: true
             validate:
                 string: (value, data, callback) ->
                     return callback error: '' if typeof value isnt 'string'

@@ -6,9 +6,10 @@ class CouchMuffin
         @_dataSourceName = options?.dataSourceName || 'default'
         @_type = options?.type
         @_validate = options?.validate
-        @_keyPrefix = '' || options?.keyPrefix
-        @_autoId = '' || options?.autoId
+        @_keyPrefix = options?.keyPrefix || ''
+        @_autoId = options?.autoId || ''
         @_trackDates = options?.trackDates
+        @_manualId = options?.manualId || false
         @_method = ''
 
     init: ->
@@ -43,8 +44,7 @@ class CouchMuffin
             return callback null, 1
 
     _uuid: ->
-        uid = uuid.v4()
-        return "#{@_keyPrefix}#{uid}"
+        uuid.v4()
 
     _counter: (callback) ->
         @_dataSource.bucket.counter "#{@_keyPrefix}counter", 1, (error, result) =>
@@ -191,6 +191,8 @@ class CouchMuffin
 
                 @_dataSource.bucket.insert newIdWithPrefix, data, options, (error, result) ->
                     return callback error if error?
+                    result.meta =
+                        id: newId
                     return callback null, result
 
             if validate and @_validate?
@@ -203,6 +205,7 @@ class CouchMuffin
             @_counter afterId if @_autoId is 'counter'
             return callback error: 'InvalidId' if @_autoId isnt 'uuid' and @_autoId isnt 'counter'
         else
+            return callback error: 'ManualIdNotAllowed' if !@_manualId and @_autoId isnt ''
             afterId null, id
 
     # Finds a single record using the specified conditions (Facade to findAll)
