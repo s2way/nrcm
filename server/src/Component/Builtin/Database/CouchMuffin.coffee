@@ -69,21 +69,27 @@ class CouchMuffin
     # Finds a single record using the primary key (Facade to findManyById)
     # @param {string} id The record id
     # @param {function} callback Called when the operation is completed (error, result)
-    findById: (id, callback) ->
+    findById: (params, callback) ->
         @_method = 'findById'
+        id = params.id || null
+        options = params.options || {}
         idWithPrefix = "#{@_keyPrefix}#{id}"
-        @_dataSource.bucket.get idWithPrefix, (error, result) ->
+
+        @_dataSource.bucket.get idWithPrefix, options, (error, result) ->
             return callback error if error?
             return callback null, result
 
     # Finds many records using the primary key
     # @param {array|string} ids The records id within an array of Strings
     # @param {function} callback Called when the operation is completed (error, result)
-    findManyById: (ids, callback) ->
+    findManyById: (params, callback) ->
         @_method = 'findManyById'
+        ids = params.ids || null
+        options = params.options || {}
         idsWithPrefix = []
         idsWithPrefix = ("#{@_keyPrefix}#{value}" for value in ids)
-        @_dataSource.bucket.getMulti idsWithPrefix, (error, result) ->
+
+        @_dataSource.bucket.getMulti idsWithPrefix, options, (error, result) ->
             return callback error if error? and !_.isNumber error
             return callback null, result
 

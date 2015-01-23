@@ -105,14 +105,13 @@ describe 'CouchMuffin', ->
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
                 bucket:
-                    get: (ids, callback) ->
-                        expect(ids).to.eql 'testing.test_MyKey'
+                    get: (info, options, callback) ->
                         callback stdError, stdResult
 
             instance = loader.createComponent 'Database.CouchMuffin', params
 
             instance.init()
-            instance.findById 'MyKey', (error, result) ->
+            instance.findById id: 'MyKey', (error, result) ->
                 expect(error).not.to.be.ok()
                 expect(result).to.be stdResult
                 done()
@@ -124,13 +123,13 @@ describe 'CouchMuffin', ->
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
                 bucket:
-                    get: (ids, callback) ->
+                    get: (info, options, callback) ->
                         callback stdError, stdResult
 
             instance = loader.createComponent 'Database.CouchMuffin', params
 
             instance.init()
-            instance.findById 'MyKey', (error, result) ->
+            instance.findById id: 'MyKey', (error, result) ->
                 expect(error.name).to.be 'MyError'
                 expect(result).not.to.be.ok()
                 done()
@@ -144,13 +143,13 @@ describe 'CouchMuffin', ->
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
                 bucket:
-                    getMulti: (ids, callback) ->
+                    getMulti: (info, options, callback) ->
                         callback stdError, stdResult
 
             instance = loader.createComponent 'Database.CouchMuffin', params
 
             instance.init()
-            instance.findManyById ['MyKey','MyKey1'], (error, result) ->
+            instance.findManyById ids: ['MyKey','MyKey1'], (error, result) ->
                 expect(error).not.to.be.ok()
                 expect(result).to.be stdResult
                 done()
@@ -162,13 +161,13 @@ describe 'CouchMuffin', ->
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
                 bucket:
-                    getMulti: (ids, callback) ->
+                    getMulti: (info, options, callback) ->
                         callback stdError, stdResult
 
             instance = loader.createComponent 'Database.CouchMuffin', params
 
             instance.init()
-            instance.findManyById ['MyKey','MyKey1'], (error, result) ->
+            instance.findManyById ids: ['MyKey','MyKey1'], (error, result) ->
                 expect(error.name).to.be 'MyError'
                 expect(result).not.to.be.ok()
                 done()
