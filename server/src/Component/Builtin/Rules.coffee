@@ -126,7 +126,7 @@ class Rules
     datetime: (value, formats = ['YYYY-MM-DDTHH:mm:ss']) ->
         return @regex(value, /^\d{4}\-\d{2}\-\d{2}[T]\d{2}\:\d{2}\:\d{2}$/) and moment(value, formats).isValid()
     isoDate: (value) ->
-        return @regex(value, /(\d{4})-(\d{2})-(\d{2})T(\d{2})\:(\d{2})\:(\d{2})[+-](\d{2})\:(\d{2})/)  and moment(value, ['YYYY', moment.ISO_8601]).isValid()
+        return @regex(value, /(\d{4})-(\d{2})-(\d{2})T((\d{2}):(\d{2}):(\d{2}))\.(\d{3})Z/)
 
     # Test if a value will pass a set of validation rules specified in the rules parameter
     # @value The value to be validated
