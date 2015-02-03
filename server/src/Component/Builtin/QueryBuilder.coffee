@@ -64,6 +64,12 @@ class QueryBuilder
         @query += "GROUP BY " + @_fieldsToCommaList(arguments) + " "
         this
 
+    orderBy: (fieldList, direction = "ASC") ->
+        throw new Exceptions.IllegalArgument() if arguments.length is 0
+        fields = if Array.isArray(fieldList) then fieldList.join() else fieldList
+        @query += "ORDER BY " + fieldList + " " + direction + " "
+        this
+
     limit: (p1, p2) ->
         throw new Exceptions.IllegalArgument() if p1 is undefined
         if p2 is undefined
