@@ -1,3 +1,5 @@
+domain = require 'domain'
+
 class ElementManager
 
     # Responsible for creating components and models
@@ -19,14 +21,17 @@ class ElementManager
 
     # Destroys all loaded component
     # The destruction of the components is asynchronous
-    destroy: ->
+    # @param {function} Will call this callback every time an exception occurs in a destroy method
+    destroy: (onError) ->
         componentsCreated = @_getComponents()
-
-        for componentInstance in componentsCreated
-            destroyComponent = (componentInstance) ->
-                componentInstance.destroy?()
-
-            setImmediate destroyComponent, componentInstance
+        destroyDomain = domain.create()
+        destroyDomain.run ->
+            for componentInstance in componentsCreated
+                destroyComponent = (componentInstance) ->
+                    componentInstance.destroy?()
+                setImmediate destroyComponent, componentInstance
+        destroyDomain.on 'error', (e) ->
+            onError?(e)
 
     # Instantiate a component (builtin or application)
     # @param {string} type Element type: 'component' or 'model'

@@ -1,7 +1,7 @@
 Exceptions = require '../Util/Exceptions'
 ElementManager = require '../Core/ElementManager'
 
-# Responsible for creating controllers, performing injection and destroy them
+# Responsible for creating controllers and performing injection
 class ControllerFactory
 
     constructor: (@_application, @_elementManager, @_logger = null) -> return

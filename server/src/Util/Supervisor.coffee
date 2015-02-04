@@ -14,7 +14,7 @@ class Supervisor
     _log: (message) ->
         @_logger?.log?('[Supervisor] ' + message + ' ' + @_monitoring.requests + ' ' + @_monitoring.responseAvg)
 
-    _runner: (name, ctx) ->
+    _runner: (name, ctx, callback) ->
         now = new Date().toISOString()
         data = ctx._si.variable()
         data['@timestamp'] = now
@@ -32,11 +32,12 @@ class Supervisor
                 else
                     ctx._monitoring.requests = 0
                     ctx._monitoring.responseAvg = 0.00
+        callback?()
 
     _connect: ->
         @_es = @_el.client @_config.dataSource
 
-    run: ->
+    run: (callback) ->
         unless @_isRunning
             if @_config is undefined
                 @_log 'No info for monitoring'
@@ -48,7 +49,7 @@ class Supervisor
                 @_connect()
                 if @_es
                     @_config.intervalInSeconds = @_config.intervalInSeconds or DEFAULT_INTERVAL
-                    @_isRunning = timers.setInterval @_runner, @_config.intervalInSeconds * 1000, @_config.nodeName, @
+                    @_isRunning = timers.setInterval @_runner, @_config.intervalInSeconds * 1000, @_config.nodeName, @, callback
                 else
                     @_log 'Datasource unable to be created'
 

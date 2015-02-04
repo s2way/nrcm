@@ -20,6 +20,7 @@ class MyNinja
                 model[methodName] = =>
                     return ninjaMethod.apply(@, arguments)
             )(ninjaMethod)
+        model.$ = @$
 
     # Finds a single record using the primary key
     # @param {object} id The record id
@@ -89,7 +90,12 @@ class MyNinja
 
     # Issues a query to the database (just a wrapper)
     # @param
-    query: (query, params, callback) ->
+    query: (query, paramsOrCallback, callback) ->
+        params = paramsOrCallback
+        if typeof paramsOrCallback is 'function'
+            callback = paramsOrCallback
+            params = []
+
         @_mysql.query query, params, @_dataSourceName, callback
 
     # Updates all records of the table with the given values and using the given conditions

@@ -123,6 +123,19 @@ describe 'Rules', ->
             expect(instance.lengthBetween 'string', 8, 9).to.be false
             expect(instance.lengthBetween 'string', 1, 2).to.be false
 
+    describe 'exactLength', ->
+        it 'should return false if it does not match the length', ->
+            expect(instance.exactLength 'coconut', 2).to.be false
+        it 'should return false if the value is not a string', ->
+            expect(instance.exactLength false, 2).to.be false
+            expect(instance.exactLength undefined, 2).to.be false
+            expect(instance.exactLength null, 2).to.be false
+            expect(instance.exactLength {}, 2).to.be false
+            expect(instance.exactLength 1, 2).to.be false
+            expect(instance.exactLength new String('not a literal'), 2).to.be false
+        it 'should return true if the value matches the length', ->
+            expect(instance.exactLength 'coconut', 7).to.be true
+
     describe 'regex', ->
         it 'should test a regex against a string', ->
             expect(instance.regex '1', /\d/gi).to.be true
@@ -233,4 +246,3 @@ describe 'Rules', ->
             expect(->
                 instance.test 'nothing', rules
             ).to.throwException((e) -> expect(e.name).to.be 'IllegalArgument')
-

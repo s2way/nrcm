@@ -15,7 +15,7 @@ describe 'Logger.js', ->
         it 'should use the default.log file name if none is specified', ->
             expect(instance._fileName).to.be 'default.log'
 
-    describe 'enable', ->
+    describe 'enable()', ->
         it 'should enable logging if disable() was called before and info() should call print()', (done) ->
             instance.disable()
             instance.enable()
@@ -24,7 +24,7 @@ describe 'Logger.js', ->
 
             instance.info '!'
 
-    describe 'disable', ->
+    describe 'disable()', ->
         it 'should disable logging and info() should not call print()', ->
             instance.disable()
             instance._print = ->
@@ -32,7 +32,7 @@ describe 'Logger.js', ->
 
             instance.info '!'
 
-    describe 'info', ->
+    describe 'info()', ->
         it 'should call the logger info method', (done) ->
             instance._print = ->
                 done()

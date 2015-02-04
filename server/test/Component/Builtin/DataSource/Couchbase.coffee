@@ -4,57 +4,48 @@ expect = require 'expect.js'
 describe "Couchbase.js", ->
 
     instance = null
-
     core = dataSources:
         default:
-            host: "localhost"
-            port: 9000
-
+            host: "127.0.0.1"
+            port: 8091
+            bucket: "default"
+            n1qlHost: "127.0.0.1"
+            n1qlPort: 8093
     logger = info: ->
+    mockCouchbase =
+        Cluster: (cluster) ->
+            @openBucket = (bucket) ->
+                enableN1ql: (host) ->
+            return @
 
     beforeEach ->
         instance = new Couchbase("default")
-        instance.logger = logger
-        instance.core = core
 
     describe "init", ->
         it "should throw an IllegalArgument exception if the data source cannot be found", ->
             instance = new Couchbase("invalid")
             instance.core = dataSources: {}
+            instance.logger = logger
+            instance._couchbase = mockCouchbase
+
             expect(->
                 instance.init()
             ).to.throwException (e) ->
                 expect(e.name).to.be "IllegalArgument"
 
-    describe "connect", ->
-        it "should return the bucket object", (done) ->
-            bucket = on: (what, callback) ->
-                callback null, bucket  if what is "connect"
-
+        it "should initialize the couchbase", ->
             instance = new Couchbase()
             instance.core = core
             instance.logger = logger
-            instance.init()
-            instance._couchbase = Cluster: ->
-                openBucket: ->
-                    bucket
+            instance._couchbase = mockCouchbase
 
-            instance.connect (error, b) ->
-                expect(b).to.be bucket
-                done()
+            expect(->
+                instance.init()
+            ).to.not.throwException (e) ->
+                expect(e).to.not.be.ok()
 
-    it "should pass an error to the callback if an error occurs", (done) ->
-        bucket = on: (what, callback) ->
-            callback {}  if what is "error"
+    describe "destroy", ->
+        it "should close the session", ->
+            instance = new Couchbase()
 
-        instance = new Couchbase()
-        instance.core = core
-        instance.logger = logger
-        instance.init()
-        instance._couchbase = Cluster: ->
-            openBucket: ->
-                bucket
-
-        instance.connect (error) ->
-            expect(error).to.ok()
-            done()
+            expect(instance.destroy()).to.not.be.ok()

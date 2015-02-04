@@ -74,35 +74,37 @@ class Rules
     @static = true
     # Type validation rules
     isNumber: (value) ->
-        return typeof value is 'number' and isFinite value
+        typeof value is 'number' and isFinite value
     isInteger: (value) ->
-        return @isNumber(value) and value % 1 is 0
+        @isNumber(value) and value % 1 is 0
     isZero: (value) ->
-        return value is 0
+        value is 0
     isOne: (value) ->
-        return value is 1
+        value is 1
     isString: (value) ->
-        return typeof value is 'string'
+        typeof value is 'string'
     isNull: (value) ->
-        return value is null
+        value is null
     isBoolean: (value) ->
-        return value is true or value is false
+        value is true or value is false
     isUndefined: (value) ->
-        return value is undefined
+        value is undefined
     notNull: (value) ->
-        return value isnt null
+        value isnt null
 
     # String validation rules
     notEmpty: (value) ->
-        return @isString(value) and value.length > 0
+        @isString(value) and value.length > 0
     maxLength: (value, length = 0) ->
-        return @isString(value) and value.length <= length
+        @isString(value) and value.length <= length
     minLength: (value, length = 0) ->
-        return @isString(value) and value.length >= length
+        @isString(value) and value.length >= length
     lengthBetween: (value, min = 0, max = 0) ->
-        return @isString(value) and min <= value.length <= max
+        @isString(value) and min <= value.length <= max
+    exactLength: (value, length) ->
+        @isString(value) and value.length is length
     regex: (value, regex) ->
-        return @isString(value) && regex.test value
+        @isString(value) && regex.test value
 
     # Number validation rules
     max: (value, max) ->
@@ -123,6 +125,8 @@ class Rules
         return @regex(value, /^\d{2}\:\d{2}\:\d{2}$/) and moment(value, formats).isValid()
     datetime: (value, formats = ['YYYY-MM-DDTHH:mm:ss']) ->
         return @regex(value, /^\d{4}\-\d{2}\-\d{2}[T]\d{2}\:\d{2}\:\d{2}$/) and moment(value, formats).isValid()
+    isoDate: (value) ->
+        return @regex(value, /(\d{4})-(\d{2})-(\d{2})T((\d{2}):(\d{2}):(\d{2}))\.(\d{3})Z/)
 
     # Test if a value will pass a set of validation rules specified in the rules parameter
     # @value The value to be validated

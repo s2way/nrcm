@@ -1,8 +1,9 @@
 Exceptions = require("./../../Util/Exceptions")
 
 class QueryBuilder
-    constructor: ->
+    constructor: (isN1ql) ->
         @query = ""
+        @n1ql = false || isN1ql
 
     _fieldsToCommaList: (fields, escaping) ->
         i = undefined
@@ -18,7 +19,13 @@ class QueryBuilder
 
     selectStarFrom: (table) ->
         throw new Exceptions.IllegalArgument() if table is undefined
-        @query += "SELECT * FROM " + table + " "
+        @query += "SELECT * FROM " + table + " " if !@n1ql
+        @query += "SELECT META(), VALUE() FROM " + table + " " if @n1ql
+        this
+
+    selectCountStarFrom: (table) ->
+        throw new Exceptions.IllegalArgument() if table is undefined
+        @query += "SELECT COUNT(*) AS count FROM " + table + " " if !@n1ql
         this
 
     select: ->
@@ -27,6 +34,7 @@ class QueryBuilder
         this
 
     deleteFrom: (table) ->
+        throw new Exceptions.InvalidMethod() if @n1sql
         throw new Exceptions.IllegalArgument() if typeof table isnt "string"
         @query += "DELETE FROM " + table + " "
         this
@@ -37,11 +45,13 @@ class QueryBuilder
         this
 
     update: (table) ->
+        throw new Exceptions.InvalidMethod() if @n1sql
         throw new Exceptions.IllegalArgument() if typeof table isnt "string"
         @query += "UPDATE " + table + " "
         this
 
     insertInto: (table) ->
+        throw new Exceptions.InvalidMethod() if @n1sql
         throw new Exceptions.IllegalArgument() if typeof table isnt "string"
         @query += "INSERT INTO " + table + " "
         this
@@ -79,6 +89,7 @@ class QueryBuilder
         this
 
     in: (field, params) ->
+        throw new Exceptions.InvalidMethod() if @n1sql
         throw new Exceptions.IllegalArgument() if params is undefined or params.length is 0
         throw new Exceptions.IllegalArgument() if field is null or typeof field isnt "string"
         field + " IN (" + @_fieldsToCommaList(params, true) + ")"

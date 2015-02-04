@@ -26,6 +26,7 @@ Response = require './Controller/Response'
 os = require 'os'
 Supervisor = require './Util/Supervisor'
 Cherries = require './Component/Builtin/Cherries'
+Tasker = require './Core/Tasker'
 
 class WaferPie
     constructor: ->
@@ -39,6 +40,7 @@ class WaferPie
             responseAvg: 0.00
         @_version = '0.9.1'
         @_cherries = new Cherries
+        @_taskers =[]
         Sync.createDirIfNotExists 'logs'
 
     info: (message) -> @_logger.info message
@@ -97,12 +99,16 @@ class WaferPie
         @_loadAllConfigJSONFiles app, app.constants.configPath
         @_validateCoreFile app.core
 
-        @_applications[appName] = app
-
         @_validateControllers app.controllers
         @_validateControllers app.filters
         @_validateComponents app.components
         @_validateModels app.models
+
+        task = new Tasker app, @_logger
+        @_taskers.push task
+        task.run()
+
+        @_applications[appName] = app
 
     _validateModels: (models) ->
         for name of models
@@ -181,5 +187,7 @@ class WaferPie
         ).listen port, address
         @info 'Started!'
 
-WaferPie.Testing = require './Test/Testing'
+WaferPie.Testing = require './Util/Loader'
+WaferPie.Loader = require './Util/Loader'
+WaferPie.Sync = require './Util/Sync'
 module.exports = WaferPie
