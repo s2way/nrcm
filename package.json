@@ -57,7 +57,7 @@
     "type": "git",
     "url": "http://github.com/s2way/waferpie.git"
   },
-  "version": "0.9.8",
+  "version": "0.9.9",
   "scripts": {
     "postinstall": "./compile.sh",
     "pretest": "node_modules/.bin/coffeelint server",
