@@ -151,7 +151,7 @@ describe 'Validator.js', ->
                     number: 100
 
             validator = new Validator(validate: validate)
-            expect(validator.match(data)).to.be.ok()
+            expect(validator.match data).to.be.ok()
 
         it 'should return an error if there is a field that is not specified in the validate', ->
             validate =
@@ -171,3 +171,23 @@ describe 'Validator.js', ->
                 field: 'object.iShouldnt'
                 level: 2
                 error: 'denied'
+
+        it 'should return true if the field that would not match has been ignored', ->
+            validate =
+                string: false
+                array: false
+                object:
+                    sub:
+                        object: false
+                        number: false
+
+            data =
+                object:
+                    sub:
+                        iShouldnt: 'beHere'
+
+            skipMatch = ['object.sub']
+
+            validator = new Validator(validate: validate, skipMatch: skipMatch)
+            result = validator.match(data)
+            expect(result).to.be true

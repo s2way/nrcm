@@ -7,6 +7,7 @@ class Validator
     constructor: (params = {}) ->
         @_timeout = params.timeout ? 10000
         @_validationObject = params.validate
+        @_skipMatch = params.skipMatch ? []
 
     init: ->
         @_rules = @component 'Rules'
@@ -77,21 +78,25 @@ class Validator
 
         timeoutFunc()
 
-    _matchAgainst: (data, level = 1, validate = @_validationObject, expression = '') ->
+    _matchAgainst: (data, skipMatch = @_skipMatch, level = 1, validate = @_validationObject, expression = '') ->
 
         # check schema field presence
         for key of data
             # schema for this field was not set, block
             if validate[expression + key] is undefined
-                return (
-                    field: expression + key
-                    level: level
-                    error: 'denied'
-                )
+                # if field must not be ignored
+                if (expression + key) in skipMatch
+                    continue
+                else
+                    return (
+                        field: expression + key
+                        level: level
+                        error: 'denied'
+                    )
 
             # validate set and it is an object: recursive
             if data[key] isnt null and typeof data[key] is 'object'
-                test = @_matchAgainst(data[key], level + 1, validate[expression + key], expression + key + '.')
+                test = @_matchAgainst(data[key], skipMatch, level + 1, validate[expression + key], expression + key + '.')
                 return test if test isnt true
         true
 
