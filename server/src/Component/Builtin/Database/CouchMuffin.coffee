@@ -19,8 +19,7 @@ class CouchMuffin
         @$ = @component 'QueryBuilder', true
 
     _addType: (data) ->
-        console.log @_type
-        data?._type = @_type unless @_type?
+        data._type = @_type unless @_type? and data?
 
     _addCreatedAt: (data) ->
         data._createdAt = new Date().toISOString() if @_trackDates
