@@ -6,6 +6,7 @@ class CouchMuffin
         @_dataSourceName = options?.dataSourceName || 'default'
         @_type = options?.type
         @_validate = options?.validate
+        @_skipMatch = options?.skipMatch
         @_keyPrefix = options?.keyPrefix || ''
         @_autoId = options?.autoId || ''
         @_trackDates = options?.trackDates
@@ -14,7 +15,9 @@ class CouchMuffin
 
     init: ->
         @_dataSource = @component 'DataSource.Couchbase', @_dataSourceName
-        @_validator = @component 'Validator', validate: @_validate
+        @_validator = @component 'Validator',
+            validate: @_validate
+            skipMatch: @_skipMatch
         @_cherries = @component 'Cherries'
         @$ = @component 'QueryBuilder', true
 
