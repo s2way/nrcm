@@ -155,12 +155,12 @@ describe 'Http.js', ->
                 end: blankFunction
                 on: blankFunction
                 write: (payload) ->
-                    expect(payload).to.be '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<root></root>'
+                    expect(payload).to.be '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<root>?</root>'
                     done()
             )
             instance.post '/',
                 payload:
-                    root: ''
+                    root: '?'
             , blankFunction
 
         it 'should convert the payload to null if it is an empty string', (done) ->

@@ -22,6 +22,9 @@ class MyNinja
             )(ninjaMethod)
         model.$ = @$
 
+    changeTable: (tableName) ->
+        @_table = tableName
+
     # Finds a single record using the primary key
     # @param {object} id The record id
     # @param {function} callback Called when the operation is completed (error, result)

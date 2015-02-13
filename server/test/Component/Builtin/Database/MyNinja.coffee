@@ -10,6 +10,15 @@ describe 'MyNinja', ->
     beforeEach ->
         loader = new Loader
 
+    describe 'changeTable', ->
+
+        it 'should set the new table', (done) ->
+            instance = loader.createComponent 'Database.MyNinja', table: 'sky'
+            instance.init()
+            instance.changeTable('space')
+            expect(instance._table).to.be('space')
+            done()
+
     describe 'findById', ->
 
         it 'should issue the query for finding a record by id', (done) ->

@@ -41,9 +41,9 @@ describe 'Response', ->
             response = new Response
                 writeHead: -> return
                 end: (body) ->
-                    expect(body).to.be '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<root></root>'
+                    expect(body).to.be '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<root>?</root>'
                     done()
-            response.send root: '',
+            response.send root: '?',
                 'Content-Type' : 'text/xml'
             , 200
 

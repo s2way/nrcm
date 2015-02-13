@@ -140,6 +140,17 @@ describe 'QueryBuilder.js', ->
             catch e
                 assert.equal "IllegalArgument", e.name
 
+    describe 'orderBy', ->
+        it 'should output an order by expression', ->
+            assert.equal "ORDER BY id DESC", $.orderBy("id", "DESC").build()
+
+        it 'should throw an exception if no parametes were passed', ->
+            try
+                $.orderBy()
+                assert.fail()
+            catch e
+                assert.equal "IllegalArgument", e.name
+
     describe 'groupBy', ->
         it 'should output GROUP BY + fields if they are passed', ->
             assert.equal "GROUP BY c1, c2, c3", $.groupBy("c1", "c2", "c3").build()
