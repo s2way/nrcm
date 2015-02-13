@@ -82,17 +82,16 @@ class Validator
 
         # check schema field presence
         for key of data
+            # if field must not be ignored
+            if (expression + key) in skipMatch
+                continue
             # schema for this field was not set, block
             if validate[expression + key] is undefined
-                # if field must not be ignored
-                if (expression + key) in skipMatch
-                    continue
-                else
-                    return (
-                        field: expression + key
-                        level: level
-                        error: 'denied'
-                    )
+                return (
+                    field: expression + key
+                    level: level
+                    error: 'denied'
+                )
 
             # validate set and it is an object: recursive
             if data[key] isnt null and typeof data[key] is 'object'
