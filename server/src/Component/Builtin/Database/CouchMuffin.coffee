@@ -30,7 +30,7 @@ class CouchMuffin
         data._lastUpdate = new Date().toISOString() if @_trackDates
 
     _query: (query, callback) ->
-        @_dataSource.bucket.query (new @_dataSource.N1qlQuery.fromString query), (error, result) ->
+        @_dataSource.bucket.query (new @_dataSource.n1ql.fromString query), (error, result) ->
             callback error if error
             callback null, result
 
