@@ -19,7 +19,6 @@ class CouchMuffin
             validate: @_validate
             skipMatch: @_skipMatch
         @_cherries = @component 'Cherries'
-        @$ = @component 'QueryBuilder', true
 
     _addType: (data) ->
         data._type = @_type if @_type? and data?
@@ -226,12 +225,17 @@ class CouchMuffin
     # Finds several records using the specified conditions
     findAll: (params, callback) ->
         @_method = 'findAll'
-        conditions = params.conditions ? null
-        builder = @$.selectStarFrom(@_dataSource.bucketName)
-        builder.where(conditions) if conditions
-        builder.groupBy(params.groupBy) if params.groupBy?
-        builder.having(params.having) if params.having?
-        builder.limit(params.limit) if params.limit?
+        $ = @component 'QueryBuilder', true
+        conditions = params.conditions || ''
+        unless params.fields?
+            builder = $.selectStarFrom @_dataSource.bucketName
+        else
+            builder = $.select params.fields
+            builder.from @_dataSource.bucketName
+        builder.where builder.and conditions, builder.equal '_type', builder.value @_type
+        builder.groupBy params.groupBy if params.groupBy?
+        builder.having params.having if params.having?
+        builder.limit params.limit if params.limit?
         sql = builder.build()
 
         @_query sql, callback

@@ -501,9 +501,9 @@ describe 'CouchMuffin', ->
             stdError = null
             stdResult = stdMyData.MyKey.value
             queryParams =
-                conditions: "_type = '_tableName'"
-                groupBy: " GROUP BY test"
-                having: " HAVING test > 1"
+                fields: ['name', 'test']
+                groupBy: 'test'
+                having: 'test > 1'
 
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
@@ -513,7 +513,7 @@ describe 'CouchMuffin', ->
                 n1ql:
                     fromString: (str) ->
                         str
-                bucketName: "teste"
+                bucketName: 'teste'
 
             instance = loader.createComponent 'Database.CouchMuffin', params
 
@@ -527,10 +527,9 @@ describe 'CouchMuffin', ->
             stdError = null
             stdResult = stdMyData.MyKey.value
             queryParams =
-                conditions: "_type = '_tableName'"
-                groupBy: " GROUP BY test"
-                limit: " LIMIT 1"
-                having: " HAVING test > 1"
+                groupBy: 'test'
+                limit: '1'
+                having: 'test > 1'
 
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
@@ -540,7 +539,7 @@ describe 'CouchMuffin', ->
                 n1ql:
                     fromString: (str) ->
                         str
-                bucketName: "teste"
+                bucketName: 'teste'
 
             instance = loader.createComponent 'Database.CouchMuffin', params
 
