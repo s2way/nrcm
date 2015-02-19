@@ -234,6 +234,7 @@ class CouchMuffin
             builder.from @_dataSource.bucketName
         builder.where builder.and conditions, builder.equal '_type', builder.value @_type
         builder.groupBy params.groupBy if params.groupBy?
+        builder.orderBy params.orderBy if params.orderBy?
         builder.having params.having if params.having?
         builder.limit params.limit if params.limit?
         sql = builder.build()
