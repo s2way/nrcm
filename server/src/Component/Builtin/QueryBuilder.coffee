@@ -20,7 +20,7 @@ class QueryBuilder
     selectStarFrom: (table) ->
         throw new Exceptions.IllegalArgument() if table is undefined
         @query += "SELECT * FROM " + table + " " if !@n1ql
-        @query += "SELECT META(), VALUE() FROM " + table + " " if @n1ql
+        @query += "SELECT META() AS meta, VALUE() AS value FROM " + table + " " if @n1ql
         this
 
     selectCountStarFrom: (table) ->
