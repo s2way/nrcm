@@ -77,7 +77,7 @@ class Tasker
         @_log "Task: [#{name}] was registered. [every = #{interval}]"
 
         @_timers.push setInterval (@_logger) ->
-            task.__logTrigger++
+            task.__logTrigger++ if !task.__isLocked
 
             if task.__logTrigger >= task.__logEvery
                 @_logger?.log? "Task: [#{name}] was invoked. [#{task.__logTrigger}]"
