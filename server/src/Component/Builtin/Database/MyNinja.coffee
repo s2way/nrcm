@@ -13,7 +13,7 @@ class MyNinja
 
     # Bind all methods from MyNinja into the model instance (expect for init() and bind() itself)
     bind: (model) ->
-        methodsToBind = ['findById', 'find', 'findAll', 'removeAll', 'removeById', 'remove', 'query', 'updateAll', 'save']
+        methodsToBind = ['findById', 'find', 'findAll', 'removeAll', 'removeById', 'remove', 'query', 'updateAll', 'save', 'changeTable']
         for methodName in methodsToBind
             ninjaMethod = @[methodName]
             ((ninjaMethod) =>
