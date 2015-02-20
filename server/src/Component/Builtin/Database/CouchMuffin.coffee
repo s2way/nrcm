@@ -11,6 +11,7 @@ class CouchMuffin
         @_autoId = options?.autoId || ''
         @_trackDates = options?.trackDates
         @_manualId = options?.manualId || false
+        @_skipId = options?skipId || false
         @_method = ''
 
     init: ->
@@ -28,6 +29,9 @@ class CouchMuffin
 
     _addLastUpdate: (data) ->
         data._lastUpdate = new Date().toISOString() if @_trackDates
+
+    _addId: (data, id) ->
+        data._id = id unless @_skipId
 
     _query: (query, callback) ->
         @_dataSource.bucket.query (new @_dataSource.n1ql.fromString query), (error, result) ->
@@ -141,6 +145,7 @@ class CouchMuffin
 
             @_addType data
             @_addLastUpdate data
+            @_addId data, id
 
             @_dataSource.bucket.replace idWithPrefix, data, options, (error, result) ->
                 return callback error if error?
@@ -196,6 +201,7 @@ class CouchMuffin
 
                 @_addType data
                 @_addCreatedAt data
+                @_addId data, newId
 
                 @_dataSource.bucket.insert newIdWithPrefix, data, options, (error, result) ->
                     return callback error if error?
