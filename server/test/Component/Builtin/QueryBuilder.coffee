@@ -292,6 +292,17 @@ describe 'QueryBuilder.js', ->
             catch e
                 assert.equal "IllegalArgument", e.name
 
+    describe 'as', ->
+        it 'should throw an IllegalArgument exception if origin or alias are not a string', ->
+            try
+                $.as()
+                assert.fail()
+            catch e
+                assert.equal "IllegalArgument", e.name
+
+        it 'should output an AS expression if arguments are right', ->
+            assert.equal "name AS newName", $.as "name", "newName"
+
     describe 'or', ->
         it 'should throw an IllegalArgument exception if less than two parameters are passed', ->
             try

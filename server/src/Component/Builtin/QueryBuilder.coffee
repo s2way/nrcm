@@ -118,6 +118,11 @@ class QueryBuilder
         @query += "ON " + @_conditions(arguments, "AND") + " "
         this
 
+    as: (origin, alias) ->
+        throw new Exceptions.IllegalArgument() if typeof origin isnt "string"
+        throw new Exceptions.IllegalArgument() if typeof alias isnt "string"
+        "#{origin} AS #{alias}"
+
     join: (table) ->
         throw new Exceptions.IllegalArgument() if typeof table isnt "string"
         @query += "JOIN " + table + " "
