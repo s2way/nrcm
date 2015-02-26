@@ -72,6 +72,16 @@ describe 'Rules', ->
             expect(instance.isBoolean null).to.be false
             expect(instance.isBoolean undefined).to.be false
 
+    describe 'isArray()', ->
+        it 'should return true when it is an array', ->
+            expect(instance.isArray []).to.be true
+        it 'should return false when it is not an array', ->
+            expect(instance.isArray {}).to.be false
+            expect(instance.isArray null).to.be false
+            expect(instance.isArray undefined).to.be false
+            expect(instance.isArray '').to.be false
+            expect(instance.isArray 0).to.be false
+
     describe 'isUndefined()', ->
         it 'should return true if it is undefined', ->
             expect(instance.isUndefined undefined).to.be true

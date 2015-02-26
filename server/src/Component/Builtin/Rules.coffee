@@ -91,6 +91,8 @@ class Rules
         value is undefined
     notNull: (value) ->
         value isnt null
+    isArray: (value) ->
+        Array.isArray(value)
 
     # String validation rules
     notEmpty: (value) ->
