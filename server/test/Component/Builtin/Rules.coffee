@@ -169,6 +169,7 @@ describe 'Rules', ->
             expect(instance.alphaNumeric 'thisIS_alpha_Numeric').to.be true
         it 'should return false if the string is not alphanumeric', ->
             expect(instance.alphaNumeric 'this is not alpha numeric :(').to.be false
+
     describe 'email', ->
         it 'should return true if the email address is valid', ->
             expect(instance.email 'davi.gbr@gmail.com').to.be true
