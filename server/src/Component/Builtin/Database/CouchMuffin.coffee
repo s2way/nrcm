@@ -35,8 +35,8 @@ class CouchMuffin
 
     _query: (query, callback) ->
         @_dataSource.bucket.query (new @_dataSource.n1ql.fromString query), (error, result) ->
-            callback error if error
-            callback null, result
+            return callback error if error
+            return callback null, result
 
     _createCounter: (callback) ->
         data =
