@@ -94,9 +94,16 @@ class CouchMuffin
         idsWithPrefix = []
         idsWithPrefix = ("#{@_keyPrefix}#{value}" for value in ids)
 
-        @_dataSource.bucket.getMulti idsWithPrefix, (error, result) ->
+        @_dataSource.bucket.getMulti idsWithPrefix, (error, result) =>
             return callback error if error? and !_.isNumber error
-            return callback null, result
+            if result
+                newResult = {}
+                for id of result
+                    if @_type?
+                        newResult[id.substr @_type.length + 1, id.length] = result[id]
+                    else
+                        newResult = result
+                return callback null, newResult
 
     # Remove a single record using the primary key
     # @param {array|string} ids The records id within an array of Strings
