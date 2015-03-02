@@ -143,7 +143,7 @@ describe 'CouchMuffin', ->
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
                 bucket:
-                    getMulti: (info, options, callback) ->
+                    getMulti: (info, callback) ->
                         callback stdError, stdResult
 
             instance = loader.createComponent 'Database.CouchMuffin', params
@@ -161,7 +161,7 @@ describe 'CouchMuffin', ->
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
                 bucket:
-                    getMulti: (info, options, callback) ->
+                    getMulti: (info, callback) ->
                         callback stdError, stdResult
 
             instance = loader.createComponent 'Database.CouchMuffin', params
