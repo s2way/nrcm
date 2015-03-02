@@ -91,11 +91,10 @@ class CouchMuffin
     findManyById: (params, callback) ->
         @_method = 'findManyById'
         ids = params.ids || null
-        options = params.options || {}
         idsWithPrefix = []
         idsWithPrefix = ("#{@_keyPrefix}#{value}" for value in ids)
 
-        @_dataSource.bucket.getMulti idsWithPrefix, options, (error, result) ->
+        @_dataSource.bucket.getMulti idsWithPrefix, (error, result) ->
             return callback error if error? and !_.isNumber error
             return callback null, result
 
