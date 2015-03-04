@@ -48,6 +48,7 @@ class Tasker
             @_launchTask instance
 
     _launchTask: (task) ->
+        task.init?()
         name = task[EXEC_NAME]
         interval = task[EXEC_INTERVAL]
         run = EXEC_RUN
