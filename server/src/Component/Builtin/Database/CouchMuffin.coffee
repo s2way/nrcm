@@ -6,13 +6,16 @@ class CouchMuffin
         @_dataSourceName = options?.dataSourceName || 'default'
         @_type = options?.type
         @_validate = options?.validate
-        @_skipMatch = options?.skipMatch
+        @_skipMatch = options?.skipMatch || []
         @_keyPrefix = options?.keyPrefix || ''
         @_autoId = options?.autoId || ''
         @_trackDates = options?.trackDates
         @_manualId = options?.manualId || false
         @_skipId = options?skipId || false
         @_method = ''
+        if @_trackDates
+            @_skipMatch.push '_createdAt'
+            @_skipMatch.push '_lastUpdate'
 
     init: ->
         @_dataSource = @component 'DataSource.Couchbase', @_dataSourceName

@@ -151,7 +151,7 @@ describe 'CouchMuffin', ->
             instance.init()
             instance.findManyById ids: ['MyKey','MyKey1'], (error, result) ->
                 expect(error).not.to.be.ok()
-                expect(result).to.be stdResult
+                expect(result).to.be '': stdResult.MyKey
                 done()
 
         it 'should pass the error to the callback if something occurs', (done) ->
