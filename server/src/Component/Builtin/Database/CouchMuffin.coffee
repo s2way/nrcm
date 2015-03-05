@@ -16,6 +16,8 @@ class CouchMuffin
         if @_trackDates
             @_skipMatch.push '_createdAt'
             @_skipMatch.push '_lastUpdate'
+        @_skipMatch.push '_type'
+        @_skipMatch.push '_id'
 
     init: ->
         @_dataSource = @component 'DataSource.Couchbase', @_dataSourceName
@@ -137,9 +139,9 @@ class CouchMuffin
     # @param {function} callback Called when the operation is completed (error, result)
     save: (params, callback) ->
         @_method = 'save'
-        return callback error: 'InvalidId' if id is null
         id = params.id
         data = params.data || {}
+        return callback error: 'InvalidId' if id is null or id != data._id
         options = params.options || {}
         validate = options.validate ? true
         match = options.match ? true
