@@ -257,3 +257,65 @@ describe 'Rules', ->
             expect(->
                 instance.test 'nothing', rules
             ).to.throwException((e) -> expect(e.name).to.be 'IllegalArgument')
+
+    describe 'isUseful()', ->
+
+        it 'should return false to an empty string', ->
+            result = instance.isUseful ''
+            expect(result).not.to.be.ok()
+
+        it 'should return false to an undefined string', ->
+            result = instance.isUseful undefined
+            expect(result).not.to.be.ok()
+
+        it 'should return false to a null', ->
+            result = instance.isUseful null
+            expect(result).not.to.be.ok()
+
+        it 'should return true to a zero', ->
+            result = instance.isUseful 0
+            expect(result).to.be.ok()
+
+        it 'should return true to a ten', ->
+            result = instance.isUseful 10
+            expect(result).to.be.ok()
+
+        it 'should return false to an empty array', ->
+            result = instance.isUseful []
+            expect(result).not.to.be.ok()
+
+        it 'should return true to a populated array', ->
+            result = instance.isUseful [1,2]
+            expect(result).to.be.ok()
+
+        it 'should return false to an empty object', ->
+            result = instance.isUseful {}
+            expect(result).not.to.be.ok()
+
+        it 'should return true to a populated object', ->
+            result = instance.isUseful {id:15}
+            expect(result).to.be.ok()
+
+        it 'should return false to a false boolean', ->
+            result = instance.isUseful false
+            expect(result).not.to.be.ok()
+
+        it 'should return true to a true boolean', ->
+            result = instance.isUseful true
+            expect(result).to.be.ok()
+
+        it 'should return true to a zero float', ->
+            result = instance.isUseful 0.0
+            expect(result).to.be.ok()
+
+        it 'should return true to a zero float', ->
+            result = instance.isUseful 0.000000000
+            expect(result).to.be.ok()
+
+        it 'should return true to a zero float', ->
+            result = instance.isUseful 0.000000001
+            expect(result).to.be.ok()
+
+        it 'should return true to a one float', ->
+            result = instance.isUseful 1.0
+            expect(result).to.be.ok()

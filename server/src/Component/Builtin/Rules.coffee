@@ -1,4 +1,5 @@
 'use strict'
+_ = require 'underscore'
 moment = require 'moment'
 Exceptions = require '../../Util/Exceptions'
 
@@ -63,6 +64,17 @@ class Rules
         return @regex(value, /^\d{4}\-\d{2}\-\d{2}[T]\d{2}\:\d{2}\:\d{2}$/) and moment(value, formats).isValid()
     isoDate: (value) ->
         return @regex(value, /(\d{4})-(\d{2})-(\d{2})T((\d{2}):(\d{2}):(\d{2}))\.(\d{3})Z/)
+
+    isUseful: (value) ->
+        if _.isUndefined(value) || _.isNull(value)
+            return false
+        if _.isBoolean(value)
+            return value
+        if _.isObject(value) && _.isEmpty(value)
+            return false
+        if (_.isString(value) || _.isArray(value)) && (value.length == 0)
+            return false
+        return true
 
     # Test if a value will pass a set of validation rules specified in the rules parameter
     # @value The value to be validated
