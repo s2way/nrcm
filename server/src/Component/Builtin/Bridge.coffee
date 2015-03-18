@@ -24,6 +24,7 @@ class Bridge
             controller: controller
             segments: options.segments
             query: options.query
+            prefixes : options.prefixes
         delete options.query
         url
 

@@ -144,9 +144,10 @@ class MyNinja
                 sql = @$.update(@_table).set(data).where(
                     @$.equal(@_primaryKey, primaryKeyValue)
                 ).build()
-                @_mysql.query sql, [], @_dataSourceName, (error) =>
+                @_mysql.query sql, [], @_dataSourceName, (error, results) =>
                     return callback(error) if error
                     original[@_primaryKey] = primaryKeyValue
+                    original.info = results
                     return callback(null, original)
             else
                 sql = @$.insertInto(@_table).set(data).build()

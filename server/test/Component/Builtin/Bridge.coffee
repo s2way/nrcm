@@ -13,6 +13,7 @@ describe 'Bridge.js', ->
                 app: 'wallet'
                 host: 'localhost'
                 port: '8001'
+                urlFormat : '#token/$application/$controller'
 
     describe 'init', ->
         it 'should throw an IllegalArgument exception if the bridge cannot be found', ->
@@ -31,10 +32,11 @@ describe 'Bridge.js', ->
                 query = param: 1, another: 'string'
                 headers = {}
                 segments = ['one', 'two', 'three']
+                prefixes = token : 'token1'
                 instance.component = ->
                     object = {}
                     object[method] = (resource, options, callback) ->
-                        expect(resource).to.be '/wallet/sub/payment/one/two/three?param=1&another=string'
+                        expect(resource).to.be 'token1/wallet/sub/payment/one/two/three?param=1&another=string'
                         expect(options.payload).to.be payment
                         expect(options.headers).to.be headers
                         expect(callback).to.be.a 'function'
@@ -49,5 +51,5 @@ describe 'Bridge.js', ->
                     headers: headers
                     query: query
                     segments: segments
+                    prefixes : prefixes
                 , blankFunction
-

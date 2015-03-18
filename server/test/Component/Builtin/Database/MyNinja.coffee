@@ -395,12 +395,12 @@ describe 'MyNinja', ->
                     done()
             )
 
-        it 'should insert the data if the id is not passed', (done) ->
+        it 'should update the data if the id is passed', (done) ->
             loader.mockComponent 'DataSource.MySQL',
                 init: ->
                 query: (query, params, dataSourceName, callback) ->
                     expect(query).to.be "UPDATE sky SET name = 'Record' WHERE id = 1"
-                    callback(null, {})
+                    callback(null, {foobar: 'foobar'})
 
             instance = loader.createComponent 'Database.MyNinja',table: 'sky'
             instance.init()
@@ -408,20 +408,26 @@ describe 'MyNinja', ->
                 id: 1
                 name: 'Record'
 
+            expectedResponse =
+                id: 1
+                name: 'Record'
+                info:
+                    foobar: 'foobar'
+
             instance.save(
                 data: data
                 callback: (error, results) ->
                     expect(error).not.to.be.ok()
                     expect(results).to.be.ok()
+                    expect(JSON.stringify(results)).to.be JSON.stringify expectedResponse
                     done()
             )
 
 
-        it 'should update the data if the id is passed', (done) ->
+        it 'should insert the data if the id is not passed', (done) ->
             loader.mockComponent 'DataSource.MySQL',
                 init: ->
                 query: (query, params, dataSourceName, callback) ->
-                    expect(query).to.be "INSERT INTO sky SET name = 'Record'"
                     callback(null, {})
 
             instance = loader.createComponent 'Database.MyNinja',table: 'sky'
