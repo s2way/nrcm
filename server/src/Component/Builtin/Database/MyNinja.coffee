@@ -143,10 +143,7 @@ class MyNinja
                 primaryKeyValue = data[@_primaryKey]
                 delete data[@_primaryKey]
 
-                if conditions
-                    whereSql = @$.and(@$.equal(@_primaryKey, primaryKeyValue), conditions)
-                else
-                    whereSql = @$.equal(@_primaryKey, primaryKeyValue)
+                whereSql = if conditions then @$.and(@$.equal(@_primaryKey, primaryKeyValue), conditions) else @$.equal(@_primaryKey, primaryKeyValue)
 
                 sql = @$.update(@_table).set(data).where(whereSql).build()
                 @_mysql.query sql, [], @_dataSourceName, (error, results) =>
