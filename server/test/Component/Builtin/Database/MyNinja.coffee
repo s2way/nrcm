@@ -423,7 +423,6 @@ describe 'MyNinja', ->
                     done()
             )
 
-
         it 'should insert the data if the id is not passed', (done) ->
             loader.mockComponent 'DataSource.MySQL',
                 init: ->
@@ -440,6 +439,41 @@ describe 'MyNinja', ->
                 callback: (error, results) ->
                     expect(error).not.to.be.ok()
                     expect(results).to.be.ok()
+                    done()
+            )
+
+        it 'should use the past conditions in the update where', (done) ->
+
+            loader.mockComponent 'DataSource.MySQL',
+                init: ->
+                query: (query, params, dataSourceName, callback) ->
+                    expect(query).to.eql "UPDATE sky SET name = 'Record' WHERE (id = 1 AND owner = 'token1')"
+                    callback(null, {foobar: 'foobar'})
+
+            $ = loader.createComponent 'QueryBuilder'
+            instance = loader.createComponent 'Database.MyNinja',table: 'sky'
+            instance.init()
+
+            data =
+                id: 1
+                name: 'Record'
+
+            conditions =
+                $.equal 'owner', $.escape 'token1'
+
+            expectedResponse =
+                id: 1
+                name: 'Record'
+                info:
+                    foobar: 'foobar'
+
+            instance.save(
+                data: data
+                conditions: conditions
+                callback: (error, results) ->
+                    expect(error).not.to.be.ok()
+                    expect(results).to.be.ok()
+                    expect(JSON.stringify(results)).to.be JSON.stringify expectedResponse
                     done()
             )
 

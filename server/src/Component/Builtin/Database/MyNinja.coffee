@@ -122,6 +122,7 @@ class MyNinja
         escape = params.escape ? true
         validate = params.validate ? true
         match = params.match ? true
+        conditions = params.conditions ? false
 
         # Make copies of data so that the modification of the JSON won't affected the original one
         original = @_cherries.copy(data)
@@ -141,9 +142,13 @@ class MyNinja
             if data[@_primaryKey]?
                 primaryKeyValue = data[@_primaryKey]
                 delete data[@_primaryKey]
-                sql = @$.update(@_table).set(data).where(
-                    @$.equal(@_primaryKey, primaryKeyValue)
-                ).build()
+
+                if conditions
+                    whereSql = @$.and(@$.equal(@_primaryKey, primaryKeyValue), conditions)
+                else
+                    whereSql = @$.equal(@_primaryKey, primaryKeyValue)
+
+                sql = @$.update(@_table).set(data).where(whereSql).build()
                 @_mysql.query sql, [], @_dataSourceName, (error, results) =>
                     return callback(error) if error
                     original[@_primaryKey] = primaryKeyValue
