@@ -196,7 +196,7 @@ class QueryBuilder
         expression
 
     escape: (value) ->
-        return "'" + value + "'"  if typeof value isnt "number"
+        return "'" + value + "'"  if typeof value isnt "number" and value isnt null
         value
 
 QueryBuilder::value = QueryBuilder::escape

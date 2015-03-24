@@ -317,6 +317,13 @@ describe 'QueryBuilder.js', ->
         it 'should output an OR expression if a single array is passed', ->
             assert.equal "(a OR b OR c)", $.or(["a", "b", "c"])
 
+    describe 'escape', ->
+        it 'should output an quoted string if value is string', ->
+            assert.equal "'string'", $.escape "string"
+
+        it 'should output a non-quoted null value if the parameter is null', ->
+            assert.equal null, $.escape null
+
     describe 'and', ->
         it 'should throw an IllegalArgument exception if less than two parameters are passed', ->
             try
