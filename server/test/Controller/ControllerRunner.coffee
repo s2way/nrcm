@@ -244,6 +244,29 @@ describe 'ControllerRunner', ->
                 expect(order).to.eql ['b.after()', 'a.after()']
                 done()
 
+        it 'should keep the same body in the filters after methods if no explicit change has been made', (done) ->
+            expectedBody =
+                controller : 'body'
+            body = {}
+            aFilter =
+                after: (callback) ->
+                    callback()
+            bFilter =
+                after: (callback) ->
+                    callback()
+            controller =
+                method: 'get'
+                filters: [aFilter, bFilter]
+                get: (callback) ->
+                    body.controller = 'body'
+                    callback(body)
+
+            runner.run controller, 10000, (error, response) ->
+                expect(response).to.be.ok()
+                expect(error).not.to.be.ok()
+                expect(response).to.eql expectedBody
+                done()
+
         it 'should allow body changes after the controller main method has set it', (done) ->
             expectedBody =
                 controller : 'body'
