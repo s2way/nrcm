@@ -166,6 +166,27 @@ class Loader
         @loadFilter filterName unless @_filters[filterName]?
         @_filters[filterName].mocked = properties
 
+    # Loads an existing controller by name 
+    # OR 
+    # loads new controller (instantiating the Controller constructor function) specified
+    loadController: (controllerName, Controller = null) ->
+        allowedExtensions = ['coffee', 'js']
+        applicationControllerPath = path.join(@_applicationPath, 'src', 'Controller', @_cherries.elementNameToPath(controllerName))
+
+        # Loads an existing controller
+        if Controller is null
+            for ext in allowedExtensions
+                applicationControllerPathWithExt = applicationControllerPath + '.' + ext
+                if @_exists(applicationControllerPathWithExt)
+                    @_controllers[controllerName] = @_require(applicationControllerPathWithExt)
+                    return true
+            throw
+            name: 'ControllerNotFound'
+            controller: controllerName
+        else 
+            @_controllers[controllerName] = Controller
+            return Controller
+
     # Call a controller method for testing
     # @param {string} controllerName The name of the controller to be called
     # @param {string} httpMethod HTTP method
@@ -173,8 +194,7 @@ class Loader
     # @param {function} callback Function that will be called when the call is complete.
     # An object containing statusCode, headers, and contentType is passed to the callback.
     callController: (controllerName, httpMethod, options, callback) ->
-        controllerPath = path.join(@_applicationPath, 'src', 'Controller', @_cherries.elementNameToPath(controllerName))
-        @_controllers[controllerName] = @_require(controllerPath)
+        @loadController controllerName
 
         router = new Router @_serverConfigs.urlFormat
         url = router.compose(

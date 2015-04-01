@@ -158,6 +158,25 @@ describe 'Loader', ->
             component = loader.createComponent('MyComponent')
             expect(component.configs.file.prop).to.be 'value'
 
+    describe 'loadController()', ->
+
+        it 'should throw an exception if the controller cannot be found', (done) ->
+            expect(-> 
+                loader._exists = -> false
+                loader.loadController 'Invalid'
+            ).to.throwException((e) -> 
+                expect(e.name).to.be 'ControllerNotFound'
+                expect(e.controller).to.be 'Invalid'
+                done()
+            )
+        it 'should load a DummyController specified if the second argument is passed', ->
+            class DummyController 
+                constructor: -> 
+                get: (callback) ->
+                    callback {}
+
+            expect(loader.loadController 'DummyController', DummyController).to.be DummyController
+
     describe 'callController()', ->
 
         it 'should mock the Model methods passed to mockModel when callController is called', (done) ->
@@ -169,8 +188,9 @@ describe 'Loader', ->
             class MyModel
                 findById: -> 'no'
 
+            loader._exists = -> true
             loader._require = (filePath) ->
-                return MyController if filePath is path.join('app', 'src', 'Controller', 'MyController')
+                return MyController if filePath is path.join('app', 'src', 'Controller', 'MyController.coffee')
                 return MyModel if filePath is path.join('app', 'src', 'Model', 'MyModel')
 
             loader.mockModel 'MyModel', findById: -> 'yes'
@@ -186,8 +206,9 @@ describe 'Loader', ->
             class MyComponent
                 util: -> 'no'
 
+            loader._exists = -> true
             loader._require = (filePath) ->
-                return MyController if filePath is path.join('app', 'src', 'Controller', 'MyController')
+                return MyController if filePath is path.join('app', 'src', 'Controller', 'MyController.coffee')
                 return MyComponent if filePath is path.join('app', 'src', 'Component', 'MyComponent')
 
             loader.mockComponent 'MyComponent', util: -> 'yes'
@@ -203,7 +224,7 @@ describe 'Loader', ->
                 get: (callback) -> callback name: @name
 
             loader._require = (filePath) ->
-                return MySubController if filePath is path.join('app', 'src', 'Controller', 'Sub', 'MySubController')
+                return MySubController if filePath is path.join('app', 'src', 'Controller', 'Sub', 'MySubController.coffee')
 
             loader.callController 'Sub.MySubController', 'get', {}, (body, info) ->
                 expect(body.name).to.be 'Sub.MySubController'
@@ -218,7 +239,7 @@ describe 'Loader', ->
                     callback segments: @segments
 
             loader._require = (filePath) ->
-                return MyController if filePath is path.join('app', 'src', 'Controller', 'MyController')
+                return MyController if filePath is path.join('app', 'src', 'Controller', 'MyController.coffee')
 
             loader.callController 'MyController', 'get', {
                 segments: segments
@@ -237,7 +258,7 @@ describe 'Loader', ->
                     callback query: @query
 
             loader._require = (filePath) ->
-                return MyController if filePath is path.join('app', 'src', 'Controller', 'MyController')
+                return MyController if filePath is path.join('app', 'src', 'Controller', 'MyController.coffee')
 
             loader.callController 'MyController', 'get', {
                 query: query
@@ -254,7 +275,7 @@ describe 'Loader', ->
                 get: (callback) -> callback()
 
             loader._require = (filePath) ->
-                return MyController if filePath is path.join('app', 'src', 'Controller', 'MyController')
+                return MyController if filePath is path.join('app', 'src', 'Controller', 'MyController.coffee')
 
             loader.callController 'MyController', 'get', {
                 segments: segments
@@ -274,7 +295,7 @@ describe 'Loader', ->
 
             loader._exists = -> true
             loader._require = (filePath) ->
-                return MyController if filePath is path.join('app', 'src', 'Controller', 'MyController')
+                return MyController if filePath is path.join('app', 'src', 'Controller', 'MyController.coffee')
                 return MyFilter if filePath is path.join('app', 'src', 'Filter', 'MyFilter')
 
             loader.mockFilter 'MyFilter', before: (callback) -> @params.mocked = true ; callback true
