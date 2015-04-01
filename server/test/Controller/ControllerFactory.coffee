@@ -12,6 +12,7 @@ describe 'ControllerFactory', ->
         elementManager = null
         configs = {}
         core = {}
+        limbo = {}
 
         class MyController
             constructor: -> return
@@ -22,6 +23,7 @@ describe 'ControllerFactory', ->
 
         beforeEach ->
             application =
+                limbo: limbo
                 controllers: MyController: MyController
                 models: MyModel: MyModel
                 components: MyComponent: MyComponent
@@ -77,6 +79,10 @@ describe 'ControllerFactory', ->
             expect(instance.head).to.be.a 'function'
             expect(instance.options).to.be.a 'function'
             expect(instance.trace).to.be.a 'function'
+
+        it 'should inject the limbo object', ->
+            instance = controllerFactory.create 'MyController'
+            expect(instance.limbo).to.be limbo
 
     describe 'prepare', ->
 

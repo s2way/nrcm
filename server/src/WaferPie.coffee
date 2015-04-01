@@ -181,8 +181,11 @@ class WaferPie
     start: (address, port) ->
         throw new Exceptions.Fatal('Please call configure() before start()!') unless @_configured
         @info "Starting #{address}:#{port}"
+        # Global limbo object shared between requests
+        globalLimbo = {}
         http.createServer((request, response) =>
             requestHandler = new RequestHandler @_applications, @_configs, @_logger, @_monitoring, @_version
+            requestHandler.limbo = globalLimbo
             requestHandler.process new Request(request), new Response(response)
         ).listen port, address
         @info 'Started!'
