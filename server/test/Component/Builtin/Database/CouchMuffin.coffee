@@ -34,6 +34,7 @@ describe 'CouchMuffin', ->
                 value:
                     string: 'string'
                     number: 1
+                    _id: 'MyKey'
         stdMyError =
             name: 'MyError'
 
@@ -151,7 +152,7 @@ describe 'CouchMuffin', ->
             instance.init()
             instance.findManyById ids: ['MyKey','MyKey1'], (error, result) ->
                 expect(error).not.to.be.ok()
-                expect(result).to.be '': stdResult.MyKey
+                expect(result).to.be.eql '' : stdResult.MyKey
                 done()
 
         it 'should pass the error to the callback if something occurs', (done) ->
