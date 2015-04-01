@@ -166,8 +166,8 @@ class Loader
         @loadFilter filterName unless @_filters[filterName]?
         @_filters[filterName].mocked = properties
 
-    # Loads an existing controller by name 
-    # OR 
+    # Loads an existing controller by name
+    # OR
     # loads new controller (instantiating the Controller constructor function) specified
     loadController: (controllerName, Controller = null) ->
         allowedExtensions = ['coffee', 'js']
@@ -183,7 +183,7 @@ class Loader
             throw
             name: 'ControllerNotFound'
             controller: controllerName
-        else 
+        else
             @_controllers[controllerName] = Controller
             return Controller
 

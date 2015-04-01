@@ -161,17 +161,17 @@ describe 'Loader', ->
     describe 'loadController()', ->
 
         it 'should throw an exception if the controller cannot be found', (done) ->
-            expect(-> 
+            expect(->
                 loader._exists = -> false
                 loader.loadController 'Invalid'
-            ).to.throwException((e) -> 
+            ).to.throwException((e) ->
                 expect(e.name).to.be 'ControllerNotFound'
                 expect(e.controller).to.be 'Invalid'
                 done()
             )
         it 'should load a DummyController specified if the second argument is passed', ->
-            class DummyController 
-                constructor: -> 
+            class DummyController
+                constructor: ->
                 get: (callback) ->
                     callback {}
 

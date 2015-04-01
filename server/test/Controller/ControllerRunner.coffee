@@ -245,7 +245,7 @@ describe 'ControllerRunner', ->
                 done()
 
         it 'should allow body changes after the controller main method has set it', (done) ->
-            expectedBody = 
+            expectedBody =
                 controller : 'body'
                 bFilter : 'body changed'
                 aFilter : 'body changed'
