@@ -34,7 +34,7 @@ module.exports = function (grunt) {
         // Watches files for changes and runs tasks based on the changed files
         watch: {
             test: {
-                files: ['server/**/*.js'],
+                files: ['server/**/*.coffee'],
                 tasks: ['test']
             },
             gruntfile: {
