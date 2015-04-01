@@ -126,6 +126,20 @@ describe 'ControllerRunner', ->
                 expect(response).to.be.ok()
                 done()
 
+        it 'should allow changing the controller responseBody in after()', (done) ->
+            instance =
+                filters: []
+                method: 'get'
+                before: (callback) -> callback true
+                get: (callback) -> callback response : 'body'
+                after: (callback) ->
+                    @body = newResponse : 'body'
+                    callback()
+            runner.run instance, 10000, (error, response) ->
+                expect(error).not.to.be.ok()
+                expect(response).to.be.ok()
+                done()
+
 
         it 'should call get() and pass the response to the callback', (done) ->
             instance =
@@ -228,6 +242,33 @@ describe 'ControllerRunner', ->
                 expect(response).to.be.ok()
                 expect(error).not.to.be.ok()
                 expect(order).to.eql ['b.after()', 'a.after()']
+                done()
+
+        it 'should allow body changes after the controller main method has set it', (done) ->
+            expectedBody = 
+                controller : 'body'
+                bFilter : 'body changed'
+                aFilter : 'body changed'
+            body = {}
+            aFilter =
+                after: (callback) ->
+                    @body.aFilter = 'body changed'
+                    callback()
+            bFilter =
+                after: (callback) ->
+                    @body.bFilter = 'body changed'
+                    callback()
+            controller =
+                method: 'get'
+                filters: [aFilter, bFilter]
+                get: (callback) ->
+                    body.controller = 'body'
+                    callback(body)
+
+            runner.run controller, 10000, (error, response) ->
+                expect(response).to.be.ok()
+                expect(error).not.to.be.ok()
+                expect(response).to.eql expectedBody
                 done()
 
         it 'should stop the filter chain if something is passed to the before() method of a filter', (done) ->

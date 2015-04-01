@@ -60,6 +60,9 @@ class ControllerRunner
             return callback null if noFiltersLeft
 
             filter = filtersInReverseOrder.shift()
+
+            # Injects the body into the filter so it will be avaible in the after method
+            filter.body = @body
             afterDomain = domain.create()
             afterDomain.on 'error', (e) =>
                 # Filter.after() exception
@@ -70,6 +73,8 @@ class ControllerRunner
                 if typeof filter.after is 'function'
                     filter.after.called = true
                     filter.after(->
+                        # Overrides the body so the 'after method' changes to it can take effect
+                        @body = filter.body
                         afterDomain.exit()
                         pickFilterAndCallAfter()
                     )
@@ -93,11 +98,15 @@ class ControllerRunner
                 # DO NOT CALL _onError() OR IT WILL RESULT IN AN INFINITE LOOP
                 callback e
 
+            # Injects the body into the filter so it will be avaible in the after method
+            filter.body = @body
             afterXDomain.run ->
                 wasFilterProcessed = filter.processed is true
                 if typeof filter[which] is 'function' and wasFilterProcessed
                     filter[which].called = true
                     filter[which](->
+                        # Overrides the body so the 'after method' changes to it can take effect
+                        @body = filter.body
                         afterXDomain.exit()
                         pickFilterAndCallMethod()
                     )
@@ -106,6 +115,7 @@ class ControllerRunner
                     pickFilterAndCallMethod()
 
         pickFilterAndCallMethod()
+
 
     # Executed if an exception occurs inside
     # Controller.before(), Controller.method(), Controller.after()
@@ -117,18 +127,19 @@ class ControllerRunner
 
     # Run the controller calling the corresponding methods and all the triggers (before() and after())
     run: (controller, timeout, callback) ->
-        body = null
         timeoutTimer = null
         controllerMethodImmediate = null
 
         afterCallback = =>
-            @_runFiltersAfter controller, timeoutTimer, (error) ->
+            @_runFiltersAfter controller, timeoutTimer, (error) =>
                 clearTimeout timeoutTimer
                 return callback error if error
-                return callback null, body
+                return callback null, @body
 
         controllerMethodCallback = (output) =>
-            body = output
+            @body = output
+            # Injects the body into the controller so it will be avaible in the after method
+            controller.body = @body
 
             afterDomain = domain.create()
             afterDomain.on 'error', (e) =>
@@ -141,6 +152,8 @@ class ControllerRunner
                 if typeof controller.after is 'function'
                     controller.after.called = true
                     controller.after(->
+                        # Overrides the body so the 'after method' changes to it can take effect
+                        @body = controller.body
                         afterDomain.exit()
                         afterCallback()
                     )
@@ -173,7 +186,6 @@ class ControllerRunner
                     callback null, response
 
         timeoutTimer = setTimeout( =>
-            clearImmediate controllerMethodImmediate
             callback new Exceptions.Timeout() # Response already sent
 
             controllerTimeoutCallback = =>
@@ -188,8 +200,7 @@ class ControllerRunner
 
         , timeout)
 
-        # Encapsulate the method in a immediate so it can be killed
-        controllerMethodImmediate = setImmediate(=>
+        setImmediate(=>
             @_runFiltersBefore controller, timeoutTimer, (error, callbackResponse) =>
                 return callback(error) if error
                 return callback(null, callbackResponse) if callbackResponse isnt true
