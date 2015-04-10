@@ -145,7 +145,7 @@ describe 'ControllerRunner', ->
                 filters : []
                 method: 'get'
                 before: (callback) -> callback true
-                get: (callback) -> 
+                get: (callback) ->
                     @statusCode = 999
                     callback response : 'body'
                 after: (callback) ->

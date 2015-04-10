@@ -14,6 +14,9 @@ ElementManager = require './../Core/ElementManager'
 # Handles any exception that can occur within the controller and the callbacks
 # Renders the response by calling response.render()
 class RequestHandler
+    # Reference to the limbo object, where global variables can be stored
+    limbo: null
+
     constructor: (@_applications, @_configs, @_serverLogger, @_monitoring, @_version) ->
         @_router = new Router @_configs.urlFormat
         @_controllerRunner = new ControllerRunner @_serverLogger
@@ -41,6 +44,7 @@ class RequestHandler
                 throw new Exceptions.ApplicationNotFound(@_request.app) if @_applications[@_request.app] is undefined
                 application = (if @_request.app then @_applications[@_request.app] else null)
                 application.uuid = application ? @_uuid
+                application.limbo = @limbo
 
             @_log "Application: #{@_request.app} | Method: #{@_request.method.toUpperCase()} | URL Type: #{@_request.type}"
             @_log "Prefixes: #{JSON.stringify(@_request.decomposedURL.prefixes)}"

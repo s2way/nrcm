@@ -41,6 +41,7 @@ class ControllerFactory
         controllerInstance.core = @_application.core
         controllerInstance.configs = @_application.configs
         controllerInstance.uuid = @_application._uuid
+        controllerInstance.limbo = @_application.limbo
 
         controllerInstance.component = (modelName, params) ->
             instance = controllerInstance.elementManager.create 'component', modelName, params

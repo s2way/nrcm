@@ -8,7 +8,7 @@ For Web API developers who need a scalable and lightweight solution, WaferPie is
 * MVC similar design: except for the View, which will be always JSONs;
 * Couchbase model support;
 * Multi-application: several different applications can run inside the same NodeJS HTTP server;
-* Couchbase and MySQL data sources supported;
+* Couchbase and MySQL datasources supported;
 * Asynchronous logging using winston;
 * Does **not read a single file from the disk** after startup;
 

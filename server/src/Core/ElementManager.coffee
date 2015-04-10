@@ -55,6 +55,7 @@ class ElementManager
         elementInstance = new ElementConstructor(params)
         elementInstance.name = elementName
         elementInstance.constants = @_application.constants
+        elementInstance.limbo = @_application.limbo
         elementInstance.model = (modelName, params) =>
             instance = @create('model', modelName, params)
             @init instance
