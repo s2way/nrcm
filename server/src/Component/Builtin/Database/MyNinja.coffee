@@ -13,7 +13,21 @@ class MyNinja
 
     # Bind all methods from MyNinja into the model instance (expect for init() and bind() itself)
     bind: (model) ->
-        methodsToBind = ['findById', 'find', 'findAll', 'removeAll', 'removeById', 'remove', 'query', 'updateAll', 'save', 'changeTable']
+        methodsToBind = [
+            'findById',
+            'find',
+            'findAll',
+            'removeAll',
+            'removeById',
+            'remove',
+            'query',
+            'updateAll',
+            'save',
+            'changeTable',
+            'startTransaction',
+            'commit',
+            'rollback'
+        ]
         for methodName in methodsToBind
             ninjaMethod = @[methodName]
             ((ninjaMethod) =>
@@ -114,6 +128,27 @@ class MyNinja
 
         sql = @$.update(@_table).set(data).where(conditions).build()
         @_mysql.query sql, [], @_dataSourceName, callback
+
+    # Start a transaction
+    startTransaction: (callback) ->
+        sql = 'START TRANSACTION'
+        @_mysql.query sql, [], @_dataSourceName, (error) ->
+            return callback(error) if error
+            return callback()
+
+    # Commit a transaction
+    commit: (callback) ->
+        sql = 'COMMIT'
+        @_mysql.query sql, [], @_dataSourceName, (error) ->
+            return callback(error) if error
+            return callback()
+
+    # Rollback a transaction
+    rollback: (callback) ->
+        sql = 'ROLLBACK'
+        @_mysql.query sql, [], @_dataSourceName, (error) ->
+            return callback(error) if error
+            return callback()
 
     # Saves the specified data if it is validated and matched against the validate object
     save: (params) ->

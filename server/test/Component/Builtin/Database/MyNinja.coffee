@@ -203,6 +203,92 @@ describe 'MyNinja', ->
                 done()
             )
 
+    describe 'transaction control', ->
+
+        it 'should start a transaction when startTransaction() is called', (done) ->
+            record = {}
+            loader.mockComponent 'DataSource.MySQL',
+                init: ->
+                query: (query, params, dataSourceName, callback) ->
+                    expect(query).to.be "START TRANSACTION"
+                    callback(null, record)
+            instance = loader.createComponent 'Database.MyNinja'
+            instance.init()
+            $ = instance.$
+            instance.startTransaction (error) ->
+                expect(error).not.to.be.ok()
+                done()
+
+        it 'should pass the error to the callback if something occurs when starting the transaction', (done) ->
+            error = name: 'System failure'
+            loader.mockComponent 'DataSource.MySQL',
+                init: ->
+                query: (query, params, dataSourceName, callback) ->
+                    callback(error)
+
+            instance = loader.createComponent 'Database.MyNinja', table: 'sky'
+            instance.init()
+
+            instance.startTransaction (error) ->
+                expect(error.name).to.be('System failure')
+                done()
+
+        it 'should commit a transaction when commit() is called', (done) ->
+            record = {}
+            loader.mockComponent 'DataSource.MySQL',
+                init: ->
+                query: (query, params, dataSourceName, callback) ->
+                    expect(query).to.be "COMMIT"
+                    callback(null, record)
+            instance = loader.createComponent 'Database.MyNinja'
+            instance.init()
+            $ = instance.$
+            instance.commit (error) ->
+                expect(error).not.to.be.ok()
+                done()
+
+        it 'should pass the error to the callback if something occurs when commiting the transaction', (done) ->
+            error = name: 'System failure'
+            loader.mockComponent 'DataSource.MySQL',
+                init: ->
+                query: (query, params, dataSourceName, callback) ->
+                    callback(error)
+
+            instance = loader.createComponent 'Database.MyNinja', table: 'sky'
+            instance.init()
+
+            instance.commit (error) ->
+                expect(error.name).to.be('System failure')
+                done()
+
+        it 'should rollback a transaction when rollback() is called', (done) ->
+            record = {}
+            loader.mockComponent 'DataSource.MySQL',
+                init: ->
+                query: (query, params, dataSourceName, callback) ->
+                    expect(query).to.be "ROLLBACK"
+                    callback(null, record)
+            instance = loader.createComponent 'Database.MyNinja'
+            instance.init()
+            $ = instance.$
+            instance.rollback (error) ->
+                expect(error).not.to.be.ok()
+                done()
+
+        it 'should pass the error to the callback if something occurs when rollbacking the transaction', (done) ->
+            error = name: 'System failure'
+            loader.mockComponent 'DataSource.MySQL',
+                init: ->
+                query: (query, params, dataSourceName, callback) ->
+                    callback(error)
+
+            instance = loader.createComponent 'Database.MyNinja', table: 'sky'
+            instance.init()
+
+            instance.rollback (error) ->
+                expect(error.name).to.be('System failure')
+                done()
+
     describe 'remove()', ->
 
         it 'should delete a single record from the table using the specified condition', (done) ->

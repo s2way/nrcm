@@ -140,6 +140,22 @@ describe 'ControllerRunner', ->
                 expect(response).to.be.ok()
                 done()
 
+        it 'should allow the after() filter to access the response status code', (done) ->
+            instance =
+                filters : []
+                method: 'get'
+                before: (callback) -> callback true
+                get: (callback) -> 
+                    @statusCode = 999
+                    callback response : 'body'
+                after: (callback) ->
+                    expect(@statusCode).to.eql 999
+                    callback()
+
+            runner.run instance, 10000, (error, response) ->
+                expect(error).not.to.be.ok()
+                expect(response).to.be.ok()
+                done()
 
         it 'should call get() and pass the response to the callback', (done) ->
             instance =
@@ -298,7 +314,6 @@ describe 'ControllerRunner', ->
             aFilter =
                 responseHeaders: {}
                 before: (callback) ->
-                    @statusCode = 403
                     @responseHeaders['X-Ha'] = 'X-Ha'
                     callback(message: 'NotAllowed')
             bFilter =
@@ -314,7 +329,6 @@ describe 'ControllerRunner', ->
             runner.run controller, 10000, (error, response) ->
                 expect(error).not.to.be.ok()
                 expect(response.message).to.be 'NotAllowed'
-                expect(controller.statusCode).to.be 403
                 expect(controller.responseHeaders['X-Ha']).to.be 'X-Ha'
                 done()
 

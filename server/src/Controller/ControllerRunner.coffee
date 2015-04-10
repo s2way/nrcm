@@ -42,7 +42,6 @@ class ControllerRunner
                             pickFilterAndCallBefore()
                         else
                             clearTimeout timeoutTimer
-                            controller.statusCode = filter.statusCode if filter.statusCode?
                             controller.responseHeaders = filter.responseHeaders if filter.responseHeaders?
                             callback null, response
                     )
@@ -63,6 +62,7 @@ class ControllerRunner
 
             # Injects the body into the filter so it will be avaible in the after method
             filter.body = @body
+            filter.statusCode = controller.statusCode
             afterDomain = domain.create()
             afterDomain.on 'error', (e) =>
                 # Filter.after() exception
@@ -73,7 +73,7 @@ class ControllerRunner
                 if typeof filter.after is 'function'
                     filter.after.called = true
                     filter.after(->
-                        # Overrides the body so the 'after method' changes to it can take effect
+                        # Overrides the body so the 'after method' changes can take effect
                         @body = filter.body
                         afterDomain.exit()
                         pickFilterAndCallAfter()
@@ -100,12 +100,13 @@ class ControllerRunner
 
             # Injects the body into the filter so it will be avaible in the after method
             filter.body = @body
+            filter.statusCode = controller.statusCode
             afterXDomain.run ->
                 wasFilterProcessed = filter.processed is true
                 if typeof filter[which] is 'function' and wasFilterProcessed
                     filter[which].called = true
                     filter[which](->
-                        # Overrides the body so the 'after method' changes to it can take effect
+                        # Overrides the body so the 'after method' changes can take effect
                         @body = filter.body
                         afterXDomain.exit()
                         pickFilterAndCallMethod()
@@ -154,6 +155,7 @@ class ControllerRunner
                     controller.after(->
                         # Overrides the body so the 'after method' changes to it can take effect
                         @body = controller.body
+                        @statusCode = controller.statusCode
                         afterDomain.exit()
                         afterCallback()
                     )
