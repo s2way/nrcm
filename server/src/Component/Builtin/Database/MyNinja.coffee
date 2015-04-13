@@ -1,3 +1,5 @@
+uuid = require 'node-uuid'
+
 class MyNinja
     constructor: (params) ->
         @_dataSourceName = params?.dataSourceName ? 'default'
@@ -187,6 +189,7 @@ class MyNinja
                     original.info = results
                     return callback(null, original)
             else
+                data.id = @$.escape(uuid.v1()) if params.uuid
                 sql = @$.insertInto(@_table).set(data).build()
                 @_mysql.query sql, [], @_dataSourceName, (error, results) =>
                     return callback(error) if error

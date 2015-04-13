@@ -513,6 +513,7 @@ describe 'MyNinja', ->
             loader.mockComponent 'DataSource.MySQL',
                 init: ->
                 query: (query, params, dataSourceName, callback) ->
+                    expect(query).to.not.contain 'id'
                     callback(null, {})
 
             instance = loader.createComponent 'Database.MyNinja',table: 'sky'
@@ -522,6 +523,27 @@ describe 'MyNinja', ->
 
             instance.save(
                 data: data
+                callback: (error, results) ->
+                    expect(error).not.to.be.ok()
+                    expect(results).to.be.ok()
+                    done()
+            )
+
+        it 'should add the uuid to the insert data if it is set', (done) ->
+            loader.mockComponent 'DataSource.MySQL',
+                init: ->
+                query: (query, params, dataSourceName, callback) ->
+                    expect(query).to.contain 'id'
+                    callback(null, {})
+
+            instance = loader.createComponent 'Database.MyNinja',table: 'sky'
+            instance.init()
+            data =
+                name: 'Record'
+
+            instance.save(
+                data: data
+                uuid: true
                 callback: (error, results) ->
                     expect(error).not.to.be.ok()
                     expect(results).to.be.ok()
