@@ -189,11 +189,14 @@ class MyNinja
                     original.info = results
                     return callback(null, original)
             else
-                data.id = @$.escape(uuid.v1()) if params.uuid
+                id = null
+                if params.uuid
+                    id = uuid.v1()
+                    data.id = @$.escape(id)
                 sql = @$.insertInto(@_table).set(data).build()
                 @_mysql.query sql, [], @_dataSourceName, (error, results) =>
                     return callback(error) if error
-                    original[@_primaryKey] = results.insertId
+                    original[@_primaryKey] = id || results.insertId
                     return callback(null, original)
 
         if validate and @_validate?
