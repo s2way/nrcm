@@ -137,10 +137,11 @@ class CouchMuffin
     #   Ensures this operation is replicated to this many nodes
     # @param {function} callback Called after the operation (error, result)
     # @param {function} callback Called when the operation is completed (error, result)
-    save: (params, callback) ->
+    save: (params) ->
         @_method = 'save'
         id = params.id
         data = params.data || {}
+        callback = params.callback || null
         return callback error: 'InvalidId' if id is null or id != data._id
         options = params.options || {}
         validate = options.validate ? true
@@ -234,10 +235,10 @@ class CouchMuffin
             afterId null, id
 
     # Finds a single record using the specified conditions (Facade to findAll)
-    find: (params, callback) ->
+    find: (params) ->
         @_method = 'find'
         params.limit = 1
-        @findAll params, callback
+        @findAll params, params.callback
 
     # Finds several records using the specified conditions
     findAll: (params, callback) ->
