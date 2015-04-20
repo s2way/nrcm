@@ -224,10 +224,6 @@ describe 'CouchMuffin', ->
             paramsToSave =
                 id: 'MyKey'
                 data: stdResult
-                callback: (error, result) ->
-                    expect(error).not.to.be.ok()
-                    expect(result).to.be stdResult
-                    done()
 
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
@@ -238,7 +234,10 @@ describe 'CouchMuffin', ->
             instance = loader.createComponent 'Database.CouchMuffin', params
 
             instance.init()
-            instance.save paramsToSave
+            instance.save paramsToSave, (error, result) ->
+                expect(error).not.to.be.ok()
+                expect(result).to.be stdResult
+                done()
 
         it 'should save the record by id without validation', (done) ->
             stdError = null
@@ -250,10 +249,6 @@ describe 'CouchMuffin', ->
                 id: 'MyKey'
                 data: stdResult
                 options: stdOptions
-                callback : (error, result) ->
-                    expect(error).not.to.be.ok()
-                    expect(result).to.be stdResult
-                    done()
 
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
@@ -264,7 +259,10 @@ describe 'CouchMuffin', ->
             instance = loader.createComponent 'Database.CouchMuffin', params
 
             instance.init()
-            instance.save paramsToSave
+            instance.save paramsToSave, (error, result) ->
+                expect(error).not.to.be.ok()
+                expect(result).to.be stdResult
+                done()
 
         it 'should pass the error to the callback if something occurs', (done) ->
             stdError = stdMyError
@@ -272,10 +270,6 @@ describe 'CouchMuffin', ->
             paramsToSave =
                 id: 'MyKey'
                 data: stdResult
-                callback: (error, result) ->
-                    expect(error.name).to.be 'MyError'
-                    expect(result).not.to.be.ok()
-                    done()
 
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
@@ -286,19 +280,16 @@ describe 'CouchMuffin', ->
             instance = loader.createComponent 'Database.CouchMuffin', params
 
             instance.init()
-            instance.save paramsToSave
+            instance.save paramsToSave, (error, result) ->
+                expect(error.name).to.be 'MyError'
+                expect(result).not.to.be.ok()
+                done()
 
         it 'should pass the error to the callback if validation fails', (done) ->
             stdError = stdMyError
-            stdResult =
-                _id : 2
+            stdResult = null
             paramsToSave =
-                id: 2
-                data: stdResult
-                callback: (error, result) ->
-                    expect(error.name).to.be('ValidationFailed')
-                    expect(result).not.to.be.ok()
-                    done()
+                id: 'MyKey'
 
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
@@ -309,7 +300,10 @@ describe 'CouchMuffin', ->
             instance = loader.createComponent 'Database.CouchMuffin', params
 
             instance.init()
-            instance.save paramsToSave
+            instance.save params, (error, result) ->
+                expect(error.name).to.be('ValidationFailed')
+                expect(result).not.to.be.ok()
+                done()
 
     describe 'insert', ->
 
@@ -511,9 +505,6 @@ describe 'CouchMuffin', ->
                 fields: ['name', 'test']
                 groupBy: 'test'
                 having: 'test > 1'
-                callback : (error, result) ->
-                    expect(result).to.be stdResult
-                    done()
 
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
@@ -528,7 +519,9 @@ describe 'CouchMuffin', ->
             instance = loader.createComponent 'Database.CouchMuffin', params
 
             instance.init()
-            instance.find queryParams
+            instance.find queryParams, (error, result) ->
+                expect(result).to.be stdResult
+                done()
 
     describe 'findAll', ->
         it 'should find all records', (done) ->
