@@ -136,7 +136,7 @@ class CouchMuffin
     #   @param {number} [options.replicate_to=0]
     #   Ensures this operation is replicated to this many nodes
     # @param {function} callback Called after the operation (error, result)
-    # @param {function} callback Called when the operation is completed (error, result) 
+    # @param {function} callback Called when the operation is completed (error, result)
     save: (params, callback) ->
         @_method = 'save'
         id = params.id
