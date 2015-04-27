@@ -38,6 +38,9 @@ class MyNinja
             )(ninjaMethod)
         model.$ = @$
 
+    setPrimaryKey: (primaryKeyName) ->
+        @_primaryKey = primaryKeyName
+
     changeTable: (tableName) ->
         @_table = tableName
 

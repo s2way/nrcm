@@ -10,6 +10,15 @@ describe 'MyNinja', ->
     beforeEach ->
         loader = new Loader
 
+    describe 'setPrimaryKey', ->
+
+        it 'should set the new primary key', (done) ->
+            instance = loader.createComponent 'Database.MyNinja', primaryKey: 'field1'
+            instance.init()
+            instance.setPrimaryKey('field2')
+            expect(instance._primaryKey).to.be('field2')
+            done()
+
     describe 'changeTable', ->
 
         it 'should set the new table', (done) ->
