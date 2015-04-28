@@ -15,6 +15,7 @@ class FilterFactory
     # Creates an instance of a given filter and copy most properties from the controllerInstance
     _create: (filterName, controllerInstance) ->
         filterInstance = new @_application.filters[filterName]
+        filterInstance.limbo = controllerInstance.limbo
         filterInstance.segments = controllerInstance.segments
         filterInstance.query = controllerInstance.query
         filterInstance.prefixes = controllerInstance.prefixes

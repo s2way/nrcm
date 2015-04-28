@@ -164,6 +164,14 @@ class WaferPie
             catch e
                 throw new Exceptions.Fatal('Configuration file is not a valid configuration file', e)
             throw new Exceptions.Fatal('urlFormat has not been specified or it is not a string')  if typeof @_configs.urlFormat isnt 'string'
+        # @_logger =
+        #     init : ->
+        #         return
+        #     log: ->
+        #         return
+        #     info: ->
+        #         return
+
         @_logger = new Logger('server.log')
         @_logger.config
             path: 'logs'
