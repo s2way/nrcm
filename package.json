@@ -57,9 +57,9 @@
     "type": "git",
     "url": "http://github.com/s2way/waferpie.git"
   },
-  "version": "0.9.11",
+  "version": "0.9.12",
   "scripts": {
-    "postinstall": "./compile.sh",
+    "postinstall": "rm -rf dist; mkdir -p dist; cp -r server/* dist/ && find dist -type f -iname '*.coffee' -delete; node_modules/.bin/coffee --compile --output dist server",
     "pretest": "node_modules/.bin/coffeelint server",
     "test": "node_modules/.bin/mocha server/test --recursive -R progress --compilers coffee:coffee-script/register ; node_modules/.bin/mocha server/test --recursive -R html-cov -r blanket --compilers coffee:coffee-script/register > report.html",
     "posttest": "node_modules/.bin/mocha server/test --recursive -r blanket -R travis-cov --compilers coffee:coffee-script/register"
