@@ -2,7 +2,7 @@ Exceptions = require '../../../Util/Exceptions'
 _ = require 'underscore'
 
 class ElasticSearch
-    constructor: -> 
+    constructor: ->
         @_elasticsearch = require 'elasticsearch'
         @_ejs = require 'elastic.js'
 
@@ -33,6 +33,6 @@ class ElasticSearch
 
         es = @client datasource
         es.search options
-        .then success, error 
+        .then success, error
 
 module.exports = ElasticSearch
