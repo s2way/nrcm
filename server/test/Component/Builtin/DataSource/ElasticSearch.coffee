@@ -28,69 +28,7 @@ describe "ElasticSearch.js", ->
             ).to.throwException (e) ->
                 expect(e.name).to.be "IllegalArgument"
 
-    describe "_filter", ->
-        it "should return an AndFilter if an array is passed", ->
-            expectedResponse = [ { term: { plate: 'aaa' } }, { term: { spot: '1' } } ]
-
-            filters = [
-                {field:'plate', qstr:'aaa'},
-                {field:'spot', qstr:'1'}
-            ]
-
-            response = instance._filter filters
-            expect(response.filters()).to.eql expectedResponse
-
-        it "should return a single TermFilter if only one object is passed", ->
-            expectedResponse = 
-                field: 'plate'
-                term: 'aaa'
-            filters = 
-                field:'plate'
-                qstr:'aaa'
-
-            response = instance._filter filters
-
-            expect(response.field()).to.eql expectedResponse.field
-            expect(response.term()).to.eql expectedResponse.term
-
-    describe "findAll", ->
-        it "should have empty filters if none is passed", ->
-            instance.client = (config) ->
-                client = ()->
-                    search: (options)->
-                        expect(options.body).not.to.be.ok()
-                        @
-                    then: (success, error) ->
-                new client()
-
-            params =
-                index: 'test'
-                type: 'test'
-
-            instance.findAll('',params,null)
-
-        it "should have the same filters that were passed", ->
-
-            expectedResponse = 
-                term:
-                    plate: 'aaa'
-
-            instance.client = (config) ->
-                client = ()->
-                    search: (options)->
-                        expect(options.body.filter()).to.eql expectedResponse
-                        @
-                    then: (success, error) ->
-                new client()
-
-            params =
-                index: 'test'
-                type: 'test'
-                filters:
-                    field: 'plate'
-                    qstr: 'aaa'
-
-            instance.findAll '', params, null
+    describe "query", ->
 
         it "should query for all types if none is specified in params", ->
 
@@ -107,7 +45,7 @@ describe "ElasticSearch.js", ->
             params =
                 index: 'test'
 
-            instance.findAll '', params, null
+            instance.query '', params, null
 
         it "should query for all indexes if none is specified in params", ->
 
@@ -123,7 +61,7 @@ describe "ElasticSearch.js", ->
 
             params = {}
 
-            instance.findAll '', params, null
+            instance.query '', params, null
 
         it "should return the response from the server if nothing went wrong", ->
 
@@ -151,7 +89,7 @@ describe "ElasticSearch.js", ->
                 expect(resp).to.be.ok()
                 expect(resp).to.eql expectedResponse
 
-            instance.findAll '', null, callback
+            instance.query '', null, callback
 
         it "should return an error if something went wrong", ->
 
@@ -173,4 +111,4 @@ describe "ElasticSearch.js", ->
                 expect(err).to.be.ok()
                 expect(err).to.eql expectedResponse
 
-            instance.findAll '', null, callback
+            instance.query '', null, callback
