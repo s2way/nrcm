@@ -112,3 +112,179 @@ describe "ElasticSearch.js", ->
                 expect(err).to.eql expectedResponse
 
             instance.query '', null, callback
+
+    describe 'get', ->
+
+        it 'should return an error if something bad happened', (done) ->
+
+            expectedError = 'System failure'
+            params =
+                index: 'default'
+                type: 'test'
+                id: 1
+
+            instance.client = (config) ->
+                get: (options, callback) ->
+                    expect(params).to.eql options
+                    callback expectedError
+
+            instance.get 'default', params, (err, response) ->
+                expect(err).to.eql expectedError
+                expect(response).to.be undefined
+                done()
+
+        it 'should return the document if found', (done) ->
+
+            expectedResponse =
+                this : 'is'
+                a : 'document'
+
+            params =
+                index: 'default'
+                type: 'test'
+                id: 1
+
+            instance.client = (config) ->
+                get: (options, callback) ->
+                    expect(params).to.eql options
+                    callback null, expectedResponse
+
+            instance.get 'default', params, (err, response) ->
+                expect(err).to.be null
+                expect(response).to.eql expectedResponse
+                done()
+
+    describe 'save', ->
+
+        it 'should return an error if something bad happened', (done) ->
+
+            expectedError = 'System failure'
+            params =
+                index: 'default'
+                type: 'test'
+                data:
+                    random : 'document'
+
+            instance.client = (config) ->
+                index: (options, callback) ->
+                    expected =
+                        index: 'default'
+                        type: 'test'
+                        body:
+                            random : 'document'
+                    expect(options).to.eql expected
+                    callback expectedError
+
+            instance.save 'default', params, (err, response) ->
+                expect(err).to.eql expectedError
+                expect(response).to.be undefined
+                done()
+
+        it 'should add the id to the save params if it was passed', (done) ->
+
+            expectedError = 'System failure'
+            params =
+                index: 'default'
+                type: 'test'
+                id: 1
+                data:
+                    random : 'document'
+
+            instance.client = (config) ->
+                index: (options, callback) ->
+                    expected =
+                        index: 'default'
+                        type: 'test'
+                        id : 1
+                        body:
+                            random : 'document'
+                    expect(options).to.eql expected
+                    callback expectedError
+
+            instance.save 'default', params, ->
+                done()
+
+        it 'should return the document if found', (done) ->
+
+            expectedResponse =
+                this : 'is'
+                a : 'save confirmation'
+
+            params =
+                index: 'default'
+                type: 'test'
+                data:
+                    random : 'document'
+
+            instance.client = (config) ->
+                index: (options, callback) ->
+                    expected =
+                        index: 'default'
+                        type: 'test'
+                        body:
+                            random : 'document'
+                    expect(options).to.eql expected
+                    callback null, expectedResponse
+
+            instance.save 'default', params, (err, response) ->
+                expect(err).to.be null
+                expect(response).to.eql expectedResponse
+                done()
+
+    describe 'create', ->
+
+        it 'should return an error if something bad happened', (done) ->
+
+            expectedError = 'System failure'
+
+            params =
+                index: 'default'
+                type: 'test'
+                id: 1
+                data:
+                    random : 'document'
+
+            instance.client = (config) ->
+                create: (options, callback) ->
+                    expected =
+                        index: 'default'
+                        type: 'test'
+                        id: 1
+                        body:
+                            random : 'document'
+                    expect(expected).to.eql options
+                    callback expectedError
+
+            instance.create 'default', params, (err, response) ->
+                expect(err).to.eql expectedError
+                expect(response).to.be undefined
+                done()
+
+        it 'should return the saving info if everything went ok', (done) ->
+
+            expectedResponse =
+                this : 'is'
+                a : 'document info'
+
+            params =
+                index: 'default'
+                type: 'test'
+                id: 1
+                data:
+                    random : 'document'
+
+            instance.client = (config) ->
+                create: (options, callback) ->
+                    expected =
+                        index: 'default'
+                        type: 'test'
+                        id: 1
+                        body:
+                            random : 'document'
+                    expect(expected).to.eql options
+                    callback null, expectedResponse
+
+            instance.create 'default', params, (err, response) ->
+                expect(err).to.be null
+                expect(response).to.eql expectedResponse
+                done()

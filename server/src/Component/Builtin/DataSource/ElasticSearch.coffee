@@ -19,7 +19,6 @@ class ElasticSearch
         )
 
     query: (datasource, params, callback) ->
-
         options =
             index: params?.index || null
             type: params?.type || null
@@ -32,7 +31,39 @@ class ElasticSearch
             callback err
 
         es = @client datasource
-        es.search options
-        .then success, error
+        es.search(options).then success, error
+
+    # Get a typed JSON from the index based on its id
+    get: (dataSource, params, callback) ->
+        options =
+            index: params?.index || null
+            type: params?.type || null
+            id: params?.id || 0
+
+        @client(dataSource).get options, callback
+
+    # Stores a typed JSON document in an index, making it searchable
+    # If no id is passed, ES will assign one
+    # This is an upsert-like function, use create() if you want unique document index control
+    save: (dataSource, params, callback) ->
+        options =
+            index: params?.index || null
+            type: params?.type || null
+            body : params?.data || null
+
+        options.id = params?.id if params?.id?
+
+        @client(dataSource).index options, callback
+
+    # Adds a typed JSON document in a specific index, making it searchable
+    # If a document with the same index, type, and id already exists, an error will occur
+    create: (dataSource, params, callback) ->
+        options =
+            index: params?.index || null
+            type: params?.type || null
+            id: params?.id || 0
+            body : params?.data || null
+
+        @client(dataSource).create options, callback
 
 module.exports = ElasticSearch
