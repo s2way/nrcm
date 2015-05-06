@@ -288,3 +288,87 @@ describe "ElasticSearch.js", ->
                 expect(err).to.be null
                 expect(response).to.eql expectedResponse
                 done()
+
+    describe 'bulk', ->
+
+        it 'should return an error if something bad happened', (done) ->
+
+            expectedError = 'System failure'
+
+            instance.bulk = (dataSrouce, data, callback) ->
+                callback expectedError
+
+            instance.bulk 'default', 'test', (err, response) ->
+                expect(err).to.eql expectedError
+                expect(response).to.be undefined
+                done()
+
+        it 'should return a success message if the items were correctly saved', (done) ->
+
+            expectedResponse = 'That is nice'
+
+            instance.bulk = (dataSource, data, callback) ->
+                callback null, expectedResponse
+
+            instance.bulk 'default', 'test', (err, response) ->
+                expect(err).to.be null
+                expect(response).to.eql expectedResponse
+                done()
+
+    describe 'indexExists', ->
+
+        it 'should return an error if something odd happens', (done) ->
+
+            expectedError = 'Odd error'
+
+            instance.client = (dataSource) ->
+                indices:
+                    exists: (index, callback) ->
+                        callback expectedError
+
+            instance.indexExists 'default', 'test', (err, response) ->
+                expect(err).to.eql expectedError
+                expect(response).to.be undefined
+                done()
+
+        it 'should return true if the index was found', (done) ->
+
+            instance.client = (dataSource) ->
+                indices:
+                    exists: (index, callback) ->
+                        callback null, true
+
+            instance.indexExists 'default', 'test', (err, response) ->
+                expect(err).to.be null
+                expect(response).to.be.ok()
+                done()
+
+    describe 'createIndex', ->
+
+        it 'should return an error if something odd happens', (done) ->
+
+            expectedError = 'Odd error'
+
+            instance.client = (dataSource) ->
+                indices:
+                    create: (index, callback) ->
+                        callback expectedError
+
+            instance.createIndex 'default', 'test', (err, response) ->
+                expect(err).to.eql expectedError
+                expect(response).to.be undefined
+                done()
+
+        it 'should return true if the index was found', (done) ->
+
+            expectedResponse = 'I have created your index, master'
+
+            instance.client = (dataSource) ->
+                indices:
+                    create: (index, callback) ->
+                        callback null, expectedResponse
+
+            instance.createIndex 'default', 'test', (err, response) ->
+                expect(err).to.be null
+                expect(response).to.eql expectedResponse
+                done()
