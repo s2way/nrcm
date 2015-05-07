@@ -34,11 +34,13 @@ class Couchbase
         throw new Exceptions.IllegalArgument "Couldn't find data source #{@_dataSourceName}. Take a look at your core.json." unless @_dataSource
         @bucketName = @_dataSource.bucket
         @cluster = new @_couchbase.Cluster "#{@_dataSource.host}:#{@_dataSource.port}"
-        @bucket = @cluster.openBucket @bucketName
-        @bucket.enableN1ql "#{@_dataSource.n1qlHost}:#{@_dataSource.n1qlPort}" if @_dataSource.n1qlPort?
+        # @bucket = @cluster.openBucket @bucketName
+        # @bucket.enableN1ql "#{@_dataSource.n1qlHost}:#{@_dataSource.n1qlPort}" if @_dataSource.n1qlPort?
+        @limbo._bucket = @cluster.openBucket @bucketName unless @limbo._bucket
+        @limbo._bucket.enableN1ql "#{@_dataSource.n1qlHost}:#{@_dataSource.n1qlPort}" if @_dataSource.n1qlPort?
 
     # Close the database connection
     destroy: ->
-        # @bucket?.disconnect?()
+        # @bucket?.disconnect()
 
 module.exports = Couchbase

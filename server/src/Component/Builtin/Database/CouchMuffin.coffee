@@ -20,7 +20,9 @@ class CouchMuffin
         @_skipMatch.push '_id'
 
     init: ->
-        @_dataSource = @component 'DataSource.Couchbase', @_dataSourceName
+        couch = @component 'DataSource.Couchbase', @_dataSourceName
+        @_dataSource = {}
+        @_dataSource.bucket = couch.limbo._bucket
         @_validator = @component 'Validator',
             validate: @_validate
             skipMatch: @_skipMatch
