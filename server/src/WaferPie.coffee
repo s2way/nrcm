@@ -41,6 +41,7 @@ class WaferPie
         @_version = '0.9.1'
         @_cherries = new Cherries
         @_taskers =[]
+        @_limbo = {}
         Sync.createDirIfNotExists 'logs'
 
     info: (message) -> @_logger.info message
@@ -89,6 +90,7 @@ class WaferPie
         app.filters = @_cherries.loadElements(app.constants.filtersPath)
         app.components = @_cherries.loadComponents(app.constants.componentsPath)
         app.models = @_cherries.loadElements(app.constants.modelsPath)
+        app.limbo = @_limbo
 
         try
             app.core = require(app.coreFileName)
@@ -190,10 +192,10 @@ class WaferPie
         throw new Exceptions.Fatal('Please call configure() before start()!') unless @_configured
         @info "Starting #{address}:#{port}"
         # Global limbo object shared between requests
-        globalLimbo = {}
+        # globalLimbo = {}
         http.createServer((request, response) =>
             requestHandler = new RequestHandler @_applications, @_configs, @_logger, @_monitoring, @_version
-            requestHandler.limbo = globalLimbo
+            requestHandler.limbo = @_limbo
             requestHandler.process new Request(request), new Response(response)
         ).listen port, address
         @info 'Started!'

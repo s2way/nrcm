@@ -66,6 +66,9 @@ class ElasticSearch
 
         @client(dataSource).create options, callback
 
+    refresh: (dataSource, index, callback) ->
+        @client(dataSource).indices.refresh index : index, force : true, callback
+
     bulk: (dataSource, data, callback) ->
         @client(dataSource).bulk body : data, callback
 
