@@ -75,7 +75,7 @@ class ElasticSearch
     indexExists: (dataSource, index, callback) ->
         @client(dataSource).indices.exists index : index, callback
 
-    createIndex: (dataSource, index, callback) ->
-        @client(dataSource).indices.create index : index, callback
+    createIndex: (dataSource, params, callback) ->
+        @client(dataSource).indices.create params, callback
 
 module.exports = ElasticSearch
