@@ -207,6 +207,7 @@ class Loader
         request = new Request
             url: url
             method: httpMethod
+            headers: options.headers
         request.receive = (callback) ->
             callback options.payload
 
