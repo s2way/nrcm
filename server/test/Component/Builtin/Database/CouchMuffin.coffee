@@ -45,10 +45,11 @@ describe 'CouchMuffin', ->
             stdResult = stdMyData.MyKey
 
             loader.mockComponent 'DataSource.Couchbase',
+                limbo: 
+                    _bucket:
+                        touch: (id, expiry, options, callback) ->
+                            callback stdError, stdResult
                 init: ->
-                bucket:
-                    touch: (id, expiry, options, callback) ->
-                        callback stdError, stdResult
 
             instance = loader.createComponent 'Database.CouchMuffin', params
 
@@ -66,10 +67,11 @@ describe 'CouchMuffin', ->
             stdResult = stdMyData.MyKey
 
             loader.mockComponent 'DataSource.Couchbase',
+                limbo:
+                    _bucket:
+                        touch: (id, expiry, options, callback) ->
+                            callback stdError, stdResult
                 init: ->
-                bucket:
-                    touch: (id, expiry, options, callback) ->
-                        callback stdError, stdResult
 
             instance = loader.createComponent 'Database.CouchMuffin', params
 
@@ -84,10 +86,11 @@ describe 'CouchMuffin', ->
             stdResult = null
 
             loader.mockComponent 'DataSource.Couchbase',
+                limbo:
+                    _bucket:
+                        touch: (id, expiry, options, callback) ->
+                            callback stdError, stdResult
                 init: ->
-                bucket:
-                    touch: (id, expiry, options, callback) ->
-                        callback stdError, stdResult
 
             instance = loader.createComponent 'Database.CouchMuffin', params
 
@@ -104,10 +107,11 @@ describe 'CouchMuffin', ->
             stdResult = stdMyData.MyKey
 
             loader.mockComponent 'DataSource.Couchbase',
+                limbo:
+                    _bucket:
+                        get: (info, options, callback) ->
+                            callback stdError, stdResult
                 init: ->
-                bucket:
-                    get: (info, options, callback) ->
-                        callback stdError, stdResult
 
             instance = loader.createComponent 'Database.CouchMuffin', params
 
@@ -122,10 +126,11 @@ describe 'CouchMuffin', ->
             stdResult = null
 
             loader.mockComponent 'DataSource.Couchbase',
+                limbo:
+                    _bucket:
+                        get: (info, options, callback) ->
+                            callback stdError, stdResult
                 init: ->
-                bucket:
-                    get: (info, options, callback) ->
-                        callback stdError, stdResult
 
             instance = loader.createComponent 'Database.CouchMuffin', params
 
@@ -142,10 +147,11 @@ describe 'CouchMuffin', ->
             stdResult = stdMyData
 
             loader.mockComponent 'DataSource.Couchbase',
+                limbo:
+                    _bucket:
+                        getMulti: (info, callback) ->
+                            callback stdError, stdResult
                 init: ->
-                bucket:
-                    getMulti: (info, callback) ->
-                        callback stdError, stdResult
 
             instance = loader.createComponent 'Database.CouchMuffin', params
 
@@ -160,10 +166,11 @@ describe 'CouchMuffin', ->
             stdResult = null
 
             loader.mockComponent 'DataSource.Couchbase',
+                limbo:
+                    _bucket:
+                        getMulti: (info, callback) ->
+                            callback stdError, stdResult
                 init: ->
-                bucket:
-                    getMulti: (info, callback) ->
-                        callback stdError, stdResult
 
             instance = loader.createComponent 'Database.CouchMuffin', params
 
@@ -183,10 +190,11 @@ describe 'CouchMuffin', ->
                 id: 'MyKey'
 
             loader.mockComponent 'DataSource.Couchbase',
+                limbo:
+                    _bucket:
+                        remove: (id, options, callback) ->
+                            callback stdError, stdResult
                 init: ->
-                bucket:
-                    remove: (id, options, callback) ->
-                        callback stdError, stdResult
 
             instance = loader.createComponent 'Database.CouchMuffin', params
 
@@ -203,10 +211,11 @@ describe 'CouchMuffin', ->
                 id: 'MyKey'
 
             loader.mockComponent 'DataSource.Couchbase',
+                limbo:
+                    _bucket:
+                        remove: (id, options, callback) ->
+                            callback stdError, stdResult
                 init: ->
-                bucket:
-                    remove: (id, options, callback) ->
-                        callback stdError, stdResult
 
             instance = loader.createComponent 'Database.CouchMuffin', params
 
@@ -226,10 +235,11 @@ describe 'CouchMuffin', ->
                 data: stdResult
 
             loader.mockComponent 'DataSource.Couchbase',
+                limbo:
+                    _bucket:
+                        replace: (id, data, options, callback) ->
+                            callback stdError, stdResult
                 init: ->
-                bucket:
-                    replace: (id, data, options, callback) ->
-                        callback stdError, stdResult
 
             instance = loader.createComponent 'Database.CouchMuffin', params
 
@@ -251,10 +261,11 @@ describe 'CouchMuffin', ->
                 options: stdOptions
 
             loader.mockComponent 'DataSource.Couchbase',
+                limbo:
+                    _bucket:
+                        replace: (id, data, options, callback) ->
+                            callback stdError, stdResult
                 init: ->
-                bucket:
-                    replace: (id, data, options, callback) ->
-                        callback stdError, stdResult
 
             instance = loader.createComponent 'Database.CouchMuffin', params
 
@@ -272,10 +283,11 @@ describe 'CouchMuffin', ->
                 data: stdResult
 
             loader.mockComponent 'DataSource.Couchbase',
+                limbo:
+                    _bucket:
+                        replace: (id, data, options, callback) ->
+                            callback stdError, null
                 init: ->
-                bucket:
-                    replace: (id, data, options, callback) ->
-                        callback stdError, null
 
             instance = loader.createComponent 'Database.CouchMuffin', params
 
@@ -292,10 +304,11 @@ describe 'CouchMuffin', ->
                 id: 'MyKey'
 
             loader.mockComponent 'DataSource.Couchbase',
+                limbo:
+                    _bucket:
+                        replace: (id, data, options, callback) ->
+                            callback stdError, stdResult
                 init: ->
-                bucket:
-                    replace: (id, data, options, callback) ->
-                        callback stdError, stdResult
 
             instance = loader.createComponent 'Database.CouchMuffin', params
 
@@ -315,10 +328,11 @@ describe 'CouchMuffin', ->
                 data: stdResult
 
             loader.mockComponent 'DataSource.Couchbase',
+                limbo:
+                    _bucket:
+                        insert: (id, data, options, callback) ->
+                            callback stdError, stdResult
                 init: ->
-                bucket:
-                    insert: (id, data, options, callback) ->
-                        callback stdError, stdResult
 
             instance = loader.createComponent 'Database.CouchMuffin', params
 
@@ -341,10 +355,11 @@ describe 'CouchMuffin', ->
 
 
             loader.mockComponent 'DataSource.Couchbase',
+                limbo:
+                    _bucket:
+                        insert: (id, data, options, callback) ->
+                            callback stdError, stdResult
                 init: ->
-                bucket:
-                    insert: (id, data, options, callback) ->
-                        callback stdError, stdResult
 
             instance = loader.createComponent 'Database.CouchMuffin', params
 
@@ -362,10 +377,11 @@ describe 'CouchMuffin', ->
                 data: stdResult
 
             loader.mockComponent 'DataSource.Couchbase',
+                limbo:
+                    _bucket:
+                        insert: (id, data, options, callback) ->
+                            callback stdError, null
                 init: ->
-                bucket:
-                    insert: (id, data, options, callback) ->
-                        callback stdError, null
 
             instance = loader.createComponent 'Database.CouchMuffin', params
 
@@ -382,10 +398,11 @@ describe 'CouchMuffin', ->
                 id: 'MyKey'
 
             loader.mockComponent 'DataSource.Couchbase',
+                limbo:
+                    _bucket:
+                        insert: (id, data, options, callback) ->
+                            callback stdError, stdResult
                 init: ->
-                bucket:
-                    insert: (id, data, options, callback) ->
-                        callback stdError, stdResult
 
             instance = loader.createComponent 'Database.CouchMuffin', params
 
@@ -402,10 +419,11 @@ describe 'CouchMuffin', ->
                 data: stdResult
 
             loader.mockComponent 'DataSource.Couchbase',
+                limbo:
+                    _bucket:
+                        insert: (id, data, options, callback) ->
+                            callback stdError, stdResult
                 init: ->
-                bucket:
-                    insert: (id, data, options, callback) ->
-                        callback stdError, stdResult
 
             instance = loader.createComponent 'Database.CouchMuffin', params
 
@@ -423,12 +441,13 @@ describe 'CouchMuffin', ->
                 data: stdResult
 
             loader.mockComponent 'DataSource.Couchbase',
+                limbo:
+                    _bucket:
+                        insert: (id, data, options, callback) ->
+                            callback stdError, stdResult
+                        counter: (id, delta, callback) ->
+                            callback null, 1
                 init: ->
-                bucket:
-                    insert: (id, data, options, callback) ->
-                        callback stdError, stdResult
-                    counter: (id, delta, callback) ->
-                        callback null, 1
 
             instance = loader.createComponent 'Database.CouchMuffin', params
 
@@ -448,13 +467,14 @@ describe 'CouchMuffin', ->
                 code: 13
 
             loader.mockComponent 'DataSource.Couchbase',
+                limbo:
+                    _bucket:
+                        insert: (id, data, options, callback) ->
+                            callback stdError, stdResult if data != 1
+                            callback null, 1 if data == 1
+                        counter: (id, delta, callback) ->
+                            callback errorNotExist
                 init: ->
-                bucket:
-                    insert: (id, data, options, callback) ->
-                        callback stdError, stdResult if data != 1
-                        callback null, 1 if data == 1
-                    counter: (id, delta, callback) ->
-                        callback errorNotExist
 
             instance = loader.createComponent 'Database.CouchMuffin', params
 
@@ -472,10 +492,11 @@ describe 'CouchMuffin', ->
                 data: stdResult
 
             loader.mockComponent 'DataSource.Couchbase',
+                limbo:
+                    _bucket:
+                        insert: (id, data, options, callback) ->
+                            callback stdError, stdResult
                 init: ->
-                bucket:
-                    insert: (id, data, options, callback) ->
-                        callback stdError, stdResult
 
             instance = loader.createComponent 'Database.CouchMuffin', params
 
@@ -508,13 +529,13 @@ describe 'CouchMuffin', ->
 
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
-                bucket:
-                    query: (query, callback) ->
-                        callback stdError, stdResult
+                limbo:
+                    _bucket:
+                        query: (query, callback) ->
+                            callback stdError, stdResult
                 n1ql:
                     fromString: (str) ->
                         str
-                bucketName: 'teste'
 
             instance = loader.createComponent 'Database.CouchMuffin', params
 
@@ -534,13 +555,13 @@ describe 'CouchMuffin', ->
 
             loader.mockComponent 'DataSource.Couchbase',
                 init: ->
-                bucket:
-                    query: (query, callback) ->
-                        callback stdError, stdResult
+                limbo:
+                    _bucket:
+                        query: (query, callback) ->
+                            callback stdError, stdResult
                 n1ql:
                     fromString: (str) ->
                         str
-                bucketName: 'teste'
 
             instance = loader.createComponent 'Database.CouchMuffin', params
 
