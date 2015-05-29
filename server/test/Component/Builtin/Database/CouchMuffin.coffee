@@ -45,7 +45,7 @@ describe 'CouchMuffin', ->
             stdResult = stdMyData.MyKey
 
             loader.mockComponent 'DataSource.Couchbase',
-                limbo: 
+                limbo:
                     _bucket:
                         touch: (id, expiry, options, callback) ->
                             callback stdError, stdResult
