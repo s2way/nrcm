@@ -41,6 +41,7 @@ class CouchMuffin
         data._id = id unless @_skipId
 
     _query: (query, callback) ->
+        
         @_dataSource.bucket.query (new @_dataSource.n1ql.fromString query), (error, result) ->
             return callback error if error
             return callback null, result

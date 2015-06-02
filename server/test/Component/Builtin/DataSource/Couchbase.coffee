@@ -13,6 +13,7 @@ describe "Couchbase.js", ->
             n1qlPort: 8093
     logger = info: ->
     mockCouchbase =
+        ViewQuery: 'ViewQuery'
         Cluster: (cluster) ->
             @openBucket = (bucket) ->
                 enableN1ql: (host) ->
@@ -22,6 +23,35 @@ describe "Couchbase.js", ->
         instance = new Couchbase("default")
 
     describe "init", ->
+
+        it 'should have the same view as couchbase', ->
+            instance = new Couchbase()
+            instance.core = core
+            instance.logger = logger
+            instance._couchbase = mockCouchbase
+            instance.view = 'Another View'
+
+            instance.limbo =
+                _bucket:
+                    enableN1ql: () ->
+                        return true
+            
+            instance.init()
+            expect(instance.view).to.eql mockCouchbase.ViewQuery
+
+        it 'should open bucket if there is no bucket on limbo', ->
+
+            instance = new Couchbase()
+            instance.core = core
+            instance.logger = logger
+            instance._couchbase = mockCouchbase
+            instance.view = 'Another View'
+
+            instance.limbo = {}
+
+            instance.init()
+            expect(instance.limbo._bucket).to.be.ok()
+
         it "should throw an IllegalArgument exception if the data source cannot be found", ->
             instance = new Couchbase("invalid")
             instance.core = dataSources: {}
@@ -38,6 +68,11 @@ describe "Couchbase.js", ->
             instance.core = core
             instance.logger = logger
             instance._couchbase = mockCouchbase
+
+            instance.limbo =
+                _bucket:
+                    enableN1ql: () ->
+                        return true
 
             expect(->
                 instance.init()

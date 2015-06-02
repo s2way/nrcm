@@ -77,8 +77,8 @@ describe 'FieldUtils', ->
             expect(result).to.be '2015-03-17T12:03:43+00:00'
 
         it 'should return the original value if it is invalid', ->
-            result = fieldUtils.dateFormat '2015-03-17 12:03:03'
-            expect(result).to.be '2015-03-17T12:03:03+00:00'
+            result = fieldUtils.dateFormat '2015-03-17 12:63:03'
+            expect(result).to.be '2015-03-17 12:63:03'
 
         it 'should return the original value if it is invalid', ->
             result = fieldUtils.dateFormat 'invalid date'
@@ -95,7 +95,19 @@ describe 'FieldUtils', ->
     describe 'dateFormatSQL', ->
 
         it 'should return formatted date', ->
-            result = fieldUtils.dateFormatSQL '2015-03-17T12:03:43.000Z'
+
+            timezone =  ((((new Date()).getTimezoneOffset() * -1) /60) * 100)
+
+            if timezone > -1000 and timezone < 0
+                timezone = '-0' + (timezone * -1)
+            else if timezone is 0
+                timezone = 'Z'
+            else if timezone > 0 and timezone < 1000
+                timezone = '+0' + timezone
+            else if timezone >= 1000
+                timezone = '+' + timezone
+
+            result = fieldUtils.dateFormatSQL '2015-03-17T12:03:43.000' + timezone
             expect(result).to.be '2015-03-17 12:03:43'
 
         it 'should return the original value if it is invalid', ->

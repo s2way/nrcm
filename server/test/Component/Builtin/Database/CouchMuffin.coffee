@@ -540,6 +540,10 @@ describe 'CouchMuffin', ->
             instance = loader.createComponent 'Database.CouchMuffin', params
 
             instance.init()
+            instance._dataSource.bucketName = 'teste'
+            instance._dataSource.n1ql =
+                fromString: (str) ->
+                    str
             instance.find queryParams, (error, result) ->
                 expect(result).to.be stdResult
                 done()
@@ -564,8 +568,11 @@ describe 'CouchMuffin', ->
                         str
 
             instance = loader.createComponent 'Database.CouchMuffin', params
-
             instance.init()
+            instance._dataSource.bucketName = 'teste'
+            instance._dataSource.n1ql =
+                fromString: (str) ->
+                    str
             instance.findAll queryParams, (error, result) ->
                 expect(result).to.be stdResult
                 done()
