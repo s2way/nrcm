@@ -20,6 +20,22 @@ class Response
         @_response.writeHead statusCode, headers
         @_response.end stringBody
 
+    writeHead: (headers = {}, statusCode = 200) ->
+        contentType = headers['Content-Type'] ? 'application/json'
+        headers['Content-Type'] = contentType
+        headers['Server'] = 'WaferPie'
+        @_response.writeHead statusCode, headers
+
+    addTrailers: (trailers = {}) ->
+        @_response.addTrailers trailers
+
+    write: (body = '', callback) ->
+        @_response.write body, callback
+
+    end: (body = '') ->
+        @_sent = true
+        @_response.end body
+
     _convertOutput: (body, contentType) ->
         isJSON = contentType.indexOf('application/json') isnt -1
         isXML = contentType.indexOf('text/xml') isnt -1

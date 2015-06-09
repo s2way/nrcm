@@ -82,3 +82,110 @@ describe 'Response', ->
                 end: -> return
             expect(response.wasSent()).to.be false
 
+    describe 'writeHead()', ->
+
+        it 'should write the specified headers to the response, with the desired statuscode', (done) ->
+
+            expectedHeaders = {}
+            expectedHeaders['Content-Type'] = 'application/json'
+            expectedHeaders['Server'] = 'WaferPie'
+            expectedStatusCode = 200
+
+            response = new Response
+                writeHead: (statusCode, headers) ->
+                    expect(statusCode).to.eql expectedStatusCode
+                    expect(JSON.stringify(headers)).to.eql JSON.stringify(expectedHeaders)
+                    done()
+            response.writeHead()
+
+    describe 'addTrailers()', ->
+
+        it 'should add the passed headers to the response trailing headers', (done) ->
+
+            expectedTrailers = {}
+            expectedTrailers['Content-MD5'] = 'abcdefg123456'
+
+            passedTrailers = expectedTrailers
+
+            response = new Response
+                addTrailers: (trailers) ->
+                    expect(JSON.stringify(trailers)).to.eql JSON.stringify expectedTrailers
+                    done()
+
+            response.addTrailers passedTrailers
+
+        it 'should add no trailers if none are passed', (done) ->
+
+            expectedTrailers = {}
+            response = new Response
+                addTrailers: (trailers) ->
+                    expect(JSON.stringify(trailers)).to.eql JSON.stringify expectedTrailers
+                    done()
+
+            response.addTrailers()
+
+
+    describe 'write()', ->
+
+
+        it 'should write the specified chunk to the response', (done) ->
+            
+            passedBody = 'string'
+            expectedBody = passedBody
+
+            response = new Response
+                write: (body, callback)->
+                    expect(body).to.eql expectedBody
+                    callback()
+                    done()
+
+            response.write passedBody, ->
+
+        it 'should callback after finishing writing', (done) ->
+
+            callbackCalled = false
+
+            callback = () ->
+                callbackCalled = true
+
+            response = new Response
+                write: (body, callback) ->
+                    callback()
+
+            response.write '', callback
+            expect(callbackCalled).to.be.ok()
+            done()
+
+        it 'should default to an empty body', (done) ->
+
+            expectedBody = ''
+
+            response = new Response
+                write: (body, callback)->
+                    expect(body).to.eql expectedBody
+                    callback()
+                    done()
+
+            response.write null, ->
+
+    describe 'end()', ->
+
+        it 'should set _sent to true', (done) ->
+
+            response = new Response
+                end: ->
+
+            response.end()
+            expect(response._sent).to.be.ok()
+            done()
+
+        it 'should call _response end with the passed body', (done) ->
+
+            passedBody = 'string'
+            expectedBody = passedBody
+
+            response = new Response
+                end: (body) ->
+                    expect(body).to.eql expectedBody
+                    done()
+            response.end passedBody
