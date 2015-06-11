@@ -531,6 +531,7 @@ describe 'CouchMuffin', ->
                 init: ->
                 limbo:
                     _bucket:
+                        _name: 'teste'
                         query: (query, callback) ->
                             callback stdError, stdResult
                 n1ql:
@@ -561,6 +562,7 @@ describe 'CouchMuffin', ->
                 init: ->
                 limbo:
                     _bucket:
+                        _name: 'teste'
                         query: (query, callback) ->
                             callback stdError, stdResult
                 n1ql:

@@ -23,6 +23,7 @@ class CouchMuffin
         couch = @component 'DataSource.Couchbase', @_dataSourceName
         @_dataSource = {}
         @_dataSource.bucket = couch.limbo._bucket
+        @_dataSource.n1ql = couch.n1ql
         @_validator = @component 'Validator',
             validate: @_validate
             skipMatch: @_skipMatch
@@ -248,10 +249,10 @@ class CouchMuffin
         $ = @component 'QueryBuilder', true
         conditions = params.conditions || ''
         unless params.fields?
-            builder = $.selectStarFrom @_dataSource.bucketName
+            builder = $.selectStarFrom @_dataSource.bucket._name
         else
             builder = $.select params.fields
-            builder.from @_dataSource.bucketName
+            builder.from @_dataSource.bucket._name
         builder.where builder.and conditions, builder.equal '_type', builder.value @_type
         builder.groupBy params.groupBy if params.groupBy?
         builder.orderBy params.orderBy if params.orderBy?
