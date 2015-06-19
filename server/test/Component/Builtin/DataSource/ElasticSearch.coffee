@@ -113,6 +113,45 @@ describe "ElasticSearch.js", ->
 
             instance.query '', null, callback
 
+    describe 'scroll', ->
+
+        it 'should return an error if something bad happened', (done) ->
+
+            expectedError = 'System failure'
+            params =
+                scrollId: 'default'
+                scroll: 'test'
+
+            instance.client = (config) ->
+                scroll: (options, callback) ->
+                    expect(params).to.eql options
+                    callback expectedError
+
+            instance.scroll 'default', params, (err, response) ->
+                expect(err).to.eql expectedError
+                expect(response).to.be undefined
+                done()
+
+        it 'should return the document if found', (done) ->
+
+            expectedResponse =
+                this : 'is'
+                a : 'document'
+
+            params =
+                scrollId: 'default'
+                scroll: 'test'
+
+            instance.client = (config) ->
+                scroll: (options, callback) ->
+                    expect(params).to.eql options
+                    callback null, expectedResponse
+
+            instance.scroll 'default', params, (err, response) ->
+                expect(err).to.be null
+                expect(response).to.eql expectedResponse
+                done()
+
     describe 'get', ->
 
         it 'should return an error if something bad happened', (done) ->

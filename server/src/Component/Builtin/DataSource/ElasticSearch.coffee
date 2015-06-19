@@ -24,6 +24,9 @@ class ElasticSearch
             type: params?.type || null
             body: params?.query || null
 
+        options.scroll = params?.scroll if params?.scroll?
+        options.size = params?.size if params?.size?
+
         success = (resp) ->
             callback null, resp
 
@@ -32,6 +35,13 @@ class ElasticSearch
 
         es = @client datasource
         es.search(options).then success, error
+
+    scroll: (dataSource, params, callback) ->
+        options =
+            scrollId: params?.scrollId || null
+            scroll: params?.scroll || null
+
+        @client(dataSource).scroll options, callback
 
     # Get a typed JSON from the index based on its id
     get: (dataSource, params, callback) ->

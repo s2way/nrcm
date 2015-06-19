@@ -6,7 +6,7 @@ class FieldUtils
 
     isUseful: (value) ->
 
-        if _.isUndefined(value) || _.isNull(value)
+        if _.isUndefined(value) || _.isNull(value) || _.isNaN(value)
             return false
 
         if _.isBoolean(value)

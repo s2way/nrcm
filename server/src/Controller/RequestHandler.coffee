@@ -169,6 +169,7 @@ class RequestHandler
             responseBody = JSON.stringify(responseBody) if typeof responseBody is 'object'
 
             @_log chalk.bold(chalk.blue('Response'))
+            # @_log "Body: #{chalk.cyan(responseBody.substring(0,1000) + '...')}"
             @_log "Body: #{chalk.cyan(responseBody)}"
             @_log "Headers: "
             @_printHeaders (responseHeaders)
