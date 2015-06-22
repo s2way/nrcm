@@ -1,12 +1,44 @@
 assert = require 'assert'
 expect = require 'expect.js'
+_ = require 'underscore'
 Response = require './../../src/Controller/Response'
 
 describe 'Response', ->
+    response = null
+
+    afterEach 'should always contain the Server and Content-Type headers', ->
+        expectedHeaderServer = 'WaferPie'
+        expect(response._headers['Server']).to.eql expectedHeaderServer
+        expect(response._headers['Content-Type']).to.be.ok()
+
+    describe 'setHeaders()', ->
+
+        it 'should save a single header', ->
+            expectedNewHeader =
+                'testHeader' : 'expectedHeader'
+            response = new Response
+            response.setHeaders(expectedNewHeader)
+            expect(_.propertyOf(response._headers)('testHeader')).to.eql expectedNewHeader['testHeader']
+
+        it 'should save all headers if more than one is passed', ->
+            expectedNewHeaders =
+                'testHeader1' : 'expectedHeader'
+                'testHeader2' : 'expectedHeader'
+            response = new Response
+            response.setHeaders(expectedNewHeaders)
+            expect(_.isMatch(response._headers, expectedNewHeaders)).to.be.ok()
+
+        it 'should override an existing header if a new one is passed', ->
+            expectedNewHeader =
+                'testHeader' : 'newHeader'
+            response = new Response
+            response._headers['testHeader'] = 'oldHeader'
+            response.setHeaders(expectedNewHeader)
+            expect(_.propertyOf(response._headers)('testHeader')).to.eql expectedNewHeader['testHeader']
 
     describe 'send()', ->
 
-        it 'should call writeHead() and end()', (done) ->
+        it 'should call writeHead() and end()', ->
             writeHeadCalled = false
             response = new Response(
                 writeHead: (statusCode, headers) ->
@@ -14,11 +46,9 @@ describe 'Response', ->
                     expect(statusCode).to.be 200
                     expect(headers['Content-Length']).to.be 2
                     expect(headers['Content-Type']).to.be 'application/json'
-                    expect(headers['Server']).to.be 'WaferPie'
                 end: (body) ->
                     expect(writeHeadCalled).to.be true
                     expect(body).to.be '{}'
-                    done()
             )
             response.send {}, {
                 'Content-Type': 'application/json'
@@ -88,7 +118,6 @@ describe 'Response', ->
 
             expectedHeaders = {}
             expectedHeaders['Content-Type'] = 'application/json'
-            expectedHeaders['Server'] = 'WaferPie'
             expectedStatusCode = 200
 
             response = new Response
@@ -129,7 +158,7 @@ describe 'Response', ->
 
 
         it 'should write the specified chunk to the response', (done) ->
-            
+
             passedBody = 'string'
             expectedBody = passedBody
 

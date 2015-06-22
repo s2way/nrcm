@@ -51,7 +51,7 @@
     "karma-coverage": "^0.2.6",
     "karma-mocha": "^0.1.7",
     "load-grunt-tasks": "^0.6.0",
-    "mocha": "1.13.0",
+    "mocha": "2.2.5",
     "should": "^4.0.4",
     "travis-cov": "^0.2.5"
   },
