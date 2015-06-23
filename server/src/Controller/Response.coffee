@@ -2,68 +2,65 @@ XML = require '../Component/Builtin/XML'
 querystring = require 'querystring'
 _ = require 'underscore'
 
-#TODO: Migrate the headers instructions to the responseHandler
-#TODO: Check if the headers were already sent
-#TODO: Always use the same function to manage the headers
-
-#TODO: Migrate the response errors to the responseHandler
-
-#TODO: Split the functions end() and write() and expose them
-
-
-#TODO: The response handler should receive the controller runner callback, that gonna continous the framework code
-# after it has finished its job.
-
-
-# Response
 class Response
 
     constructor: (@_response) ->
         @_xml = new XML
-        @_sent = false
-        @_headers = {}
-        @_trailers = {}
-        @_headers['Server'] = 'WaferPie'
-        @_headers['Content-Type'] = 'application/json'
+        @_didSendHeaders = false
+        @_didSendTrailers = false
+        @_dataToSend = ''
+        @encoding = 'utf8'
+        @contentLength = 0
+        @headers = {}
+        @trailers = {}
+        @body = {}
+        @headers['Server'] = 'WaferPie'
+        @headers['Content-Type'] = 'application/json'
+        @statusCode = 200
+        @isChunked = false
 
-    wasSent: -> @_sent
+    _countLength: ->
+        if Buffer.isBuffer @_dataToSend
+            @contentLength += @_dataToSend.length
+        else
+            @contentLength += (new Buffer(@_dataToSend)).length
 
-    setHeaders: (newHeaders) ->
-        @_headers = _.extend(@_headers, newHeaders)
+    _sendHeaders: ->
+        @headers['Content-Length'] = @contentLength unless @isChunked
+        @_response.writeHead @statusCode, @headers
+        @_didSendHeaders = true
 
-    send: (body = {}, headers = {}, statusCode = 200) ->
-        @_sent = true
-        contentType = headers['Content-Type'] ? 'application/json'
-        stringBody = @_convertOutput body, contentType
-        headers['Content-Type'] = contentType
-        headers['Content-Length'] = (new Buffer(stringBody)).length if stringBody.length > 0
-        headers['Server'] = 'WaferPie'
-        @_response.writeHead statusCode, headers
-        @_response.end stringBody
+    _convertOutput: ->
+        unless @isChunked
+            switch @headers['Content-Type']
+                when 'application/json' then @_dataToSend = JSON.stringify @body
+                when 'text/xml' then @_dataToSend = @_xml.fromJSON @body
+                when 'application/x-www-form-urlencoded' then @_dataToSend = querystring.stringify @body
+                else @_dataToSend = @body
+        else
+            @_dataToSend = @body
+        @_countLength()
 
-    writeHead: (headers = {}, statusCode = 200) ->
-        contentType = headers['Content-Type'] ? 'application/json'
-        headers['Content-Type'] = contentType
+    sendHeaders: ->
+        return unless @isChunked # TODO: Log error (You can't manually sendHeaders in non-partial response)
+        @_sendHeaders() unless @_didSendHeaders
 
-        @_response.writeHead statusCode, headers
+    sendTrailers: ->
+        #TODO: Check if the trailers were specified on the headers
+        unless @_didSendTrailers
+            return unless @isChunked # TODO: Log error here (No Trailers allowed in non-partial responses)
+            @_response.addTrailers @trailers
+            @_didSendTrailers = true
 
-    addTrailers: (trailers = {}) ->
-        @_response.addTrailers trailers
+    writeChunk: (callback) ->
+        #TODO: Log error here if is using without being Chunked
+        @_convertOutput()
+        @_response.write @_dataToSend, @encoding , callback
 
-    write: (body = '', callback) ->
-        @_response.write body, callback
-
-    end: (body = '') ->
-        @_sent = true
-        @_response.end body
-
-    _convertOutput: (body, contentType) ->
-        isJSON = contentType.indexOf('application/json') isnt -1
-        isXML = contentType.indexOf('text/xml') isnt -1
-        isUrlEncoded = contentType.indexOf('application/x-www-form-urlencoded') isnt -1
-        return JSON.stringify(body) if isJSON
-        return @_xml.fromJSON(body) if isXML
-        return querystring.stringify(body) if isUrlEncoded
-        return body
+    finish: ->
+        #TODO: Log error if it has data in last chunck
+        @_convertOutput()
+        @_sendHeaders() unless @isChunked
+        @_response.end @_dataToSend, @encoding
 
 module.exports = Response

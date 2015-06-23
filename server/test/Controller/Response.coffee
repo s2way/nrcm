@@ -1,6 +1,8 @@
 assert = require 'assert'
 expect = require 'expect.js'
 _ = require 'underscore'
+XML = require './../../src/Component/Builtin/XML'
+querystring = require 'querystring'
 Response = require './../../src/Controller/Response'
 
 describe 'Response', ->
@@ -8,213 +10,189 @@ describe 'Response', ->
 
     afterEach 'should always contain the Server and Content-Type headers', ->
         expectedHeaderServer = 'WaferPie'
-        expect(response._headers['Server']).to.eql expectedHeaderServer
-        expect(response._headers['Content-Type']).to.be.ok()
+        expect(response.headers['Server']).to.eql expectedHeaderServer
+        expect(response.headers['Content-Type']).to.be.ok()
 
-    describe 'setHeaders()', ->
+    beforeEach ->
+        response = null
 
-        it 'should save a single header', ->
-            expectedNewHeader =
-                'testHeader' : 'expectedHeader'
-            response = new Response
-            response.setHeaders(expectedNewHeader)
-            expect(_.propertyOf(response._headers)('testHeader')).to.eql expectedNewHeader['testHeader']
+    describe 'sendHeaders', ->
 
-        it 'should save all headers if more than one is passed', ->
-            expectedNewHeaders =
-                'testHeader1' : 'expectedHeader'
-                'testHeader2' : 'expectedHeader'
-            response = new Response
-            response.setHeaders(expectedNewHeaders)
-            expect(_.isMatch(response._headers, expectedNewHeaders)).to.be.ok()
-
-        it 'should override an existing header if a new one is passed', ->
-            expectedNewHeader =
-                'testHeader' : 'newHeader'
-            response = new Response
-            response._headers['testHeader'] = 'oldHeader'
-            response.setHeaders(expectedNewHeader)
-            expect(_.propertyOf(response._headers)('testHeader')).to.eql expectedNewHeader['testHeader']
-
-    describe 'send()', ->
-
-        it 'should call writeHead() and end()', ->
-            writeHeadCalled = false
+        it 'should send the headers if they were not sent already and the response is chunked', ->
             response = new Response(
-                writeHead: (statusCode, headers) ->
-                    writeHeadCalled = true
-                    expect(statusCode).to.be 200
-                    expect(headers['Content-Length']).to.be 2
-                    expect(headers['Content-Type']).to.be 'application/json'
-                end: (body) ->
-                    expect(writeHeadCalled).to.be true
-                    expect(body).to.be '{}'
+                writeHead: ->
             )
-            response.send {}, {
-                'Content-Type': 'application/json'
-            }, 200
+            response.isChunked = true
+            expect(response._didSendHeaders).not.to.be.ok()
+            response.sendHeaders()
+            expect(response._didSendHeaders).to.be.ok()
 
-        it 'should count correctly the number of bytes of the response if there are special chars', (done) ->
+        it 'should not send the headers if they were already sent and the response is chunked', ->
+            writeHeadCalledTimes = 0
             response = new Response(
-                writeHead: (statusCode, headers) ->
-                    expect(statusCode).to.be 200
-                    expect(headers['Content-Length']).to.be 6
-                    expect(headers['Content-Type']).to.be 'text/plain'
-                    done()
-                end: ->
+                writeHead: ->
+                    writeHeadCalledTimes += 1
             )
-            response.send 'André', {
-                'Content-Type': 'text/plain'
-            }, 200
+            response.isChunked = true
+            expect(response._didSendHeaders).not.to.be.ok()
+            response.sendHeaders()
+            expect(response._didSendHeaders).to.be.ok()
+            response.sendHeaders()
+            expect(writeHeadCalledTimes).to.eql 1
 
-        it 'should convert the body to a XML if the Content-Type is text/xml', (done) ->
-            response = new Response
-                writeHead: -> return
-                end: (body) ->
-                    expect(body).to.be '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<root>?</root>'
-                    done()
-            response.send root: '?',
-                'Content-Type' : 'text/xml'
-            , 200
+        it 'should not send the headers if the response is not chunked', ->
+            response = new Response(
+                writeHead: ->
+            )
+            expect(response._didSendHeaders).not.to.be.ok()
+            response.sendHeaders()
+            expect(response._didSendHeaders).not.to.be.ok()
 
-        it 'should convert the body to an encoded url if the Content-Type is application/x-www-form-urlencoded', (done) ->
-            response = new Response
-                writeHead: -> return
-                end: (body) ->
-                    expect(body).to.be 'this=is&the=body'
-                    done()
-            response.send this: 'is', the: 'body',
-                'Content-Type' : 'application/x-www-form-urlencoded'
-            , 200
+    describe 'sendTrailers', ->
 
-        it 'should return the body as text if the Content-Type is text/plain', (done) ->
-            response = new Response
-                writeHead: -> return
-                end: (body) ->
-                    expect(body).to.be 'this is a textual body'
-                    done()
-            response.send 'this is a textual body',
-                'Content-Type' : 'text/plain'
-            , 200
+        beforeEach ->
+            response = new Response(
+                addTrailers: ->
+            )
 
-    describe 'wasSent()', ->
+        it 'should not send trailers if the response is not chunked', ->
+            expect(response._didSendTrailers).not.to.be.ok()
+            response.sendTrailers()
+            expect(response._didSendTrailers).not.to.be.ok()
 
-        it 'should return true after send() is called', ->
-            response = new Response
-                writeHead: -> return
-                end: -> return
-            response.send()
-            expect(response.wasSent()).to.be true
+        it 'should send the trailers if they were not sent already, and the response is chunked', ->
+            response.isChunked = true
+            expect(response._didSendTrailers).not.to.be.ok()
+            response.sendTrailers()
+            expect(response._didSendTrailers).to.be.ok()
 
-        it 'should return false before send() is called', ->
-            response = new Response
-                writeHead: -> return
-                end: -> return
-            expect(response.wasSent()).to.be false
+        it 'should not send the trailers if they were already sent', ->
+            addTrailersCalledTimes = 0
+            response = new Response(
+                addTrailers: ->
+                    addTrailersCalledTimes += 1
+            )
+            response.isChunked = true
+            expect(response._didSendTrailers).not.to.be.ok()
+            response.sendTrailers()
+            expect(response._didSendTrailers).to.be.ok()
+            response.sendTrailers()
+            expect(addTrailersCalledTimes).to.eql 1
 
-    describe 'writeHead()', ->
+    describe 'writeChunk', ->
 
-        it 'should write the specified headers to the response, with the desired statuscode', (done) ->
+        it 'should write the requested body if the response is chunked', ->
+            expectedResponse = 'testBody'
+            receivedResponse = ''
+            response = new Response(
+                write: (chunk, encoding, callback) ->
+                    receivedResponse = chunk
+            )
+            response.isChunked = true
+            response.body = 'testBody'
+            response.writeChunk ->
+            expect(receivedResponse).to.eql expectedResponse
 
-            expectedHeaders = {}
-            expectedHeaders['Content-Type'] = 'application/json'
-            expectedStatusCode = 200
+        it 'should add to the content-length if body is a buffer', ->
+            passedContent = new Buffer('test')
+            expectedSize = passedContent.length
+            response = new Response(
+                write: ->
+            )
+            response.isChunked = true
+            response.body = passedContent
+            response.writeChunk ->
+            expect(response.contentLength).to.eql expectedSize
 
-            response = new Response
-                writeHead: (statusCode, headers) ->
-                    expect(statusCode).to.eql expectedStatusCode
-                    expect(JSON.stringify(headers)).to.eql JSON.stringify(expectedHeaders)
-                    done()
-            response.writeHead()
+        it 'should add to the content-length if body is a string', ->
+            passedContent = 'test'
+            expectedSize = (new Buffer(passedContent)).length
+            response = new Response(
+                write: ->
+            )
+            response.isChunked = true
+            response.body = passedContent
+            response.writeChunk ->
+            expect(response.contentLength).to.eql expectedSize
 
-    describe 'addTrailers()', ->
-
-        it 'should add the passed headers to the response trailing headers', (done) ->
-
-            expectedTrailers = {}
-            expectedTrailers['Content-MD5'] = 'abcdefg123456'
-
-            passedTrailers = expectedTrailers
-
-            response = new Response
-                addTrailers: (trailers) ->
-                    expect(JSON.stringify(trailers)).to.eql JSON.stringify expectedTrailers
-                    done()
-
-            response.addTrailers passedTrailers
-
-        it 'should add no trailers if none are passed', (done) ->
-
-            expectedTrailers = {}
-            response = new Response
-                addTrailers: (trailers) ->
-                    expect(JSON.stringify(trailers)).to.eql JSON.stringify expectedTrailers
-                    done()
-
-            response.addTrailers()
-
-
-    describe 'write()', ->
+        it 'should have the correct content-length with special chars', ->
+            passedContent = 'testé'
+            expectedSize = (new Buffer(passedContent)).length
+            response = new Response(
+                write: ->
+            )
+            response.isChunked = true
+            response.body = passedContent
+            response.writeChunk ->
+            expect(response.contentLength).to.eql expectedSize
 
 
-        it 'should write the specified chunk to the response', (done) ->
-
-            passedBody = 'string'
-            expectedBody = passedBody
-
-            response = new Response
-                write: (body, callback)->
-                    expect(body).to.eql expectedBody
-                    callback()
-                    done()
-
-            response.write passedBody, ->
-
-        it 'should callback after finishing writing', (done) ->
-
+        it 'should callback the passed function after writing if the response is chunked', ->
             callbackCalled = false
-
-            callback = () ->
+            response = new Response(
+                write: (chunk, encoding, callback) ->
+                    callback()
+            )
+            response.isChunked = true
+            response.body = 'testBody'
+            response.writeChunk () ->
                 callbackCalled = true
-
-            response = new Response
-                write: (body, callback) ->
-                    callback()
-
-            response.write '', callback
             expect(callbackCalled).to.be.ok()
-            done()
 
-        it 'should default to an empty body', (done) ->
+    describe 'finish()', ->
 
-            expectedBody = ''
+        it 'should response the raw data if is not chunked and there is not a convertable type', ->
+            expectedResponse = 'testResponse'
+            receivedResponse = null
+            response = new Response(
+                end: (data, encoding) ->
+                    receivedResponse = data
+                writeHead: ->
+            )
+            response.headers['Content-Type'] = 'another-thing'
+            response.body = expectedResponse
+            response.finish()
+            expect(receivedResponse).to.eql expectedResponse
 
-            response = new Response
-                write: (body, callback)->
-                    expect(body).to.eql expectedBody
-                    callback()
-                    done()
+        it 'should response the JSON data if is not chunked and the content-type is application/json', ->
+            expectedData = 'testResponse'
+            expectedResponse = JSON.stringify expectedData
+            receivedResponse = null
+            response = new Response(
+                end: (data, encoding) ->
+                    receivedResponse = data
+                writeHead: ->
+            )
+            response.headers['Content-Type'] = 'application/json'
+            response.body = expectedData
+            response.finish()
+            expect(receivedResponse).to.eql expectedResponse
 
-            response.write null, ->
+        it 'should response the JSON data if is not chunked and the content-type is text/xml', ->
+            expectedData =
+                'test' : 'testIt'
+            expectedResponse = (new XML).fromJSON expectedData
+            receivedResponse = null
+            response = new Response(
+                end: (data, encoding) ->
+                    receivedResponse = data
+                writeHead: ->
+            )
+            response.headers['Content-Type'] = 'text/xml'
+            response.body = expectedData
+            response.finish()
+            expect(receivedResponse).to.eql expectedResponse
 
-    describe 'end()', ->
-
-        it 'should set _sent to true', (done) ->
-
-            response = new Response
-                end: ->
-
-            response.end()
-            expect(response._sent).to.be.ok()
-            done()
-
-        it 'should call _response end with the passed body', (done) ->
-
-            passedBody = 'string'
-            expectedBody = passedBody
-
-            response = new Response
-                end: (body) ->
-                    expect(body).to.eql expectedBody
-                    done()
-            response.end passedBody
+        it 'should response the JSON data if is not chunked and the content-type is application/x-www-form-urlencoded', ->
+            expectedData = 'testResponse'
+            expectedResponse = querystring.stringify expectedData
+            receivedResponse = null
+            response = new Response(
+                end: (data, encoding) ->
+                    receivedResponse = data
+                writeHead: ->
+            )
+            response.headers['Content-Type'] = 'application/x-www-form-urlencoded'
+            response.body = expectedData
+            response.finish()
+            expect(receivedResponse).to.eql expectedResponse
