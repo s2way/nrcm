@@ -196,7 +196,7 @@ class WaferPie
         http.createServer((request, response) =>
             requestHandler = new RequestHandler @_applications, @_configs, @_logger, @_monitoring, @_version
             requestHandler.limbo = @_limbo
-            requestHandler.process new Request(request), new Response(response)
+            requestHandler.process new Request(request), new Response(response, @_logger)
         ).listen port, address
         @info 'Started!'
 

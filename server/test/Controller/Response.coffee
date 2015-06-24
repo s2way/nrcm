@@ -33,6 +33,7 @@ describe 'Response', ->
                     done()
                 end: ->
             )
+            response._log = ->
             response.send 'André', {
                 'Content-Type': 'text/plain'
             }, 200
@@ -43,6 +44,7 @@ describe 'Response', ->
                 end: (body) ->
                     expect(body).to.be '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<root>?</root>'
                     done()
+            response._log = ->
             response.send root: '?',
                 'Content-Type' : 'text/xml'
             , 200
@@ -91,11 +93,13 @@ describe 'Response', ->
             expectedHeaders['Server'] = 'WaferPie'
             expectedStatusCode = 200
 
-            response = new Response
+            response = new Response(
                 writeHead: (statusCode, headers) ->
                     expect(statusCode).to.eql expectedStatusCode
                     expect(JSON.stringify(headers)).to.eql JSON.stringify(expectedHeaders)
                     done()
+            )
+            response._log = ->
             response.writeHead()
 
     describe 'addTrailers()', ->
@@ -139,6 +143,7 @@ describe 'Response', ->
                     callback()
                     done()
 
+            response._log = ->
             response.write passedBody, ->
 
         it 'should callback after finishing writing', (done) ->
@@ -152,6 +157,7 @@ describe 'Response', ->
                 write: (body, callback) ->
                     callback()
 
+            response._log = ->
             response.write '', callback
             expect(callbackCalled).to.be.ok()
             done()
@@ -166,6 +172,7 @@ describe 'Response', ->
                     callback()
                     done()
 
+            response._log = ->
             response.write null, ->
 
     describe 'end()', ->
@@ -175,17 +182,7 @@ describe 'Response', ->
             response = new Response
                 end: ->
 
+            response._log = ->
             response.end()
             expect(response._sent).to.be.ok()
             done()
-
-        it 'should call _response end with the passed body', (done) ->
-
-            passedBody = 'string'
-            expectedBody = passedBody
-
-            response = new Response
-                end: (body) ->
-                    expect(body).to.eql expectedBody
-                    done()
-            response.end passedBody

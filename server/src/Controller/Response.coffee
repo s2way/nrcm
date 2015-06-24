@@ -1,14 +1,19 @@
 XML = require '../Component/Builtin/XML'
 querystring = require 'querystring'
+chalk = require 'chalk'
 
 # Response
 class Response
 
-    constructor: (@_response) ->
+    constructor: (@_response, @_logger) ->
         @_xml = new XML
         @_sent = false
+        @isResponding = false
+        @isChunked = false
+        @_bodySize = 0
 
-    wasSent: -> @_sent
+    wasSent: ->
+        @_sent
 
     send: (body = {}, headers = {}, statusCode = 200) ->
         @_sent = true
@@ -20,21 +25,29 @@ class Response
         @_response.writeHead statusCode, headers
         @_response.end stringBody
 
-    writeHead: (headers = {}, statusCode = 200) ->
+    writeHead: (statusCode = 200, headers = {}) ->
+        @isChunked = true
         contentType = headers['Content-Type'] ? 'application/json'
         headers['Content-Type'] = contentType
         headers['Server'] = 'WaferPie'
+        @_log "# Headers: "
+        @_printHeaders (headers)
         @_response.writeHead statusCode, headers
 
     addTrailers: (trailers = {}) ->
         @_response.addTrailers trailers
 
     write: (body = '', callback) ->
+        @isResponding = true
+        @_log "# Chunk: #{chalk.cyan(body.substring(0,1000) + '...')}"
+        @_bodySize += if body.length > 0 then (new Buffer(body)).length else 0
         @_response.write body, callback
 
-    end: (body = '') ->
+    end: () ->
+        @_log "# Body size: #{@_bodySize}"
+        @_log "#{chalk.blue('Connection ended')}"
         @_sent = true
-        @_response.end body
+        @_response.end()
 
     _convertOutput: (body, contentType) ->
         isJSON = contentType.indexOf('application/json') isnt -1
@@ -44,5 +57,11 @@ class Response
         return @_xml.fromJSON(body) if isXML
         return querystring.stringify(body) if isUrlEncoded
         return body
+
+    _log: (message) ->
+        @_logger.log "#{@uuid.substring(24)} #{message}"
+
+    _printHeaders: (headers) ->
+        @_log "#{header}: #{headers[header]}" for header of headers
 
 module.exports = Response

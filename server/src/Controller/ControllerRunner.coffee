@@ -12,10 +12,13 @@ class ControllerRunner
     _error: (object) ->
         @_logger?.error?("Error: #{JSON.stringify(object)}")
 
+    _log: (message) ->
+        @_logger?.log?(message)
+
     # Run all filter's before() method
     # If a response is issued by one of the before()'s, the response is passed to the second argument of the callback
     # If no response is issued by one of the before()'s, true is passed to the second argument of the callback
-    _runFiltersBefore: (controller, timeoutTimer, callback) ->
+    _runFiltersBefore: (controller, watchDog, callback) ->
         filters = controller.filters.slice 0
 
         pickFilterAndCallBefore = =>
@@ -27,7 +30,7 @@ class ControllerRunner
             beforeDomain = domain.create()
             beforeDomain.on 'error', (e) =>
                 # Filter.before() exception
-                clearTimeout timeoutTimer
+                clearInterval watchDog
                 @_onError e, controller, callback
 
             beforeDomain.run ->
@@ -41,7 +44,7 @@ class ControllerRunner
                         if isCarryOnResponse
                             pickFilterAndCallBefore()
                         else
-                            clearTimeout timeoutTimer
+                            clearInterval watchDog
                             controller.responseHeaders = filter.responseHeaders if filter.responseHeaders?
                             callback null, response
                     )
@@ -52,7 +55,7 @@ class ControllerRunner
         pickFilterAndCallBefore()
 
     # Run all filter's after() method in reverse order
-    _runFiltersAfter: (controller, timeoutTimer, callback) ->
+    _runFiltersAfter: (controller, watchDog, callback) ->
         filtersInReverseOrder = controller.filters.reverse().slice 0
         pickFilterAndCallAfter = =>
             noFiltersLeft = filtersInReverseOrder.length is 0
@@ -66,7 +69,7 @@ class ControllerRunner
             afterDomain = domain.create()
             afterDomain.on 'error', (e) =>
                 # Filter.after() exception
-                clearTimeout timeoutTimer
+                clearInterval watchDog
                 @_onError e, controller, callback
 
             afterDomain.run ->
@@ -128,12 +131,12 @@ class ControllerRunner
 
     # Run the controller calling the corresponding methods and all the triggers (before() and after())
     run: (controller, timeout, callback) ->
-        timeoutTimer = null
+        watchDog = null
         controllerMethodImmediate = null
 
         afterCallback = =>
-            @_runFiltersAfter controller, timeoutTimer, (error) =>
-                clearTimeout timeoutTimer
+            @_runFiltersAfter controller, watchDog, (error) =>
+                clearInterval watchDog
                 return callback error if error
                 return callback null, @body
 
@@ -145,7 +148,7 @@ class ControllerRunner
             afterDomain = domain.create()
             afterDomain.on 'error', (e) =>
                 # controller.after() exception
-                clearTimeout timeoutTimer
+                clearInterval watchDog
                 @_onError e, controller, callback
                 afterDomain.dispose()
 
@@ -167,7 +170,7 @@ class ControllerRunner
             methodDomain = domain.create()
             methodDomain.on 'error', (e) =>
                 # controller.method() exception
-                clearTimeout timeoutTimer
+                clearInterval watchDog
                 @_onError e, controller, callback
                 methodDomain.dispose()
 
@@ -179,38 +182,44 @@ class ControllerRunner
                         else
                             controller.responseBody = response
                         methodDomain.exit()
+                        # skip this and call the callback
                         controllerMethodCallback(response)
                     )
                     controller[controller.method].called = true
                 else
                     methodDomain.exit()
-                    clearTimeout timeoutTimer
+                    clearInterval watchDog
                     callback null, response
 
-        timeoutTimer = setTimeout( =>
-            callback new Exceptions.Timeout() # Response already sent
+        watchDog = setInterval( =>
+            return clearInterval watchDog if controller.response.wasSent()
+            if !controller.response.isResponding
+                callback new Exceptions.Timeout() # Response already sent
 
-            controllerTimeoutCallback = =>
-                @_runFiltersAfterX 'afterTimeout', controller, (error) =>
-                    @_error(error) if error
+                controllerTimeoutCallback = =>
+                    @_runFiltersAfterX 'afterTimeout', controller, (error) =>
+                        @_error(error) if error
 
-            wasControllerCalled = controller.before?.called is true or controller[controller.method].called is true
-            if typeof controller.afterTimeout is 'function' and wasControllerCalled
-                controller.afterTimeout controllerTimeoutCallback
+                wasControllerCalled = controller.before?.called is true or controller[controller.method].called is true
+                if typeof controller.afterTimeout is 'function' and wasControllerCalled
+                    controller.afterTimeout controllerTimeoutCallback
+                else
+                    controllerTimeoutCallback()
+                clearInterval watchDog
             else
-                controllerTimeoutCallback()
-
+                # stuns the watchdog
+                controller.response.isResponding = false
         , timeout)
 
         setImmediate(=>
-            @_runFiltersBefore controller, timeoutTimer, (error, callbackResponse) =>
+            @_runFiltersBefore controller, watchDog, (error, callbackResponse) =>
                 return callback(error) if error
                 return callback(null, callbackResponse) if callbackResponse isnt true
 
                 beforeDomain = domain.create()
                 beforeDomain.on 'error', (e) =>
                     # controller.before() exception
-                    clearTimeout timeoutTimer
+                    clearInterval watchDog
                     @_onError e, controller, callback
                     beforeDomain.dispose()
 

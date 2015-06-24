@@ -4,7 +4,7 @@ ElementManager = require '../Core/ElementManager'
 # Responsible for creating controllers and performing injection
 class ControllerFactory
 
-    constructor: (@_application, @_elementManager, @_logger = null) -> return
+    constructor: (@_application, @_elementManager, @_logger = null, @_response) -> return
 
     _log: (message) ->
         @_logger?.log?('[ControllerFactory] ' + message)
@@ -42,6 +42,7 @@ class ControllerFactory
         controllerInstance.configs = @_application.configs
         controllerInstance.uuid = @_application._uuid
         controllerInstance.limbo = @_application.limbo
+        controllerInstance.response = @_response
 
         controllerInstance.component = (modelName, params) ->
             instance = controllerInstance.elementManager.create 'component', modelName, params

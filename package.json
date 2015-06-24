@@ -59,7 +59,7 @@
     "type": "git",
     "url": "http://github.com/s2way/waferpie.git"
   },
-  "version": "0.9.15",
+  "version": "0.9.16",
   "scripts": {
     "preinstall": "npm install -g coffee-script",
     "postinstall": "rm -rf dist; mkdir -p dist; cp -r server/* dist/ && find dist -type f -iname '*.coffee' -delete; coffee --compile --output dist server",

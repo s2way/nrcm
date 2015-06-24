@@ -35,7 +35,7 @@ module.exports = function (grunt) {
         watch: {
             test: {
                 files: ['server/**/*.coffee'],
-                tasks: ['test']
+                tasks: ['build', 'test']
             },
             gruntfile: {
                 files: ['Gruntfile.js']

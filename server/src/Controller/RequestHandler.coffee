@@ -29,6 +29,7 @@ class RequestHandler
         @_uuid = uuid.v4()
         @_start = new Date()
         @_monitoring.requests += 1
+        @_response.uuid = @_uuid
         try
             @_log chalk.bold.green('Request: ' + @_request.url)
 
@@ -54,7 +55,7 @@ class RequestHandler
 
             if @_request.isController()
                 @_elementManager = @_createElementManager(application)
-                @_controllerFactory = new ControllerFactory application, @_elementManager, @_serverLogger
+                @_controllerFactory = new ControllerFactory application, @_elementManager, @_serverLogger, @_response
                 @_filterFactory = @_createFilterFactory(application)
                 @_processControllerRequest(application)
             else if @_request.isApplicationRoot()

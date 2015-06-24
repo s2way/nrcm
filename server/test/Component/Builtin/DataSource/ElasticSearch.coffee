@@ -334,8 +334,9 @@ describe "ElasticSearch.js", ->
 
             expectedError = 'System failure'
 
-            instance.bulk = (dataSrouce, data, callback) ->
-                callback expectedError
+            instance.client = (dataSource) ->
+                bulk: (index, callback) ->
+                    callback expectedError
 
             instance.bulk 'default', 'test', (err, response) ->
                 expect(err).to.eql expectedError
@@ -346,8 +347,9 @@ describe "ElasticSearch.js", ->
 
             expectedResponse = 'That is nice'
 
-            instance.bulk = (dataSource, data, callback) ->
-                callback null, expectedResponse
+            instance.client = (dataSource) ->
+                bulk: (index, callback) ->
+                    callback null, expectedResponse
 
             instance.bulk 'default', 'test', (err, response) ->
                 expect(err).to.be null

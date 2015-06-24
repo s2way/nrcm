@@ -42,11 +42,16 @@ describe 'ControllerRunner', ->
             runner.run instance, 10000, ->
                 expect().fail()
 
-        it 'should call the callback passing a Timeout exception if the timeout has occured', (done) ->
+        it 'should call the callback passing a Timeout exception if the timeout has occurred', (done) ->
             instance =
                 filters: []
                 method: 'get'
+                response:
+                    isResponding: false
+                    wasSent: ->
+                        false
                 get: ->
+
             runner.run instance, 1, (e) ->
                 expect(e.name).to.be 'Timeout'
                 done()
@@ -57,6 +62,10 @@ describe 'ControllerRunner', ->
             instance =
                 filters: []
                 method: 'get'
+                response:
+                    isResponding: false
+                    wasSent: ->
+                        false
                 before: (callback) -> beforeCalled = true ; callback(true)
                 after: -> expect().fail()
                 get: ->
@@ -70,6 +79,7 @@ describe 'ControllerRunner', ->
             instance =
                 filters: []
                 method: 'get'
+                
                 get: (callback) ->
                     callback {}
                 after: ->
@@ -215,6 +225,19 @@ describe 'ControllerRunner', ->
 
         beforeEach ->
             runner = new ControllerRunner
+
+        it 'should clear the interval if the response was already sent', (done) ->
+            controller =
+                method: 'get'
+                filters: []
+                response:
+                    wasSent: ->
+                        done()
+                        true
+                get: ->
+
+            runner.run controller, 1, ->
+                expect().fail()
 
         it 'should call before() method from all filters before calling the controller method in order', (done) ->
             order = []
@@ -387,6 +410,10 @@ describe 'ControllerRunner', ->
             controller =
                 method: 'get'
                 filters: [aFilter, bFilter]
+                response:
+                    isResponding: false
+                    wasSent: ->
+                        false
                 get: ->
 
             runner.run controller, 10, (error) ->
@@ -405,6 +432,10 @@ describe 'ControllerRunner', ->
                 afterTimeout: -> expect().fail()
                 method: 'get'
                 filters: [aFilter]
+                response:
+                    isResponding: false
+                    wasSent: ->
+                        false
                 get: -> expect().fail()
 
             runner.run controller, 100, (error) ->
@@ -423,6 +454,10 @@ describe 'ControllerRunner', ->
                 afterTimeout: -> expect().fail()
             controller =
                 method: 'get'
+                response:
+                    isResponding: false
+                    wasSent: ->
+                        false
                 filters: [aFilter, bFilter]
                 get: -> expect().fail()
 
