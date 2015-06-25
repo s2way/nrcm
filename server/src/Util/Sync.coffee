@@ -12,7 +12,7 @@ class Sync
         stats = undefined
         if fs.existsSync(dst)
             stats = fs.lstatSync(dst)
-            throw new Exceptions.Fatal()  if stats.isDirectory()
+            throw new Exceptions.Fatal() if stats.isDirectory()
             return false
         Sync.copy src, dst
 

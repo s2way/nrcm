@@ -1,6 +1,6 @@
 ###
-    Copyright(c) 2015 Juliano Jorge Lazzarotto aka dOob
-    Apache2 Licensed
+#    Copyright(c) 2015 Juliano Jorge Lazzarotto aka dOob
+#    Apache2 Licensed
 ###
 
 # Dependencies
@@ -28,6 +28,7 @@ class App
 
     # Build with the given name
     constructor: (@appName, @_waferPie) ->
+
         # Check app name
         throw new Exceptions.Fatal App.ERROR_INVALID_NAME unless @appName.match App.DIR_REGEX_CHECK
 
@@ -50,20 +51,23 @@ class App
                 filter: path.join rootPathTest, App.DIR_NAME_FILTER
                 component: path.join rootPathTest, App.DIR_NAME_COMPONENT
                 controller: path.join rootPathTest, App.DIR_NAME_CONTROLLER
+
+        # Shared object
+        @limbo = {}
+
     ##
     # Create app folder structure if does not exist
     # Once it touches your FS you MUST never run as root
     ##
-    pathSync: ->
-#        try
-        _.map @paths, (value) ->
-            if _.isString value
-                Sync.createDirIfNotExists value
-            else
-                _.map value, (value) ->
-                    Sync.createDirIfNotExists value if _.isString value
-#            Sync.createDirIfNotExists value
-#        catch e
- #           throw new Exceptions.Fatal App.ERROR_INVALID_PATH, e
+    sync: ->
+        try
+            _.map @paths, (value) ->
+                if _.isString value
+                    Sync.createDirIfNotExists value
+                else
+                    _.map value, (value) ->
+                        Sync.createDirIfNotExists value if _.isString value
+        catch e
+            throw new Exceptions.Fatal App.ERROR_INVALID_PATH, e
 
 module.exports = App
