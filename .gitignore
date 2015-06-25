@@ -9,7 +9,10 @@ docs/sample/Exceptions.js
 docs/sample/config.json
 report.html
 
-.idea/workspace.xml
-.idea/dictionaries
+.idea
+
+__test__app
+__test__app1
+__test__app2
 
 dist

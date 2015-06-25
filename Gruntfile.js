@@ -16,7 +16,9 @@ module.exports = function (grunt) {
     //build += '(cp -r server/* dist/ && find dist -type f ! -iname "*.js" -delete) ; ';
     build += 'node_modules/.bin/coffee --compile --output dist server';
 
-    test += 'node_modules/.bin/mocha server/test --recursive -R progress --compilers coffee:coffee-script/register ';
+//    test += 'node_modules/.bin/mocha server/test --recursive -R progress --compilers coffee:coffee-script/register ';
+
+    test += 'node_modules/.bin/mocha server/test/App.coffee  -R progress --compilers coffee:coffee-script/register ';
 
     cc += 'node_modules/.bin/mocha server/test --recursive -R html-cov -r blanket --compilers coffee:coffee-script/register > report.html';
 
