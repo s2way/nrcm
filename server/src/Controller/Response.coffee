@@ -1,6 +1,7 @@
 XML = require '../Component/Builtin/XML'
 querystring = require 'querystring'
 chalk = require 'chalk'
+_ = require 'underscore'
 
 # Response
 class Response
@@ -39,7 +40,7 @@ class Response
 
     write: (body = '', callback) ->
         @isResponding = true
-        @_log "# Chunk: #{chalk.cyan(body.substring(0,1000) + '...')}"
+        @_log "# Chunk: #{chalk.cyan(body.substring(0,1000) + '...')}" if body? and _.isString body
         @_bodySize += if body.length > 0 then (new Buffer(body)).length else 0
         @_response.write body, callback
 
@@ -59,7 +60,7 @@ class Response
         return body
 
     _log: (message) ->
-        @_logger.log "#{@uuid.substring(24)} #{message}"
+        @_logger.log "#{@uuid.substring(24)} #{message}" if message?
 
     _printHeaders: (headers) ->
         @_log "#{header}: #{headers[header]}" for header of headers
