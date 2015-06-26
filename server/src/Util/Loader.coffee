@@ -187,6 +187,11 @@ class Loader
             @_controllers[controllerName] = Controller
             return Controller
 
+    mockControllerProperties: (controllerName, properties) ->
+        throw name: 'ControllerNotFound', controller: controllerName if !@_controllers[controllerName]?
+        for property, value of properties
+            @_controllers[controllerName][property] = value
+
     # Call a controller method for testing
     # @param {string} controllerName The name of the controller to be called
     # @param {string} httpMethod HTTP method
@@ -195,6 +200,7 @@ class Loader
     # An object containing statusCode, headers, and contentType is passed to the callback.
     callController: (controllerName, httpMethod, options, callback) ->
         @loadController controllerName
+        @mockControllerProperties controllerName, options.properties if options?.properties?
 
         router = new Router @_serverConfigs.urlFormat
         url = router.compose(
