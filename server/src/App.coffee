@@ -1,6 +1,6 @@
 ###
-#    Copyright(c) 2015 Juliano Jorge Lazzarotto aka dOob
-#    Apache2 Licensed
+# Copyright(c) 2015 Juliano Jorge Lazzarotto aka dOob
+# Apache2 Licensed
 ###
 
 # Dependencies
@@ -12,7 +12,7 @@ Exceptions = require './Util/Exceptions'
 
 class App
 
-    # Directory structure
+    # Directory structure defaults
     @DIR_NAME_SRC: 'src'
     @DIR_NAME_TEST: 'test'
     @DIR_NAME_MODEL: 'model'

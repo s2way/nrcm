@@ -1,28 +1,34 @@
+###
+# Copyright(c) 2015 Juliano Jorge Lazzarotto aka dOob
+# Apache2 Licensed
+###
+
+# Dependencies
 Exceptions = require './Exceptions'
 fs = require 'fs'
 path = require 'path'
 
 class Sync
 
-    # Copy a file from a place to another if the destination does not exist
-    # @method copyIfNotExists
-    # @param {string} src The source file
-    # @param {string} src The directory destination
-    @copyIfNotExists: (src, dst) ->
-        stats = undefined
-        if fs.existsSync(dst)
-            stats = fs.lstatSync(dst)
-            throw new Exceptions.Fatal() if stats.isDirectory()
-            return false
-        Sync.copy src, dst
+    # Exceptions
+    @ERROR_DST_EXISTS: 'Destination already exists.'
+    @ERROR_NO_SRC_FILE: 'Source is missing or it is not a file.'
 
-    # Copy a file from a place to another
-    # @method copy
-    # @param {string} src The source file
-    # @param {string} src The directory destination
-    @copy: (src, dst) ->
-        Sync.createFileIfNotExists dst, fs.readFileSync(src, "utf8")
-        true
+    # Defaults
+    @DEFAULT_MODE: 666
+    @DEFAULT_ENCODING: 'utf8'
+
+    # Copy a file from a place to another if the destination does not exist
+    @copyIfNotExists: (from, to, encoding = Sync.DEFAULT_ENCODING, mode = Sync.DEFAULT_MODE) ->
+        stats = fs.lstatSync from if fs.existsSync from
+        Sync.createFileIfNotExists toFile, fs.readFileSync from, encoding
+
+    # Create a file if destination does not exist
+    @createFileIfNotExists: (toFile, fileContents, encoding = Sync.DEFAULT_ENCODING, mode = Sync.DEFAULT_MODE) ->
+        throw new Exceptions.Fatal(Sync.ERROR_DST_EXISTS) if fs.existsSync toFile
+        fs.writeFileSync toFile, fileContents,
+            mode: parseInt(mode, 8)
+            encoding: encoding
 
     # Load all files specified in a Array
     # @method loadNodeFilesIntoArray
@@ -46,17 +52,6 @@ class Sync
             throw new Exceptions.Fatal(dir + " exists and is not a directory")  unless stats.isDirectory()
         else
             fs.mkdirSync dir, permission
-
-    # Check if the file exists, if doesn't try to create
-    # @method createFileIfNotExists
-    # @param {string} filePath The file path that needs to be created
-    # @param {string} filePath The content of the file
-    @createFileIfNotExists: (filePath, fileData) ->
-        if fs.existsSync(filePath)
-            stats = fs.lstatSync(filePath)
-            throw new Exceptions.Fatal(filePath + " is not a file")  unless stats.isFile()
-        else
-            fs.writeFileSync filePath, fileData, mode: parseInt('666', 8)
 
     # Return a list of files inside a given folder (recursive)
     # @method listFilesFromDir
