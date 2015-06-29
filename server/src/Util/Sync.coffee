@@ -4,9 +4,11 @@
 ###
 
 # Dependencies
-Exceptions = require './Exceptions'
 fs = require 'fs'
 path = require 'path'
+_ = require 'underscore'
+require('better-require')()
+Exceptions = require './Exceptions'
 
 class Sync
 
@@ -15,70 +17,63 @@ class Sync
     @ERROR_NO_SRC_FILE: 'Source is missing or it is not a file.'
 
     # Defaults
-    @DEFAULT_MODE: 666
+    @DEFAULT_PERM_FILE: 766
+    @DEFAULT_PERM_DIR: 766
     @DEFAULT_ENCODING: 'utf8'
 
-    # Copy a file from a place to another if the destination does not exist
-    @copyIfNotExists: (from, to, encoding = Sync.DEFAULT_ENCODING, mode = Sync.DEFAULT_MODE) ->
-        stats = fs.lstatSync from if fs.existsSync from
-        Sync.createFileIfNotExists toFile, fs.readFileSync from, encoding
-
     # Create a file if destination does not exist
-    @createFileIfNotExists: (toFile, fileContents, encoding = Sync.DEFAULT_ENCODING, mode = Sync.DEFAULT_MODE) ->
-        throw new Exceptions.Fatal(Sync.ERROR_DST_EXISTS) if fs.existsSync toFile
-        fs.writeFileSync toFile, fileContents,
-            mode: parseInt(mode, 8)
+    @createFileIfNotExists: (to, content, encoding = Sync.DEFAULT_ENCODING, mode = Sync.DEFAULT_PERM_FILE) ->
+        throw new Exceptions.DestinationAlreadyExists Sync.ERROR_DST_EXISTS if fs.existsSync to
+        fs.writeFileSync to, content,
+            mode: parseInt mode, 8
             encoding: encoding
 
+    # Check if the directory exists, if does not try to create it
+    @createDirIfNotExists: (dir, mode = Sync.DEFAULT_PERM_DIR) ->
+        throw new Exceptions.DestinationAlreadyExists Sync.ERROR_DST_EXISTS if fs.existsSync dir
+        fs.mkdirSync dir, parseInt mode, 8
+
+    # Check if is a file
+    @isFile: (file) ->
+        stats = fs.lstatSync file if fs.existsSync file
+        stats?.isFile()
+
+    # Copy a file from a place to another if the destination does not exist and the source exists
+    @copyIfNotExists: (from, to, encoding = Sync.DEFAULT_ENCODING, mode = Sync.DEFAULT_PERM_FILE) ->
+        throw new Exceptions.FileNotFound Sync.ERROR_NO_SRC_FILE unless @isFile from
+        Sync.createFileIfNotExists to, fs.readFileSync from, encoding, mode
+
+    # Create directory structure if does not exist, if exists leave it
+    # returns an array with the structure created
+    @syncDirStructure: (paths, mode = Sync.DEFAULT_PERM_DIR, added = []) ->
+        try
+            _.map paths, (value) ->
+                if _.isString value
+                    Sync.createDirIfNotExists value, mode
+                    added.push value
+                else
+                    Sync.syncDirStructure value, mode, added
+        added
+
+    # Return an Array with the list of files inside a given folder (recursive)
+    @listFilesFromDir: (dir = '', result = []) ->
+        files = fs.readdirSync dir
+        _.map files, (value) ->
+            obj = path.join dir, value
+            stats = fs.lstatSync obj
+            result.push obj if stats.isFile()
+            Sync.listFilesFromDir obj, result if stats.isDirectory()
+        result
+
     # Load all files specified in a Array
-    # @method loadNodeFilesIntoArray
     # @param {object} files A key-value JSON with the target key and the complete file name
     @loadNodeFilesIntoArray: (files) ->
         jsonFiles = {}
-        throw new Exceptions.Fatal()  if typeof files isnt "object"
+        throw new Exceptions.Fatal() unless _.isObject files
         for fileId of files
             if files.hasOwnProperty(fileId)
                 filePath = files[fileId]
                 jsonFiles[fileId] = require(fs.realpathSync(filePath))
         jsonFiles
-
-    # Check if the directory exists, if doesn't try to create
-    # @method createDirIfNotExists
-    # @param {string} dir The dir that needs to be created
-    @createDirIfNotExists: (dir) ->
-        permission = parseInt('766', 8)
-        if fs.existsSync(dir)
-            stats = fs.lstatSync(dir)
-            throw new Exceptions.Fatal(dir + " exists and is not a directory")  unless stats.isDirectory()
-        else
-            fs.mkdirSync dir, permission
-
-    # Return a list of files inside a given folder (recursive)
-    # @method listFilesFromDir
-    # @param {string} path Path to be searched
-    # @return {Array} Returns a list of files
-    @listFilesFromDir: (dir) ->
-        files = fs.readdirSync(dir)
-        result = []
-        if files.length > 0
-            files.forEach (file) ->
-                fullFilePath = path.join(dir, file)
-                stats = fs.lstatSync(fullFilePath)
-                stats = fs.lstatSync(fs.realpathSync(fullFilePath))  if stats.isSymbolicLink()
-                if stats.isFile()
-                    result.push fullFilePath
-                else result = result.concat(Sync.listFilesFromDir(fullFilePath))  if stats.isDirectory()
-                return
-        result
-
-    # Check if is a file
-    # @method isFile
-    # @param {string} fileNameWithPath The file full path to check
-    # @return {boolean} Returns true if it is a file
-    @isFile: (fileNameWithPath) ->
-        if fs.existsSync(fileNameWithPath)
-            stats = fs.lstatSync(fileNameWithPath)
-            return true  if stats.isFile()
-        false
 
 module.exports = Sync

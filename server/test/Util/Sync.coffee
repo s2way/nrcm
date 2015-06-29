@@ -4,203 +4,179 @@
 ###
 
 # Dependencies
-Sync = require './../../src/Util/Sync'
-assert = require 'assert'
 fs = require 'fs'
 path = require 'path'
+_ = require 'underscore'
 expect = require 'expect.js'
+Sync = require './../../src/Util/Sync'
+Exceptions = require './../../src/Util/Exceptions'
 
 describe 'Sync.js', ->
 
+    root = path.resolve path.join '.', path.sep
+    permission = parseInt('766', 8)
+    fileNameToCreate = '_removeMe.log'
+    fileToCreate = path.join root, fileNameToCreate
+    fileToCopy = path.join root, '_removeMe2.log'
+    dirToCreate = path.join root, '__test__app'
+    fileContents = 'áéíóúâêîôûàèìòùãẽĩõũçÇ/?€®ŧ←↓→øþæßðđŋħł«»©nµ'
+    # Map folder structure
+    rootPath = dirToCreate
+    rootPathSrc =  path.join rootPath, 'src'
+    rootPathTest = path.join rootPath, 'test'
+    # MUST BE in alphabetic order
+    paths =
+        root: rootPath
+        src:
+            root: rootPathSrc
+            component: path.join rootPathSrc, 'component'
+            config: path.join rootPathSrc, 'config'
+            controller: path.join rootPathSrc, 'controller'
+            filter: path.join rootPathSrc, 'filter'
+            model: path.join rootPathSrc, 'model'
+        test:
+            root: rootPathTest
+            component: path.join rootPathTest, 'component'
+            controller: path.join rootPathTest, 'controller'
+            filter: path.join rootPathTest, 'filter'
+            model: path.join rootPathTest, 'model'
+
+    _toRemove = ->
+        toRemove = []
+        _.map paths, (value) ->
+            if _.isString value
+                toRemove.push value
+            else
+                _.map value, (value) ->
+                    toRemove.push value if _.isString value
+        toRemove
+
+    _clearStructure = ->
+        # You must add here all files that you created manually
+        try
+            fs.unlinkSync fileToCreate
+        try
+            fs.unlinkSync fileToCopy
+        try
+            fs.rmdirSync dirToCreate
+
+        # Remove the test structure
+        toRemove = _toRemove()
+
+        # Reverse order to delete otherwise rm will fail it won't be empty
+        for obj in toRemove.reverse()
+            do (obj) ->
+                    try
+                        fs.rmdirSync obj
+                    try
+                        fs.unlinkSync obj
+                    try
+                        fs.unlinkSync path.join obj, fileNameToCreate
+
+
+    after ->
+        _clearStructure()
+
+    beforeEach ->
+        _clearStructure()
+
     describe 'createFileIfNotExists', ->
+
         it 'create the file if it does not exists', ->
-            dir = 'file.txt'
-            Sync.createFileIfNotExists dir
-            assert.equal true, fs.existsSync(dir)
-            fs.unlinkSync dir
+            Sync.createFileIfNotExists fileToCreate
+            expect(fs.existsSync(fileToCreate)).to.be.ok()
 
-        it 'should work when called twice', ->
-            dir = 'file.txt'
-            Sync.createFileIfNotExists dir
-            Sync.createFileIfNotExists dir
-            assert.equal true, fs.existsSync(dir)
-            fs.unlinkSync dir
+        it 'create the file with the content', ->
+            Sync.createFileIfNotExists fileToCreate, fileContents
+            expect(fs.existsSync(fileToCreate)).to.be.ok()
+            expect(fs.readFileSync(fileToCreate).toString()).to.eql fileContents
 
-        it 'should throw and exception if the file is a directory', ->
-            dir = 'file'
-            fs.mkdirSync dir, parseInt('0777', 8)
-            try
-                Sync.createFileIfNotExists dir
-            catch error
-                e = error
-                assert.equal 'Fatal', e.name
-                return
-            finally
-                fs.rmdirSync dir
-            assert.fail()
+        it 'should throw an exception if destination already exists', ->
+            Sync.createFileIfNotExists fileToCreate
+            expect(->
+                Sync.createFileIfNotExists fileToCreate
+            ).to.throwException((e) ->
+                expect(e.name).to.be('DestinationAlreadyExists')
+                expect(e.message).to.be(Sync.ERROR_DST_EXISTS)
+            )
 
+    describe 'isFile', ->
 
-#    describe 'isFile', ->
-#        it 'should return false if the file does not exist or if it exists but it is not a file', ->
-#            assert.equal false, Sync.isFile('/this/path/must/not/exist/please')
-#
-#        it 'should return true if the file exists', ->
-#            Sync.createFileIfNotExists 'here.json', '{}'
-#            assert.equal true, Sync.isFile('here.json')
-#            fs.unlinkSync 'here.json'
-#
-#    describe 'copyIfNotExists', ->
-#        it 'should copy the file if it does not exist', ->
-#            Sync.createFileIfNotExists 'here.json', '{}'
-#            Sync.copyIfNotExists 'here.json', 'there.json'
-#            assert.equal '{}', fs.readFileSync('there.json')
-#            fs.unlinkSync 'here.json'
-#            fs.unlinkSync 'there.json'
-#
-#        it 'should return false if the file exists', ->
-#            Sync.createFileIfNotExists 'here.json', '{}'
-#            assert.equal false, Sync.copyIfNotExists('here.json', 'here.json')
-#            fs.unlinkSync 'here.json'
-#
-#        it 'should throw a Fatal exception if it is not a file', ->
-#            e = undefined
-#            Sync.createDirIfNotExists 'here'
-#            try
-#                assert.equal false, Sync.copyIfNotExists('here', 'here')
-#                assert.fail()
-#            catch _error
-#                e = _error
-#                assert.equal 'Fatal', e.name
-#            fs.rmdirSync 'here'
-#
-#
-#    describe 'copy', ->
-#        it 'should copy the file Synchronously', ->
-#            Sync.createFileIfNotExists 'here.json', '{}'
-#            Sync.copy 'here.json', 'there.json'
-#            assert.equal '{}', fs.readFileSync('there.json')
-#            fs.unlinkSync 'here.json'
-#            fs.unlinkSync 'there.json'
-#
-#    describe 'loadNodeFilesIntoArray', ->
-#        it 'should throw a Fatal exception if the param is not an array', ->
-#            e = undefined
-#            try
-#                Sync.loadNodeFilesIntoArray()
-#                return assert.fail()
-#            catch _error
-#                e = _error
-#                return assert.equal('Fatal', e.name)
-#            return
-#
-#        it 'should the node files into an array', ->
-#            file = undefined
-#            fileId = undefined
-#            fileName = undefined
-#            files = undefined
-#            filesJSON = undefined
-#            files =
-#                file0: 'file0.js'
-#                file1: 'file1.js'
-#                file2: 'file2.js'
-#
-#            file = undefined
-#            fileName = undefined
-#            filesJSON = undefined
-#            try
-#                for file of files
-#                    if files.hasOwnProperty(file)
-#                        fileName = files[file]
-#                        Sync.createFileIfNotExists fileName, 'module.exports = { };'
-#                filesJSON = Sync.loadNodeFilesIntoArray(files)
-#            finally
-#                for file of files
-#                    if files.hasOwnProperty(file)
-#                        fileName = files[file]
-#                        fs.unlinkSync fileName
-#            fileId = undefined
-#            for fileId of filesJSON
-#                assert.equal JSON.stringify({}), JSON.stringify(filesJSON[fileId])    if filesJSON.hasOwnProperty(fileId)
-#
-#    describe 'createDirIfNotExists', ->
-#        it 'create the directory if it does not exists', ->
-#            dir = undefined
-#            dir = 'path'
-#            Sync.createDirIfNotExists dir
-#            assert.equal true, fs.existsSync(dir)
-#            fs.rmdirSync dir
-#            return
-#
-#        it 'should work when called twice', ->
-#            dir = undefined
-#            dir = 'path'
-#            Sync.createDirIfNotExists dir
-#            Sync.createDirIfNotExists dir
-#            assert.equal true, fs.existsSync(dir)
-#            fs.rmdirSync dir
-#
-#    describe 'createFileIfNotExists', ->
-#        it 'create the file if it does not exists', ->
-#            dir = 'file.txt'
-#            Sync.createFileIfNotExists dir
-#            assert.equal true, fs.existsSync(dir)
-#            fs.unlinkSync dir
-#
-#        it 'should work when called twice', ->
-#            dir = 'file.txt'
-#            Sync.createFileIfNotExists dir
-#            Sync.createFileIfNotExists dir
-#            assert.equal true, fs.existsSync(dir)
-#            fs.unlinkSync dir
-#
-#        it 'should throw and exception if the file is a directory', ->
-#            dir = 'file'
-#            fs.mkdirSync dir, parseInt('0777', 8)
-#            try
-#                Sync.createFileIfNotExists dir
-#            catch error
-#                e = error
-#                assert.equal 'Fatal', e.name
-#                return
-#            finally
-#                fs.rmdirSync dir
-#            assert.fail()
-#
-#    describe 'listFilesFromDirRecursive', ->
-#        it 'should return a list of files separated by / when the dir is valid and there are files and folders', ->
-#            files = undefined
-#            i = undefined
-#            list = undefined
-#            fs.mkdirSync 'dir', parseInt('0777', 8)
-#            fs.mkdirSync 'dir/sub', parseInt('0777', 8)
-#            files = [
-#                path.join('dir', '1.txt')
-#                path.join('dir', '2.txt')
-#                path.join('dir', '3.txt')
-#                path.join('dir', 'sub', '4.txt')
-#            ]
-#            i = undefined
-#            list = undefined
-#            i = 0
-#            while i < files.length
-#                fs.writeFileSync files[i], ''
-#                i += 1
-#            try
-#                list = Sync.listFilesFromDir('dir')
-#            finally
-#                i = 0
-#                while i < files.length
-#                    fs.unlinkSync files[i]
-#                    i += 1
-#                fs.rmdirSync path.join('dir', 'sub')
-#                fs.rmdirSync 'dir'
-#            assert.equal JSON.stringify(files), JSON.stringify(list)
-#
-#        it 'should return an empty list when the dir is empty', ->
-#            dir = undefined
-#            dir = 'dir'
-#            try
-#                fs.mkdirSync dir, parseInt('0777', 8)
-#                assert.equal '[]', JSON.stringify(Sync.listFilesFromDir(dir))
-#            finally
-#                fs.rmdirSync dir
+        it 'should return false if the file does not exist or if it exists but it is not a file', ->
+            expect(Sync.isFile('/this/path/must/not/exist/please')).not.be.ok()
+
+        it 'should return true if the file exists', ->
+            Sync.createFileIfNotExists fileToCreate
+            expect(Sync.isFile(fileToCreate)).to.be.ok()
+
+    describe 'copyIfNotExists', ->
+
+        it 'should copy the file if it does not exist', ->
+            Sync.createFileIfNotExists fileToCreate, fileContents
+            Sync.copyIfNotExists fileToCreate, fileToCopy
+            expect(fs.readFileSync(fileToCopy).toString()).to.eql fileContents
+
+        it 'should throw an exception if the destination exists', ->
+            Sync.createFileIfNotExists fileToCopy
+            Sync.createFileIfNotExists fileToCreate
+            expect(->
+                Sync.copyIfNotExists fileToCopy, fileToCreate
+            ).to.throwException((e) ->
+                expect(e.name).to.be('DestinationAlreadyExists')
+                expect(e.message).to.be(Sync.ERROR_DST_EXISTS)
+            )
+
+        it 'should throw an exception if the source does not exist or it is not a file', ->
+            expect(->
+                Sync.copyIfNotExists fileToCopy, fileToCreate
+            ).to.throwException((e) ->
+                expect(e.name).to.be('FileNotFound')
+                expect(e.message).to.be(Sync.ERROR_NO_SRC_FILE)
+            )
+
+        it 'should throw an exception if the source it is not a file', ->
+            # Dir instead of file
+            fs.mkdirSync dirToCreate, permission
+            expect(->
+                Sync.copyIfNotExists dirToCreate, fileToCreate
+            ).to.throwException((e) ->
+                expect(e.name).to.be('FileNotFound')
+                expect(e.message).to.be(Sync.ERROR_NO_SRC_FILE)
+            )
+
+    describe 'createDirIfNotExists', ->
+
+        it 'create the dir if it does not exists', ->
+            Sync.createDirIfNotExists dirToCreate
+            expect(fs.existsSync(dirToCreate)).to.be.ok()
+
+        it 'should throw an exception if destination already exists', ->
+            Sync.createDirIfNotExists dirToCreate
+            expect(->
+                Sync.createDirIfNotExists dirToCreate
+            ).to.throwException((e) ->
+                expect(e.name).to.be('DestinationAlreadyExists')
+                expect(e.message).to.be(Sync.ERROR_DST_EXISTS)
+            )
+
+    describe 'syncDirStructure', ->
+
+        it 'should create the app directory structure if it does not exist', ->
+            expect(Sync.syncDirStructure paths).to.eql _toRemove()
+            # 2nd time there are all directories,so should return empty
+            expect(Sync.syncDirStructure paths).to.eql []
+
+    describe 'listFilesFromDir', ->
+
+        it 'should return an array with the files inside dir structure', ->
+            expectedFileList = []
+            _.map (Sync.syncDirStructure paths), (value) ->
+                file = path.join value, fileNameToCreate
+                Sync.createFileIfNotExists file
+                expectedFileList.push file
+            expect(Sync.listFilesFromDir rootPath).to.eql expectedFileList
+
+        it 'should return an empty list when the dir is empty', ->
+            expect(Sync.listFilesFromDir rootPath).to.be.empty()
+
+    describe 'loadNodeFilesIntoArray', ->

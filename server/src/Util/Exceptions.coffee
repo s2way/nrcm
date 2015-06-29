@@ -21,5 +21,9 @@ class Exceptions
         @name = 'OperationInterrupted'
     @IllegalControllerParameter: (@message = null, @cause = null) ->
         @name = 'IllegalControllerParameter'
+    @FileNotFound: (@message = null, @cause = null) ->
+        @name = 'FileNotFound'
+    @DestinationAlreadyExists: (@message = null, @cause = null) ->
+        @name = 'DestinationAlreadyExists'
 
 module.exports = Exceptions

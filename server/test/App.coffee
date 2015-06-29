@@ -15,7 +15,7 @@ describe 'App.coffee', ->
     appName = '__test__app'
 
     # Clear folder structure
-    clearStructure = (appToClear) ->
+    _clearStructure = (appToClear) ->
         toRemove = []
         _.map appToClear.paths, (value) ->
             if _.isString value
@@ -30,16 +30,16 @@ describe 'App.coffee', ->
                 try
                     fs.rmdirSync folder
 
-        # You must add here all files that you create manually
+        # You must add here all files that you created manually
         try
             fs.unlinkSync appToClear.paths.root
 
     after ->
-        clearStructure app
+        _clearStructure app
 
     beforeEach ->
         app = new App appName, mocks.waferpie
-        clearStructure app
+        _clearStructure app
 
     it 'should throw an exception if application name is invalid', ->
         expect( ->
