@@ -15,6 +15,7 @@ describe 'Sync.js', ->
 
     root = path.resolve path.join '.', path.sep
     permission = parseInt('766', 8)
+    jsonToCreate = path.join root, '_removeMe.yml'
     fileNameToCreate = '_removeMe.log'
     fileNameCodeToCreate = '_removeMe'
     extCodeToCreate = '.js'
@@ -60,6 +61,10 @@ describe 'Sync.js', ->
         try
             fs.unlinkSync fileToCreate
         try
+            fs.unlinkSync fileCodeToCreate
+        try
+            fs.unlinkSync jsonToCreate
+        try
             fs.unlinkSync fileToCopy
         try
             fs.rmdirSync dirToCreate
@@ -84,6 +89,43 @@ describe 'Sync.js', ->
 
     beforeEach ->
         _clearStructure()
+
+    describe 'file2JSON', ->
+
+        it 'should transform file content into a JSON object', ->
+            expectedJSON =
+                test:
+                    sub1Test:
+                        sub2Test: '__test'
+            content = """
+test:
+  sub1Test:
+    sub2Test: __test
+"""
+            Sync.createFileIfNotExists jsonToCreate, content
+            expect(JSON.stringify(Sync.file2JSON(jsonToCreate))).to.eql JSON.stringify expectedJSON
+
+        it 'should throw an exception if the file is not in a valid format', ->
+            content = """
+<html>
+<head><title>You cant convert this!</title></head>
+</html>
+"""
+            Sync.createFileIfNotExists jsonToCreate, content
+            expect(->
+                Sync.file2JSON jsonToCreate
+            ).to.throwException((e) ->
+                expect(e.name).to.be('Fatal')
+                expect(e.message).to.be(Sync.ERROR_NOT_JSON)
+            )
+
+#        it 'should throw an exception if the file does not exist', ->
+#            expect(->
+#                Sync.file2JSON jsonToCreate
+#            ).to.throwException((e) ->
+#                expect(e.name).to.be('FileNotFound')
+#                expect(e.message).to.be(Sync.ERROR_NO_SRC_FILE)
+#            )
 
     describe 'checkPath', ->
 

@@ -24,7 +24,7 @@ class App
     @DIR_NAME_CONTROLLER: 'controller'
     @DIR_REGEX_CHECK: ///^\b[a-z_]+\b$///
 
-    @FILE_NAME_CONFIG_DEFAULT: 'config.yml'
+    @FILE_NAME_CONFIG_DEFAULT: 'core.yml'
 
     # Exceptions
     @ERROR_INVALID_NAME: "Application name is invalid. Accepted #{App.DIR_REGEX_CHECK}"
@@ -60,7 +60,7 @@ class App
                 model: path.join rootPathTest, App.DIR_NAME_MODEL
 
         configDefault = path.join @_paths.src.config, App.FILE_NAME_CONFIG_DEFAULT
-        configHostname = path.join @_paths.src.config, @_waferPie.hostname
+        configHostname = path.join @_paths.src.config, @_waferPie.hostname, '.yml'
 
         # Overwrite with the hostname.yml if it exists in config directory
         configFile = configHostname if @Sync.isFile configHostname

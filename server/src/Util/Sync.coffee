@@ -15,11 +15,21 @@ class Sync
     # Exceptions
     @ERROR_DST_EXISTS: 'Destination already exists.'
     @ERROR_NO_SRC_FILE: 'Source is missing or it is not a file.'
+    @ERROR_NOT_JSON: 'File content is not a valid JSON'
 
     # Defaults
     @DEFAULT_PERM_FILE: 766
     @DEFAULT_PERM_DIR: 766
     @DEFAULT_ENCODING: 'utf8'
+
+    # Transform a file into a JSON object if is possible
+    @file2JSON: (file) ->
+        unless Sync.isFile file
+            throw new Exceptions.FileNotFound Sync.ERROR_NO_SRC_FILE
+        try
+            newJSON = require file
+        catch e
+            throw new Exceptions.Fatal Sync.ERROR_NOT_JSON, e
 
     # Check for the presence of files
     # returns false if one in the list does not exist
