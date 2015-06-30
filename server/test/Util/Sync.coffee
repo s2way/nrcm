@@ -16,9 +16,13 @@ describe 'Sync.js', ->
     root = path.resolve path.join '.', path.sep
     permission = parseInt('766', 8)
     fileNameToCreate = '_removeMe.log'
+    fileNameCodeToCreate = '_removeMe'
+    extCodeToCreate = '.js'
+    fileCodeToCreate = fileNameCodeToCreate + extCodeToCreate
     fileToCreate = path.join root, fileNameToCreate
     fileToCopy = path.join root, '_removeMe2.log'
-    dirToCreate = path.join root, '__test__app'
+    appNameToCreate = '__test__app'
+    dirToCreate = path.join root, appNameToCreate
     fileContents = 'áéíóúâêîôûàèìòùãẽĩõũçÇ/?€®ŧ←↓→øþæßðđŋħł«»©nµ'
     # Map folder structure
     rootPath = dirToCreate
@@ -51,8 +55,8 @@ describe 'Sync.js', ->
                     toRemove.push value if _.isString value
         toRemove
 
+    # You must add here all files that you created manually running tests
     _clearStructure = ->
-        # You must add here all files that you created manually
         try
             fs.unlinkSync fileToCreate
         try
@@ -66,19 +70,29 @@ describe 'Sync.js', ->
         # Reverse order to delete otherwise rm will fail it won't be empty
         for obj in toRemove.reverse()
             do (obj) ->
-                    try
-                        fs.rmdirSync obj
-                    try
-                        fs.unlinkSync obj
-                    try
-                        fs.unlinkSync path.join obj, fileNameToCreate
-
+                try
+                    fs.unlinkSync path.join obj, fileNameToCreate
+                try
+                    fs.unlinkSync path.join obj, fileCodeToCreate
+                try
+                    fs.rmdirSync obj
+                try
+                    fs.unlinkSync obj
 
     after ->
         _clearStructure()
 
     beforeEach ->
         _clearStructure()
+
+    describe 'checkPath', ->
+
+        it 'should return false if it does not exist', ->
+            expect(Sync.checkPath paths).not.be.ok()
+
+        it 'should return true if it exists', ->
+            Sync.syncDirStructure paths
+            expect(Sync.checkPath paths).to.be.ok()
 
     describe 'createFileIfNotExists', ->
 
@@ -180,3 +194,16 @@ describe 'Sync.js', ->
             expect(Sync.listFilesFromDir rootPath).to.be.empty()
 
     describe 'loadNodeFilesIntoArray', ->
+
+        it 'should the node files into an array', ->
+            _.map (Sync.syncDirStructure paths), (value) ->
+                file = path.join value, fileCodeToCreate
+                Sync.createFileIfNotExists file, 'module.exports = { };'
+            fileList = Sync.listFilesFromDir appNameToCreate
+            jsonList = {}
+            expectedReturn = {}
+            _.map fileList, (value) ->
+                key = value.substr(0, value.length - extCodeToCreate.length)
+                jsonList[key] = value
+                expectedReturn[key] = {}
+            expect(JSON.stringify Sync.loadNodeFiles jsonList).to.eql JSON.stringify expectedReturn
