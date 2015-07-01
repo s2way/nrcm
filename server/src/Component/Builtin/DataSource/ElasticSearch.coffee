@@ -16,6 +16,7 @@ class ElasticSearch
             host: dataSource.host + ':' + dataSource.port
             log: dataSource.log
             keepAlive: false
+            requestTimeout: dataSource.timeout || 30000
         )
 
     query: (datasource, params, callback) ->

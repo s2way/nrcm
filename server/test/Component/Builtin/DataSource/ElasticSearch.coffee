@@ -28,6 +28,19 @@ describe "ElasticSearch.js", ->
             ).to.throwException (e) ->
                 expect(e.name).to.be "IllegalArgument"
 
+        it 'should set the request timeout to the specified value', ->
+
+            timeout = 1000
+            instance.core.dataSources.default.timeout = timeout
+            esClient = instance.client()
+            expect(esClient.transport._config.requestTimeout).to.eql timeout
+
+        it 'should default the request timeout if none is passed', ->
+
+            defaultTimeout = 30000
+            esClient = instance.client()
+            expect(esClient.transport._config.requestTimeout).to.eql defaultTimeout
+
     describe "query", ->
 
         it "should query for all types if none is specified in params", ->
