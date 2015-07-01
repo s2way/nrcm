@@ -65,7 +65,7 @@ class App
                 filter: path.join rootPathTest, App.DIR_NAME_FILTER
                 model: path.join rootPathTest, App.DIR_NAME_MODEL
 
-        # core is decided on build load defaults
+        # Core info is decided on deploy
         @coreName = ''
         @coreFile = ''
 

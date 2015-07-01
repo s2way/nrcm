@@ -33,13 +33,16 @@ class WaferPie
     @ERROR_INVALID_CONFIG_PARAMETER: 'Config parameter is invalid.'
 
     constructor: ->
+
         # Injectable dependencies
         @Files = require './../src/Component/Builtin/Files.coffee'
 
+        # Map folder structure
         @_paths =
             root: path.resolve './'
 
         @config = {}
+        @configured = false
 
     # Setup the basic configurations
     configure: (configFileName) ->
@@ -53,5 +56,10 @@ class WaferPie
 
         # Check config
         throw new Exceptions.Fatal WaferPie.ERROR_INVALID_CONFIG_PARAMETER unless _.isString @config[WaferPie.CONFIG_URL_FORMAT]
+
+        @_configured = true
+
+    deploy: (appName) ->
+
 
 module.exports = WaferPie
