@@ -177,6 +177,38 @@ describe 'Loader', ->
 
             expect(loader.loadController 'DummyController', DummyController).to.be DummyController
 
+    describe 'mockControllerProperties()', ->
+
+        it 'should return exception if the controller is not listed', (done) ->
+
+            controllerName = 'Invalid'
+
+            expect(->
+                loader.mockControllerProperties controllerName,{}
+            ).to.throwException((e) ->
+                expect(e.name).to.be 'ControllerNotFound'
+                expect(e.controller).to.be controllerName
+                done()
+            )
+
+        it 'should change the controller properties to the passed ones', ->
+
+            controllerName = 'controller1'
+
+            loader._controllers =
+                controller1:
+                    field1: 'oldValue1'
+                    field2: 'oldValue2'
+
+            newProperties =
+                field1: 'newValue1'
+                field2: 'newValue2'
+
+            loader.mockControllerProperties controllerName, newProperties
+            expect(loader._controllers[controllerName].field1).to.eql newProperties.field1
+            expect(loader._controllers[controllerName].field2).to.eql newProperties.field2
+
+
     describe 'callController()', ->
 
         it 'should mock the Model methods passed to mockModel when callController is called', (done) ->
