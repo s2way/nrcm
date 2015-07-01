@@ -10,7 +10,7 @@ _ = require 'underscore'
 Exceptions = require './Util/Exceptions'
 
 # Expected dependencies
-Sync = {}
+Files = {}
 
 class App
 
@@ -24,7 +24,13 @@ class App
     @DIR_NAME_CONTROLLER: 'controller'
     @DIR_REGEX_CHECK: ///^\b[a-z_]+\b$///
 
-    @FILE_NAME_CONFIG_DEFAULT: 'core.yml'
+    # Names
+    @FILE_EXT_DEFAULT: '.yml'
+    @FILE_NAME_CORE_DEFAULT: 'core'
+
+    # Configs
+    @CORE_VERSION = 'version'
+    @CORE_REQUEST_TIMEOUT = 'requestTimeout'
 
     # Exceptions
     @ERROR_INVALID_NAME: "Application name is invalid. Accepted #{App.DIR_REGEX_CHECK}"
@@ -33,8 +39,8 @@ class App
     # Build with the given name
     constructor: (@appName, @_waferPie) ->
 
-        # Inject dependencies
-        @Sync = @_waferPie.Sync
+        # Injectable dependencies
+        @Files = @_waferPie.Files
 
         # Check app name
         throw new Exceptions.Fatal App.ERROR_INVALID_NAME unless @appName.match App.DIR_REGEX_CHECK
@@ -59,25 +65,53 @@ class App
                 filter: path.join rootPathTest, App.DIR_NAME_FILTER
                 model: path.join rootPathTest, App.DIR_NAME_MODEL
 
-        configDefault = path.join @_paths.src.config, App.FILE_NAME_CONFIG_DEFAULT
-        configHostname = path.join @_paths.src.config, @_waferPie.hostname, '.yml'
-
-        # Overwrite with the hostname.yml if it exists in config directory
-        configFile = configHostname if @Sync.isFile configHostname
-        configFile = configDefault unless configFile
-
-        @_files =
-            config: configFile
+        # core is decided on build load defaults
+        @coreName = ''
+        @coreFile = ''
 
         # Shared object
         @limbo = {}
+
+        # Config & all configs
+        @core = {}
+        @configs = {}
 
     ##
     # Create app folder structure if does not exist
     # Once it touches your FS you MUST never run as root
     ##
-    build: ->
-        @Sync.syncDirStructure @_paths
-        throw new Exceptions.Fatal(App.ERROR_INVALID_PATH) unless @Sync.checkPath @_paths
+    deploy: ->
+        # Check paths & files
+        @Files.syncDirStructure @_paths
+        throw new Exceptions.Fatal(App.ERROR_INVALID_PATH) unless @Files.checkPath @_paths
+        # Import configs
+        @_setupConfigs()
+
+    # Load all files in config object & Decides the core config to use
+    _setupConfigs: ->
+        coreDefault = path.join @_paths.src.config, App.FILE_NAME_CORE_DEFAULT + App.FILE_EXT_DEFAULT
+        coreHostname = path.join @_paths.src.config, @_waferPie.hostname + App.FILE_EXT_DEFAULT
+
+        # Load all configs
+        filesInConfigDir = @Files.listFilesFromDir @_paths.src.config
+        keyValueToLoad = @Files.arrayOfFiles2JSON filesInConfigDir
+        @configs = @Files.loadNodeFiles keyValueToLoad
+
+        # Overwrite with the hostname.yml if it exists in config directory
+        if @Files.isFile coreHostname
+            @coreFile = coreHostname
+            @coreName = @_waferPie.hostname
+            @core = @configs[@coreName]
+        else
+            if @Files.isFile coreDefault
+                @coreFile = coreDefault
+                @coreName = App.FILE_NAME_CORE_DEFAULT
+                @core = @configs[@coreName]
+
+        # Setup defaults
+        @core[App.CORE_VERSION] = '1.0.0' unless @core['Version']
+        @core[App.CORE_REQUEST_TIMEOUT] = '10000' unless @core['Version']
+
+        @configs
 
 module.exports = App
