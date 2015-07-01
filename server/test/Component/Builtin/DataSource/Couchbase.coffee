@@ -50,7 +50,7 @@ describe "Couchbase.js", ->
             instance.limbo = {}
 
             instance.init()
-            expect(instance.limbo._bucket).to.be.ok()
+            expect(instance.limbo.default._bucket).to.be.ok()
 
         it "should throw an IllegalArgument exception if the data source cannot be found", ->
             instance = new Couchbase("invalid")

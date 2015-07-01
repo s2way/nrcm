@@ -22,7 +22,7 @@ class CouchMuffin
     init: ->
         couch = @component 'DataSource.Couchbase', @_dataSourceName
         @_dataSource = {}
-        @_dataSource.bucket = couch.limbo._bucket
+        @_dataSource.bucket = couch.limbo[@_dataSourceName]._bucket
         @_dataSource.n1ql = couch.n1ql
         @_validator = @component 'Validator',
             validate: @_validate
@@ -42,7 +42,6 @@ class CouchMuffin
         data._id = id unless @_skipId
 
     _query: (query, callback) ->
-        
         @_dataSource.bucket.query (new @_dataSource.n1ql.fromString query), (error, result) ->
             return callback error if error
             return callback null, result

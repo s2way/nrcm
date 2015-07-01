@@ -36,9 +36,9 @@ class Couchbase
         @cluster = new @_couchbase.Cluster "#{@_dataSource.host}:#{@_dataSource.port}"
         # @bucket = @cluster.openBucket @bucketName
         # @bucket.enableN1ql "#{@_dataSource.n1qlHost}:#{@_dataSource.n1qlPort}" if @_dataSource.n1qlPort?
-        @limbo._bucket = @cluster.openBucket @bucketName unless @limbo._bucket
-        @limbo._bucket.enableN1ql "#{@_dataSource.n1qlHost}:#{@_dataSource.n1qlPort}" if @_dataSource.n1qlPort?
-        @limbo._bucket.operationTimeout = 30 * 1000
+        @limbo[@_dataSourceName] = _bucket : @cluster.openBucket @bucketName unless @limbo[@_dataSourceName]?._bucket
+        @limbo[@_dataSourceName]._bucket.enableN1ql "#{@_dataSource.n1qlHost}:#{@_dataSource.n1qlPort}" if @_dataSource.n1qlPort?
+        @limbo[@_dataSourceName]._bucket.operationTimeout = 30 * 1000
 
     # Close the database connection
     destroy: ->
