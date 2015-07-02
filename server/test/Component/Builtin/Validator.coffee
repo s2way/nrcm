@@ -1,3 +1,8 @@
+###
+# Copyright(c) 2015 Juliano Jorge Lazzarotto aka dOob
+# Apache2 Licensed
+###
+
 assert = require('assert')
 expect = require('expect.js')
 Validator = require('./../../../src/Component/Builtin/Validator')

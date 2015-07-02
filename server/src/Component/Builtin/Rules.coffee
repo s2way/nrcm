@@ -1,4 +1,8 @@
-'use strict'
+###
+# Copyright(c) 2015 Juliano Jorge Lazzarotto aka dOob
+# Apache2 Licensed
+###
+
 _ = require 'underscore'
 moment = require 'moment'
 Exceptions = require '../../Util/Exceptions'

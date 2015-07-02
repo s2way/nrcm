@@ -24,42 +24,78 @@ class WaferPie
 
     # Defaults
     @VERSION: '2.0.0'
+    @DEFAULT_URL_FORMAT: '/$application/$controller'
+    @DEFAULT_LISTEN_PORT: 80
+    @DEFAULT_LISTEN_ADDRESS: '0.0.0.0'
+    @DEFAULT_LISTEN_FAMILY: 'IPv4'
+    @DEFAULT_APPS:
+        'default': 'The default WaferPie application.'
 
     # Configs
     @CONFIG_URL_FORMAT: 'urlFormat'
+    @CONFIG_LISTEN_PORT: 'port'
+    @CONFIG_LISTEN_ADDRESS: 'address'
+    @CONFIG_LISTEN_FAMILY: 'family'
+    @CONFIG_APPS: 'apps'
 
     # Exceptions
     @ERROR_INVALID_CONFIG_FILE: 'Config file is invalid.'
     @ERROR_INVALID_CONFIG_PARAMETER: 'Config parameter is invalid.'
+    @ERROR_MISS_CONFIGURATION: 'Missing call configure.'
 
     constructor: ->
 
         # Injectable dependencies
-        @Files = require './../src/Component/Builtin/Files.coffee'
+        @Files = require './../src/Component/Builtin/Files'
 
         # Map folder structure
         @_paths =
             root: path.resolve './'
 
+        # Shared object amongst all applications
+        @limbo = {}
+
+        # Config
         @config = {}
         @configured = false
+        @apps = {}
 
     # Setup the basic configurations
     configure: (configFileName) ->
-        try
-            @config = @Files.file2JSON configFileName
-        catch e
-            throw new Exceptions.Fatal WaferPie.ERROR_INVALID_CONFIG_FILE, e
+        if configFileName
+            try
+                @config = @Files.file2JSON configFileName
+            catch e
+                throw new Exceptions.Fatal WaferPie.ERROR_INVALID_CONFIG_FILE, e
 
+        #TODO: Create a component to validate and set defaults in a configuration file using Rules class
         # Setup defaults
-        @config[WaferPie.CONFIG_URL_FORMAT] = '/$application/$controller' unless @config[WaferPie.CONFIG_URL_FORMAT]
+        @config[WaferPie.CONFIG_URL_FORMAT] = WaferPie.DEFAULT_URL_FORMAT unless @config[WaferPie.CONFIG_URL_FORMAT]
+        @config[WaferPie.CONFIG_LISTEN_PORT] = WaferPie.DEFAULT_LISTEN_PORT unless @config[WaferPie.CONFIG_LISTEN_PORT]
+        @config[WaferPie.CONFIG_LISTEN_ADDRESS] = WaferPie.DEFAULT_LISTEN_ADDRESS unless @config[WaferPie.CONFIG_LISTEN_ADDRESS]
+        @config[WaferPie.CONFIG_LISTEN_FAMILY] = WaferPie.DEFAULT_LISTEN_FAMILY unless @config[WaferPie.CONFIG_LISTEN_FAMILY]
+        @config[WaferPie.CONFIG_APPS] = WaferPie.DEFAULT_APPS unless @config[WaferPie.CONFIG_APPS]
 
         # Check config
         throw new Exceptions.Fatal WaferPie.ERROR_INVALID_CONFIG_PARAMETER unless _.isString @config[WaferPie.CONFIG_URL_FORMAT]
+        throw new Exceptions.Fatal WaferPie.ERROR_INVALID_CONFIG_PARAMETER unless _.isString @config[WaferPie.CONFIG_LISTEN_ADDRESS]
+        throw new Exceptions.Fatal WaferPie.ERROR_INVALID_CONFIG_PARAMETER unless _.isString @config[WaferPie.CONFIG_LISTEN_FAMILY]
+        throw new Exceptions.Fatal WaferPie.ERROR_INVALID_CONFIG_PARAMETER unless _.isNumber @config[WaferPie.CONFIG_LISTEN_PORT]
 
         @_configured = true
 
+    didConfigure: ->
+        throw new Exceptions.Fatal WaferPie.ERROR_MISS_CONFIGURATION unless @_configured
+
+    # Check and build the app
     deploy: (appName) ->
+
+    start: ->
+        @didConfigure()
+
+    stop: ->
+    restart: ->
+    reload: ->
 
 
 module.exports = WaferPie

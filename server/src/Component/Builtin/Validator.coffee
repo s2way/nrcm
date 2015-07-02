@@ -1,3 +1,8 @@
+###
+# Copyright(c) 2015 Juliano Jorge Lazzarotto aka dOob
+# Apache2 Licensed
+###
+
 Exceptions = require('../../Util/Exceptions')
 
 class Validator

@@ -1,3 +1,8 @@
+###
+# Copyright(c) 2015 Juliano Jorge Lazzarotto aka dOob
+# Apache2 Licensed
+###
+
 Rules = require '../../../src/Component/Builtin/Rules'
 expect = require 'expect.js'
 
