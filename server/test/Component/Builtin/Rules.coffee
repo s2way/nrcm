@@ -205,64 +205,6 @@ describe 'Rules', ->
             expect(instance.datetime '2014-01').to.be false
             expect(instance.datetime '2014-01-123-').to.be false
 
-    describe 'test', ->
-
-        it 'should validate the field if the rules are passed as an object and return the rules that did not pass', ->
-            rules =
-                notEmpty:
-                    rule: 'notEmpty'
-                    message: 'This field cannot be empty'
-                maxLength:
-                    message: 'This field has exceeded the max length'
-                    params: [4]
-
-            result = instance.test 'A field', rules
-            expect(result).to.be.an 'object'
-            expect(result).to.have.property('maxLength')
-            expect(result).not.to.have.property('notEmpty')
-
-        it 'should return all rules failed if they are marked as required: false and the data is undefined', ->
-            rules =
-                notEmpty:
-                    rule: 'notEmpty'
-                    message: 'This field cannot be empty'
-                    required: true
-                maxLength:
-                    message: 'This field has exceeded the max length'
-                    params: [4]
-                    required: true
-
-            result = instance.test undefined, rules
-            expect(result).to.be.an 'object'
-            expect(result).to.have.property('maxLength')
-            expect(result).to.have.property('notEmpty')
-
-        it 'should return success if the rules are marked as required: false and the data is undefined', ->
-            rules =
-                notEmpty:
-                    rule: 'notEmpty'
-                    message: 'This field cannot be empty'
-                    required: false
-                maxLength:
-                    message: 'This field has exceeded the max length'
-                    params: [4]
-                # required: false # The default value is false!
-
-            result = instance.test undefined, rules
-            expect(result).to.be null
-
-        it 'should return null when all fields have passed the validation', ->
-            rules =
-                notEmpty: {}
-            result = instance.test 'A field', rules
-            expect(result).to.be null
-
-        it 'should throw an IllegalArgument exception if the rule does not exist', ->
-            rules = invalidRule: null
-            expect(->
-                instance.test 'nothing', rules
-            ).to.throwException((e) -> expect(e.name).to.be 'IllegalArgument')
-
     describe 'isUseful()', ->
 
         it 'should return false to an empty string', ->

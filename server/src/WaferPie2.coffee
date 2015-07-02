@@ -18,7 +18,7 @@
 # Dependencies
 path = require 'path'
 _ = require 'underscore'
-Exceptions = require './../src/Util/Exceptions'
+
 
 class WaferPie
 
@@ -47,6 +47,7 @@ class WaferPie
 
         # Injectable dependencies
         @Files = require './../src/Component/Builtin/Files'
+        @Exceptions = require './../src/Util/Exceptions'
 
         # Map folder structure
         @_paths =
@@ -66,7 +67,7 @@ class WaferPie
             try
                 @config = @Files.file2JSON configFileName
             catch e
-                throw new Exceptions.Fatal WaferPie.ERROR_INVALID_CONFIG_FILE, e
+                throw new @Exceptions.Fatal WaferPie.ERROR_INVALID_CONFIG_FILE, e
 
         #TODO: Create a component to validate and set defaults in a configuration file using Rules class
         # Setup defaults
@@ -77,15 +78,15 @@ class WaferPie
         @config[WaferPie.CONFIG_APPS] = WaferPie.DEFAULT_APPS unless @config[WaferPie.CONFIG_APPS]
 
         # Check config
-        throw new Exceptions.Fatal WaferPie.ERROR_INVALID_CONFIG_PARAMETER unless _.isString @config[WaferPie.CONFIG_URL_FORMAT]
-        throw new Exceptions.Fatal WaferPie.ERROR_INVALID_CONFIG_PARAMETER unless _.isString @config[WaferPie.CONFIG_LISTEN_ADDRESS]
-        throw new Exceptions.Fatal WaferPie.ERROR_INVALID_CONFIG_PARAMETER unless _.isString @config[WaferPie.CONFIG_LISTEN_FAMILY]
-        throw new Exceptions.Fatal WaferPie.ERROR_INVALID_CONFIG_PARAMETER unless _.isNumber @config[WaferPie.CONFIG_LISTEN_PORT]
+        throw new @Exceptions.Fatal WaferPie.ERROR_INVALID_CONFIG_PARAMETER unless _.isString @config[WaferPie.CONFIG_URL_FORMAT]
+        throw new @Exceptions.Fatal WaferPie.ERROR_INVALID_CONFIG_PARAMETER unless _.isString @config[WaferPie.CONFIG_LISTEN_ADDRESS]
+        throw new @Exceptions.Fatal WaferPie.ERROR_INVALID_CONFIG_PARAMETER unless _.isString @config[WaferPie.CONFIG_LISTEN_FAMILY]
+        throw new @Exceptions.Fatal WaferPie.ERROR_INVALID_CONFIG_PARAMETER unless _.isNumber @config[WaferPie.CONFIG_LISTEN_PORT]
 
         @_configured = true
 
     didConfigure: ->
-        throw new Exceptions.Fatal WaferPie.ERROR_MISS_CONFIGURATION unless @_configured
+        throw new @Exceptions.Fatal WaferPie.ERROR_MISS_CONFIGURATION unless @_configured
 
     # Check and build the app
     deploy: (appName) ->
