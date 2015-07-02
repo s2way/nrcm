@@ -38,506 +38,506 @@ describe 'CouchMuffin', ->
         stdMyError =
             name: 'MyError'
 
-    describe 'invoked', ->
-
-        it 'should return the last method invoked', (done) ->
-            stdError = null
-            stdResult = stdMyData.MyKey
-
-            loader.mockComponent 'DataSource.Couchbase',
-                limbo:
-                    test:
-                        _bucket:
-                            touch: (id, expiry, options, callback) ->
-                                callback stdError, stdResult
-                init: ->
-
-            instance = loader.createComponent 'Database.CouchMuffin', params
-
-            instance.init()
-            instance.exist 'MyKey', (error, result) ->
-                expect(error).not.to.be.ok()
-                expect(result).to.be stdResult
-                done()
-            expect(instance.invoked()).to.be.equal 'exist'
-
-    describe 'exists', ->
-
-        it 'should return success if the id exists', (done) ->
-            stdError = null
-            stdResult = stdMyData.MyKey
-
-            loader.mockComponent 'DataSource.Couchbase',
-                limbo:
-                    test:
-                        _bucket:
-                            touch: (id, expiry, options, callback) ->
-                                callback stdError, stdResult
-                init: ->
-
-            instance = loader.createComponent 'Database.CouchMuffin', params
-
-            instance.init()
-            instance.exist 'MyKey', (error, result) ->
-                expect(error).not.to.be.ok()
-                expect(result).to.be stdResult
-                done()
-
-        it 'should return error if the id doest not exist', (done) ->
-            stdError = stdMyError
-            stdResult = null
-
-            loader.mockComponent 'DataSource.Couchbase',
-                limbo:
-                    test:
-                        _bucket:
-                            touch: (id, expiry, options, callback) ->
-                                callback stdError, stdResult
-                init: ->
-
-            instance = loader.createComponent 'Database.CouchMuffin', params
-
-            instance.init()
-            instance.exist 'MyKey', (error, result) ->
-                expect(result).not.to.be.ok()
-                expect(error).to.be stdError
-                done()
-
-    describe 'findById', ->
-
-        it 'should issue the query for finding a record by id', (done) ->
-            stdError = null
-            stdResult = stdMyData.MyKey
-
-            loader.mockComponent 'DataSource.Couchbase',
-                limbo:
-                    test:
-                        _bucket:
-                            get: (info, options, callback) ->
-                                callback stdError, stdResult
-                init: ->
-
-            instance = loader.createComponent 'Database.CouchMuffin', params
-
-            instance.init()
-            instance.findById id: 'MyKey', (error, result) ->
-                expect(error).not.to.be.ok()
-                expect(result).to.be stdResult
-                done()
-
-        it 'should pass the error to the callback if something occurs', (done) ->
-            stdError = stdMyError
-            stdResult = null
-
-            loader.mockComponent 'DataSource.Couchbase',
-                limbo:
-                    test:
-                        _bucket:
-                            get: (info, options, callback) ->
-                                callback stdError, stdResult
-                init: ->
-
-            instance = loader.createComponent 'Database.CouchMuffin', params
-
-            instance.init()
-            instance.findById id: 'MyKey', (error, result) ->
-                expect(error.name).to.be 'MyError'
-                expect(result).not.to.be.ok()
-                done()
-
-    describe 'findManyById', ->
-
-        it 'should issue the query for finding many records by ids', (done) ->
-            stdError = null
-            stdResult = stdMyData
-
-            loader.mockComponent 'DataSource.Couchbase',
-                limbo:
-                    test:
-                        _bucket:
-                            getMulti: (info, callback) ->
-                                callback stdError, stdResult
-                init: ->
-
-            instance = loader.createComponent 'Database.CouchMuffin', params
-
-            instance.init()
-            instance.findManyById ids: ['MyKey','MyKey1'], (error, result) ->
-                expect(error).not.to.be.ok()
-                expect(result).to.be.eql '' : stdResult.MyKey
-                done()
-
-        it 'should pass the error to the callback if something occurs', (done) ->
-            stdError = stdMyError
-            stdResult = null
-
-            loader.mockComponent 'DataSource.Couchbase',
-                limbo:
-                    test:
-                        _bucket:
-                            getMulti: (info, callback) ->
-                                callback stdError, stdResult
-                init: ->
-
-            instance = loader.createComponent 'Database.CouchMuffin', params
-
-            instance.init()
-            instance.findManyById ids: ['MyKey','MyKey1'], (error, result) ->
-                expect(error.name).to.be 'MyError'
-                expect(result).not.to.be.ok()
-                done()
-
-    describe 'removeById', ->
-
-        it 'should remove the record by id', (done) ->
-            stdError = null
-            stdResult = stdMyData.MyKey
-            delete stdResult.value
-            paramsToSave =
-                id: 'MyKey'
-
-            loader.mockComponent 'DataSource.Couchbase',
-                limbo:
-                    test:
-                        _bucket:
-                            remove: (id, options, callback) ->
-                                callback stdError, stdResult
-                init: ->
-
-            instance = loader.createComponent 'Database.CouchMuffin', params
-
-            instance.init()
-            instance.removeById paramsToSave, (error, result) ->
-                expect(error).not.to.be.ok()
-                expect(result).to.be stdResult
-                done()
-
-        it 'should pass the error to the callback if something occurs', (done) ->
-            stdError = stdMyError
-            stdResult = null
-            paramsToSave =
-                id: 'MyKey'
-
-            loader.mockComponent 'DataSource.Couchbase',
-                limbo:
-                    test:
-                        _bucket:
-                            remove: (id, options, callback) ->
-                                callback stdError, stdResult
-                init: ->
-
-            instance = loader.createComponent 'Database.CouchMuffin', params
-
-            instance.init()
-            instance.removeById paramsToSave, (error, result) ->
-                expect(error.name).to.be 'MyError'
-                expect(result).not.to.be.ok()
-                done()
-
-    describe 'save', ->
-
-        it 'should save the record by id', (done) ->
-            stdError = null
-            stdResult = stdMyData.MyKey.value
-            paramsToSave =
-                id: 'MyKey'
-                data: stdResult
-
-            loader.mockComponent 'DataSource.Couchbase',
-                limbo:
-                    test:
-                        _bucket:
-                            replace: (id, data, options, callback) ->
-                                callback stdError, stdResult
-                init: ->
-
-            instance = loader.createComponent 'Database.CouchMuffin', params
-
-            instance.init()
-            instance.save paramsToSave, (error, result) ->
-                expect(error).not.to.be.ok()
-                expect(result).to.be stdResult
-                done()
-
-        it 'should save the record by id without validation', (done) ->
-            stdError = null
-            stdResult = stdMyData.MyKey.value
-            stdOptions =
-                validate: false
-                match: false
-            paramsToSave =
-                id: 'MyKey'
-                data: stdResult
-                options: stdOptions
-
-            loader.mockComponent 'DataSource.Couchbase',
-                limbo:
-                    test:
-                        _bucket:
-                            replace: (id, data, options, callback) ->
-                                callback stdError, stdResult
-                init: ->
-
-            instance = loader.createComponent 'Database.CouchMuffin', params
-
-            instance.init()
-            instance.save paramsToSave, (error, result) ->
-                expect(error).not.to.be.ok()
-                expect(result).to.be stdResult
-                done()
-
-        it 'should pass the error to the callback if something occurs', (done) ->
-            stdError = stdMyError
-            stdResult = stdMyData.MyKey.value
-            paramsToSave =
-                id: 'MyKey'
-                data: stdResult
-
-            loader.mockComponent 'DataSource.Couchbase',
-                limbo:
-                    test:
-                        _bucket:
-                            replace: (id, data, options, callback) ->
-                                callback stdError, null
-                init: ->
-
-            instance = loader.createComponent 'Database.CouchMuffin', params
-
-            instance.init()
-            instance.save paramsToSave, (error, result) ->
-                expect(error.name).to.be 'MyError'
-                expect(result).not.to.be.ok()
-                done()
-
-        it 'should pass the error to the callback if validation fails', (done) ->
-            stdError = stdMyError
-            stdResult = null
-            paramsToSave =
-                id: 'MyKey'
-
-            loader.mockComponent 'DataSource.Couchbase',
-                limbo:
-                    test:
-                        _bucket:
-                            replace: (id, data, options, callback) ->
-                                callback stdError, stdResult
-                init: ->
-
-            instance = loader.createComponent 'Database.CouchMuffin', params
-
-            instance.init()
-            instance.save params, (error, result) ->
-                expect(error.name).to.be('ValidationFailed')
-                expect(result).not.to.be.ok()
-                done()
-
-    describe 'insert', ->
-
-        it 'should insert the record using the id passed', (done) ->
-            stdError = null
-            stdResult = stdMyData.MyKey.value
-            paramsToSave =
-                id: 'MyKey'
-                data: stdResult
-
-            loader.mockComponent 'DataSource.Couchbase',
-                limbo:
-                    test:
-                        _bucket:
-                            insert: (id, data, options, callback) ->
-                                callback stdError, stdResult
-                init: ->
-
-            instance = loader.createComponent 'Database.CouchMuffin', params
-
-            instance.init()
-            instance.insert paramsToSave, (error, result) ->
-                expect(error).not.to.be.ok()
-                expect(result).to.be stdResult
-                done()
-
-        it 'should save the record by id without validation', (done) ->
-            stdError = null
-            stdResult = stdMyData.MyKey.value
-            stdOptions =
-                validate: false
-                match: false
-            paramsToSave =
-                id: 'MyKey'
-                data: stdResult
-                options: stdOptions
-
-
-            loader.mockComponent 'DataSource.Couchbase',
-                limbo:
-                    test:
-                        _bucket:
-                            insert: (id, data, options, callback) ->
-                                callback stdError, stdResult
-                init: ->
-
-            instance = loader.createComponent 'Database.CouchMuffin', params
-
-            instance.init()
-            instance.insert paramsToSave, (error, result) ->
-                expect(error).not.to.be.ok()
-                expect(result).to.be stdResult
-                done()
-
-        it 'should pass the error to the callback if something occurs', (done) ->
-            stdError = stdMyError
-            stdResult = stdMyData.MyKey.value
-            paramsToSave =
-                id: 'MyKey'
-                data: stdResult
-
-            loader.mockComponent 'DataSource.Couchbase',
-                limbo:
-                    test:
-                        _bucket:
-                            insert: (id, data, options, callback) ->
-                                callback stdError, null
-                init: ->
-
-            instance = loader.createComponent 'Database.CouchMuffin', params
-
-            instance.init()
-            instance.insert paramsToSave, (error, result) ->
-                expect(error.name).to.be('MyError')
-                expect(result).not.to.be.ok()
-                done()
-
-        it 'should pass the error to the callback if validation fails', (done) ->
-            stdError = stdMyError
-            stdResult = null
-            paramsToSave =
-                id: 'MyKey'
-
-            loader.mockComponent 'DataSource.Couchbase',
-                limbo:
-                    test:
-                        _bucket:
-                            insert: (id, data, options, callback) ->
-                                callback stdError, stdResult
-                init: ->
-
-            instance = loader.createComponent 'Database.CouchMuffin', params
-
-            instance.init()
-            instance.insert paramsToSave, (error, result) ->
-                expect(error.name).to.be('ValidationFailed')
-                expect(result).not.to.be.ok()
-                done()
-
-        it 'should insert the record using an uuid', (done) ->
-            stdError = null
-            stdResult = stdMyData.MyKey.value
-            paramsToSave =
-                data: stdResult
-
-            loader.mockComponent 'DataSource.Couchbase',
-                limbo:
-                    test:
-                        _bucket:
-                            insert: (id, data, options, callback) ->
-                                callback stdError, stdResult
-                init: ->
-
-            instance = loader.createComponent 'Database.CouchMuffin', params
-
-            instance.init()
-            instance.insert paramsToSave, (error, result) ->
-                expect(error).not.to.be.ok()
-                expect(result).to.be stdResult
-                done()
-
-        it 'should insert the record using a counter', (done) ->
-            stdError = null
-            stdResult = stdMyData.MyKey.value
-            params.autoId = 'counter'
-            paramsToSave =
-                data: stdResult
-
-            loader.mockComponent 'DataSource.Couchbase',
-                limbo:
-                    test:
-                        _bucket:
-                            insert: (id, data, options, callback) ->
-                                callback stdError, stdResult
-                            counter: (id, delta, callback) ->
-                                callback null, 1
-                init: ->
-
-            instance = loader.createComponent 'Database.CouchMuffin', params
-
-            instance.init()
-            instance.insert paramsToSave, (error, result) ->
-                expect(error).not.to.be.ok()
-                expect(result).to.be stdResult
-                done()
-
-        it 'should insert the record using a counter and create it if does not exist', (done) ->
-            stdError = null
-            stdResult = stdMyData.MyKey.value
-            params.autoId = 'counter'
-            paramsToSave =
-                data: stdResult
-            errorNotExist =
-                code: 13
-
-            loader.mockComponent 'DataSource.Couchbase',
-                limbo:
-                    test:
-                        _bucket:
-                            insert: (id, data, options, callback) ->
-                                callback stdError, stdResult if data != 1
-                                callback null, 1 if data == 1
-                            counter: (id, delta, callback) ->
-                                callback errorNotExist
-                init: ->
-
-            instance = loader.createComponent 'Database.CouchMuffin', params
-
-            instance.init()
-            instance.insert paramsToSave, (error, result) ->
-                expect(error).not.to.be.ok()
-                expect(result).to.be stdResult
-                done()
-
-        it 'should pass error to the callback if there is no rule for auto id', (done) ->
-            stdError = null
-            stdResult = stdMyData.MyKey.value
-            params.autoId = ''
-            paramsToSave =
-                data: stdResult
-
-            loader.mockComponent 'DataSource.Couchbase',
-                limbo:
-                    test:
-                        _bucket:
-                            insert: (id, data, options, callback) ->
-                                callback stdError, stdResult
-                init: ->
-
-            instance = loader.createComponent 'Database.CouchMuffin', params
-
-            instance.init()
-            instance.insert paramsToSave, (error, result) ->
-                expect(error).to.be.ok()
-                expect(result).not.to.be.ok()
-                done()
-
-    describe 'bind()', ->
-
-        it 'should bind all CouchMuffin methods to the specified model', (done) ->
-            instance = loader.createComponent 'Database.CouchMuffin', params
-            myParams = {}
-            instance.findAll = ->
-                expect(arguments[0]).to.be myParams
-                done()
-            model = {}
-            instance.bind model
-            model.findAll(myParams)
+    # describe 'invoked', ->
+
+    #     it 'should return the last method invoked', (done) ->
+    #         stdError = null
+    #         stdResult = stdMyData.MyKey
+
+    #         loader.mockComponent 'DataSource.Couchbase',
+    #             limbo:
+    #                 test:
+    #                     _bucket:
+    #                         touch: (id, expiry, options, callback) ->
+    #                             callback stdError, stdResult
+    #             init: ->
+
+    #         instance = loader.createComponent 'Database.CouchMuffin', params
+
+    #         instance.init()
+    #         instance.exist 'MyKey', (error, result) ->
+    #             expect(error).not.to.be.ok()
+    #             expect(result).to.be stdResult
+    #             done()
+    #         expect(instance.invoked()).to.be.equal 'exist'
+
+    # describe 'exists', ->
+
+    #     it 'should return success if the id exists', (done) ->
+    #         stdError = null
+    #         stdResult = stdMyData.MyKey
+
+    #         loader.mockComponent 'DataSource.Couchbase',
+    #             limbo:
+    #                 test:
+    #                     _bucket:
+    #                         touch: (id, expiry, options, callback) ->
+    #                             callback stdError, stdResult
+    #             init: ->
+
+    #         instance = loader.createComponent 'Database.CouchMuffin', params
+
+    #         instance.init()
+    #         instance.exist 'MyKey', (error, result) ->
+    #             expect(error).not.to.be.ok()
+    #             expect(result).to.be stdResult
+    #             done()
+
+    #     it 'should return error if the id doest not exist', (done) ->
+    #         stdError = stdMyError
+    #         stdResult = null
+
+    #         loader.mockComponent 'DataSource.Couchbase',
+    #             limbo:
+    #                 test:
+    #                     _bucket:
+    #                         touch: (id, expiry, options, callback) ->
+    #                             callback stdError, stdResult
+    #             init: ->
+
+    #         instance = loader.createComponent 'Database.CouchMuffin', params
+
+    #         instance.init()
+    #         instance.exist 'MyKey', (error, result) ->
+    #             expect(result).not.to.be.ok()
+    #             expect(error).to.be stdError
+    #             done()
+
+    # describe 'findById', ->
+
+    #     it 'should issue the query for finding a record by id', (done) ->
+    #         stdError = null
+    #         stdResult = stdMyData.MyKey
+
+    #         loader.mockComponent 'DataSource.Couchbase',
+    #             limbo:
+    #                 test:
+    #                     _bucket:
+    #                         get: (info, options, callback) ->
+    #                             callback stdError, stdResult
+    #             init: ->
+
+    #         instance = loader.createComponent 'Database.CouchMuffin', params
+
+    #         instance.init()
+    #         instance.findById id: 'MyKey', (error, result) ->
+    #             expect(error).not.to.be.ok()
+    #             expect(result).to.be stdResult
+    #             done()
+
+    #     it 'should pass the error to the callback if something occurs', (done) ->
+    #         stdError = stdMyError
+    #         stdResult = null
+
+    #         loader.mockComponent 'DataSource.Couchbase',
+    #             limbo:
+    #                 test:
+    #                     _bucket:
+    #                         get: (info, options, callback) ->
+    #                             callback stdError, stdResult
+    #             init: ->
+
+    #         instance = loader.createComponent 'Database.CouchMuffin', params
+
+    #         instance.init()
+    #         instance.findById id: 'MyKey', (error, result) ->
+    #             expect(error.name).to.be 'MyError'
+    #             expect(result).not.to.be.ok()
+    #             done()
+
+    # describe 'findManyById', ->
+
+    #     it 'should issue the query for finding many records by ids', (done) ->
+    #         stdError = null
+    #         stdResult = stdMyData
+
+    #         loader.mockComponent 'DataSource.Couchbase',
+    #             limbo:
+    #                 test:
+    #                     _bucket:
+    #                         getMulti: (info, callback) ->
+    #                             callback stdError, stdResult
+    #             init: ->
+
+    #         instance = loader.createComponent 'Database.CouchMuffin', params
+
+    #         instance.init()
+    #         instance.findManyById ids: ['MyKey','MyKey1'], (error, result) ->
+    #             expect(error).not.to.be.ok()
+    #             expect(result).to.be.eql '' : stdResult.MyKey
+    #             done()
+
+    #     it 'should pass the error to the callback if something occurs', (done) ->
+    #         stdError = stdMyError
+    #         stdResult = null
+
+    #         loader.mockComponent 'DataSource.Couchbase',
+    #             limbo:
+    #                 test:
+    #                     _bucket:
+    #                         getMulti: (info, callback) ->
+    #                             callback stdError, stdResult
+    #             init: ->
+
+    #         instance = loader.createComponent 'Database.CouchMuffin', params
+
+    #         instance.init()
+    #         instance.findManyById ids: ['MyKey','MyKey1'], (error, result) ->
+    #             expect(error.name).to.be 'MyError'
+    #             expect(result).not.to.be.ok()
+    #             done()
+
+    # describe 'removeById', ->
+
+    #     it 'should remove the record by id', (done) ->
+    #         stdError = null
+    #         stdResult = stdMyData.MyKey
+    #         delete stdResult.value
+    #         paramsToSave =
+    #             id: 'MyKey'
+
+    #         loader.mockComponent 'DataSource.Couchbase',
+    #             limbo:
+    #                 test:
+    #                     _bucket:
+    #                         remove: (id, options, callback) ->
+    #                             callback stdError, stdResult
+    #             init: ->
+
+    #         instance = loader.createComponent 'Database.CouchMuffin', params
+
+    #         instance.init()
+    #         instance.removeById paramsToSave, (error, result) ->
+    #             expect(error).not.to.be.ok()
+    #             expect(result).to.be stdResult
+    #             done()
+
+    #     it 'should pass the error to the callback if something occurs', (done) ->
+    #         stdError = stdMyError
+    #         stdResult = null
+    #         paramsToSave =
+    #             id: 'MyKey'
+
+    #         loader.mockComponent 'DataSource.Couchbase',
+    #             limbo:
+    #                 test:
+    #                     _bucket:
+    #                         remove: (id, options, callback) ->
+    #                             callback stdError, stdResult
+    #             init: ->
+
+    #         instance = loader.createComponent 'Database.CouchMuffin', params
+
+    #         instance.init()
+    #         instance.removeById paramsToSave, (error, result) ->
+    #             expect(error.name).to.be 'MyError'
+    #             expect(result).not.to.be.ok()
+    #             done()
+
+    # describe 'save', ->
+
+    #     it 'should save the record by id', (done) ->
+    #         stdError = null
+    #         stdResult = stdMyData.MyKey.value
+    #         paramsToSave =
+    #             id: 'MyKey'
+    #             data: stdResult
+
+    #         loader.mockComponent 'DataSource.Couchbase',
+    #             limbo:
+    #                 test:
+    #                     _bucket:
+    #                         replace: (id, data, options, callback) ->
+    #                             callback stdError, stdResult
+    #             init: ->
+
+    #         instance = loader.createComponent 'Database.CouchMuffin', params
+
+    #         instance.init()
+    #         instance.save paramsToSave, (error, result) ->
+    #             expect(error).not.to.be.ok()
+    #             expect(result).to.be stdResult
+    #             done()
+
+    #     it 'should save the record by id without validation', (done) ->
+    #         stdError = null
+    #         stdResult = stdMyData.MyKey.value
+    #         stdOptions =
+    #             validate: false
+    #             match: false
+    #         paramsToSave =
+    #             id: 'MyKey'
+    #             data: stdResult
+    #             options: stdOptions
+
+    #         loader.mockComponent 'DataSource.Couchbase',
+    #             limbo:
+    #                 test:
+    #                     _bucket:
+    #                         replace: (id, data, options, callback) ->
+    #                             callback stdError, stdResult
+    #             init: ->
+
+    #         instance = loader.createComponent 'Database.CouchMuffin', params
+
+    #         instance.init()
+    #         instance.save paramsToSave, (error, result) ->
+    #             expect(error).not.to.be.ok()
+    #             expect(result).to.be stdResult
+    #             done()
+
+    #     it 'should pass the error to the callback if something occurs', (done) ->
+    #         stdError = stdMyError
+    #         stdResult = stdMyData.MyKey.value
+    #         paramsToSave =
+    #             id: 'MyKey'
+    #             data: stdResult
+
+    #         loader.mockComponent 'DataSource.Couchbase',
+    #             limbo:
+    #                 test:
+    #                     _bucket:
+    #                         replace: (id, data, options, callback) ->
+    #                             callback stdError, null
+    #             init: ->
+
+    #         instance = loader.createComponent 'Database.CouchMuffin', params
+
+    #         instance.init()
+    #         instance.save paramsToSave, (error, result) ->
+    #             expect(error.name).to.be 'MyError'
+    #             expect(result).not.to.be.ok()
+    #             done()
+
+    #     it 'should pass the error to the callback if validation fails', (done) ->
+    #         stdError = stdMyError
+    #         stdResult = null
+    #         paramsToSave =
+    #             id: 'MyKey'
+
+    #         loader.mockComponent 'DataSource.Couchbase',
+    #             limbo:
+    #                 test:
+    #                     _bucket:
+    #                         replace: (id, data, options, callback) ->
+    #                             callback stdError, stdResult
+    #             init: ->
+
+    #         instance = loader.createComponent 'Database.CouchMuffin', params
+
+    #         instance.init()
+    #         instance.save params, (error, result) ->
+    #             expect(error.name).to.be('ValidationFailed')
+    #             expect(result).not.to.be.ok()
+    #             done()
+
+    # describe 'insert', ->
+
+    #     it 'should insert the record using the id passed', (done) ->
+    #         stdError = null
+    #         stdResult = stdMyData.MyKey.value
+    #         paramsToSave =
+    #             id: 'MyKey'
+    #             data: stdResult
+
+    #         loader.mockComponent 'DataSource.Couchbase',
+    #             limbo:
+    #                 test:
+    #                     _bucket:
+    #                         insert: (id, data, options, callback) ->
+    #                             callback stdError, stdResult
+    #             init: ->
+
+    #         instance = loader.createComponent 'Database.CouchMuffin', params
+
+    #         instance.init()
+    #         instance.insert paramsToSave, (error, result) ->
+    #             expect(error).not.to.be.ok()
+    #             expect(result).to.be stdResult
+    #             done()
+
+    #     it 'should save the record by id without validation', (done) ->
+    #         stdError = null
+    #         stdResult = stdMyData.MyKey.value
+    #         stdOptions =
+    #             validate: false
+    #             match: false
+    #         paramsToSave =
+    #             id: 'MyKey'
+    #             data: stdResult
+    #             options: stdOptions
+
+
+    #         loader.mockComponent 'DataSource.Couchbase',
+    #             limbo:
+    #                 test:
+    #                     _bucket:
+    #                         insert: (id, data, options, callback) ->
+    #                             callback stdError, stdResult
+    #             init: ->
+
+    #         instance = loader.createComponent 'Database.CouchMuffin', params
+
+    #         instance.init()
+    #         instance.insert paramsToSave, (error, result) ->
+    #             expect(error).not.to.be.ok()
+    #             expect(result).to.be stdResult
+    #             done()
+
+    #     it 'should pass the error to the callback if something occurs', (done) ->
+    #         stdError = stdMyError
+    #         stdResult = stdMyData.MyKey.value
+    #         paramsToSave =
+    #             id: 'MyKey'
+    #             data: stdResult
+
+    #         loader.mockComponent 'DataSource.Couchbase',
+    #             limbo:
+    #                 test:
+    #                     _bucket:
+    #                         insert: (id, data, options, callback) ->
+    #                             callback stdError, null
+    #             init: ->
+
+    #         instance = loader.createComponent 'Database.CouchMuffin', params
+
+    #         instance.init()
+    #         instance.insert paramsToSave, (error, result) ->
+    #             expect(error.name).to.be('MyError')
+    #             expect(result).not.to.be.ok()
+    #             done()
+
+    #     it 'should pass the error to the callback if validation fails', (done) ->
+    #         stdError = stdMyError
+    #         stdResult = null
+    #         paramsToSave =
+    #             id: 'MyKey'
+
+    #         loader.mockComponent 'DataSource.Couchbase',
+    #             limbo:
+    #                 test:
+    #                     _bucket:
+    #                         insert: (id, data, options, callback) ->
+    #                             callback stdError, stdResult
+    #             init: ->
+
+    #         instance = loader.createComponent 'Database.CouchMuffin', params
+
+    #         instance.init()
+    #         instance.insert paramsToSave, (error, result) ->
+    #             expect(error.name).to.be('ValidationFailed')
+    #             expect(result).not.to.be.ok()
+    #             done()
+
+    #     it 'should insert the record using an uuid', (done) ->
+    #         stdError = null
+    #         stdResult = stdMyData.MyKey.value
+    #         paramsToSave =
+    #             data: stdResult
+
+    #         loader.mockComponent 'DataSource.Couchbase',
+    #             limbo:
+    #                 test:
+    #                     _bucket:
+    #                         insert: (id, data, options, callback) ->
+    #                             callback stdError, stdResult
+    #             init: ->
+
+    #         instance = loader.createComponent 'Database.CouchMuffin', params
+
+    #         instance.init()
+    #         instance.insert paramsToSave, (error, result) ->
+    #             expect(error).not.to.be.ok()
+    #             expect(result).to.be stdResult
+    #             done()
+
+    #     it 'should insert the record using a counter', (done) ->
+    #         stdError = null
+    #         stdResult = stdMyData.MyKey.value
+    #         params.autoId = 'counter'
+    #         paramsToSave =
+    #             data: stdResult
+
+    #         loader.mockComponent 'DataSource.Couchbase',
+    #             limbo:
+    #                 test:
+    #                     _bucket:
+    #                         insert: (id, data, options, callback) ->
+    #                             callback stdError, stdResult
+    #                         counter: (id, delta, callback) ->
+    #                             callback null, 1
+    #             init: ->
+
+    #         instance = loader.createComponent 'Database.CouchMuffin', params
+
+    #         instance.init()
+    #         instance.insert paramsToSave, (error, result) ->
+    #             expect(error).not.to.be.ok()
+    #             expect(result).to.be stdResult
+    #             done()
+
+    #     it 'should insert the record using a counter and create it if does not exist', (done) ->
+    #         stdError = null
+    #         stdResult = stdMyData.MyKey.value
+    #         params.autoId = 'counter'
+    #         paramsToSave =
+    #             data: stdResult
+    #         errorNotExist =
+    #             code: 13
+
+    #         loader.mockComponent 'DataSource.Couchbase',
+    #             limbo:
+    #                 test:
+    #                     _bucket:
+    #                         insert: (id, data, options, callback) ->
+    #                             callback stdError, stdResult if data != 1
+    #                             callback null, 1 if data == 1
+    #                         counter: (id, delta, callback) ->
+    #                             callback errorNotExist
+    #             init: ->
+
+    #         instance = loader.createComponent 'Database.CouchMuffin', params
+
+    #         instance.init()
+    #         instance.insert paramsToSave, (error, result) ->
+    #             expect(error).not.to.be.ok()
+    #             expect(result).to.be stdResult
+    #             done()
+
+    #     it 'should pass error to the callback if there is no rule for auto id', (done) ->
+    #         stdError = null
+    #         stdResult = stdMyData.MyKey.value
+    #         params.autoId = ''
+    #         paramsToSave =
+    #             data: stdResult
+
+    #         loader.mockComponent 'DataSource.Couchbase',
+    #             limbo:
+    #                 test:
+    #                     _bucket:
+    #                         insert: (id, data, options, callback) ->
+    #                             callback stdError, stdResult
+    #             init: ->
+
+    #         instance = loader.createComponent 'Database.CouchMuffin', params
+
+    #         instance.init()
+    #         instance.insert paramsToSave, (error, result) ->
+    #             expect(error).to.be.ok()
+    #             expect(result).not.to.be.ok()
+    #             done()
+
+    # describe 'bind()', ->
+
+    #     it 'should bind all CouchMuffin methods to the specified model', (done) ->
+    #         instance = loader.createComponent 'Database.CouchMuffin', params
+    #         myParams = {}
+    #         instance.findAll = ->
+    #             expect(arguments[0]).to.be myParams
+    #             done()
+    #         model = {}
+    #         instance.bind model
+    #         model.findAll(myParams)
 
     describe 'find', ->
         it 'should find one record', (done) ->
