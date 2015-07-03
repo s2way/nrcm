@@ -236,6 +236,48 @@ class CouchMuffin
             return callback error: 'ManualIdNotAllowed' if !@_manualId and @_autoId isnt ''
             afterId null, id
 
+    upsert: (params, callback) ->
+        @_method = 'insert'
+        id = params.id || null
+        data = params.data || {}
+        options = params.options || {}
+        validate = options.validate ? true
+        match = options.match ? true
+
+        afterId = (error, newId) =>
+            return callback error if error
+            newIdWithPrefix = "#{@_keyPrefix}#{newId}"
+
+            afterValidate = (error = null) =>
+                return callback error if error?
+
+                if match and @_validate?
+                    matched = @_validator.match data
+                    return callback name: 'MatchFailed', fields: matched unless matched is true
+
+                @_addType data
+                @_addCreatedAt data
+                @_addId data, newId
+
+                @_dataSource.bucket.upsert newIdWithPrefix, data, options, (error, result) ->
+                    return callback error if error?
+                    result.meta =
+                        id: newId
+                    return callback null, result
+
+            if validate and @_validate?
+                @_validator.validate data, afterValidate
+            else
+                afterValidate()
+
+        if id is null
+            afterId null, @_uuid() if @_autoId is 'uuid'
+            @_counter afterId if @_autoId is 'counter'
+            return callback error: 'InvalidId' if @_autoId isnt 'uuid' and @_autoId isnt 'counter'
+        else
+            return callback error: 'ManualIdNotAllowed' if !@_manualId and @_autoId isnt ''
+            afterId null, id
+
     # Finds a single record using the specified conditions (Facade to findAll)
     find: (params, callback) ->
         @_method = 'find'
