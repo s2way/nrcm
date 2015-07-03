@@ -296,7 +296,12 @@ class CouchMuffin
             builder.from @_dataSource.bucket._name
         builder.where builder.and conditions, builder.equal '_type', builder.value @_type
         builder.groupBy params.groupBy if params.groupBy?
-        builder.orderBy params.orderBy if params.orderBy?
+        if params.orderBy?
+            console.log builder.orderBy
+            if params.orderBy.fields? and params.orderBy.direction?
+                builder.orderBy params.orderBy.fields, params.orderBy.direction
+            else
+                builder.orderBy params.orderBy.fields
         builder.having params.having if params.having?
         builder.limit params.limit if params.limit?
         sql = builder.build()
