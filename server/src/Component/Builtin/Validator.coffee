@@ -3,20 +3,31 @@
 # Apache2 Licensed
 ###
 
-Exceptions = require('../../Util/Exceptions')
-
 class Validator
-    # @constructor
-    # @method Validator
-    # @param {object} params Must contain the validation rules (validate property) and may contain the timeout (in millis)
-    constructor: (params = {}) ->
-        @_timeout = params.timeout ? 10000
-        @_validationObject = params.validate
-        @_skipMatch = params.skipMatch ? []
 
-    init: ->
-        @_rules = @component 'Rules'
-        @_navigator = @component 'Navigator'
+    # Defaults
+    @DEFAULT_TIMEOUT: 1000
+
+    # Params
+    @PARAMS_TIMEOUT: 'timeout'
+    @PARAMS_VALIDATE: 'validate'
+    @PARAMS_SKIP_MATCH: 'skipMatch'
+
+    # Exceptions
+    @ERROR_INVALID_VALIDATE: 'Validate is invalid.'
+
+    # @param {object} params MUST contain the validation rules (validate property) and may contain the timeout(ms)
+    constructor: (params = {}) ->
+
+        # Injectable dependencies
+        @Rules = require './Rules'
+        @Navigator = require './Navigator'
+        @Exceptions = require '../../Util/Exceptions'
+
+        # Defaults
+        @timeout = params[Validator.PARAMS_TIMEOUT] ? Validator.DEFAULT_TIMEOUT
+        @skipMatch = params[Validator.PARAMS_SKIP_MATCH] ? []
+        @validatorRules = params[Validator.PARAMS_VALIDATE]
 
     # Validate fields
     _succeeded: (fieldErrors) ->
@@ -35,7 +46,7 @@ class Validator
     # @param {object} data The json object to be validated
     # @param {function} callback
     validate: (data, callback) ->
-        validate = @_validationObject
+        validate = @validatorRules
         fieldErrors = {}
         validatedFields = {}
         expired = false
@@ -83,7 +94,7 @@ class Validator
 
         timeoutFunc()
 
-    _matchAgainst: (data, skipMatch = @_skipMatch, level = 1, validate = @_validationObject, expression = '') ->
+    _matchAgainst: (data, skipMatch = @_skipMatch, level = 1, validate = @validatorRules, expression = '') ->
 
         # check schema field presence
         for key of data

@@ -1,20 +1,38 @@
+###
+# Copyright(c) 2015 Juliano Jorge Lazzarotto aka dOob
+# Apache2 Licensed
+###
+
 Navigator = require './../../../src/Component/Builtin/Navigator'
 expect = require 'expect.js'
 
 describe 'Navigator.js', ->
 
-    instance = null
-
-    beforeEach ->
-        instance = new Navigator()
-
     describe 'get', ->
 
         it 'should return undefined if the property does not exist', ->
-            expect(instance.get({}, 'a.b.c.d')).to.be undefined
+            expect(Navigator.get {}, 'a.b.c.d').to.be undefined
 
         it 'should return null if the parent property is null', ->
-            expect(instance.get({'a' : null}, 'a.b')).to.be null
+            expect(Navigator.get
+                a : null,
+                'a.b'
+            ).to.be null
 
         it 'should return the value', ->
-            expect(instance.get(a: b: 10, 'a.b')).to.be 10
+            expectedValue = 10
+            expect(Navigator.get
+                a:
+                    b: expectedValue,
+                'a.b'
+            ).to.be expectedValue
+            expectedValue = 'string'
+            expect(Navigator.get
+                    a:
+                        b:
+                            c:
+                                d:
+                                    e:
+                                        f: expectedValue
+                    'a.b.c.d.e.f'
+            ).to.be expectedValue

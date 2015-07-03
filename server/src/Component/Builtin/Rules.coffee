@@ -28,7 +28,7 @@ class Rules
         _.isNumber value
 
     @isInteger: (value) ->
-        _.isNumber and value % 1 is 0
+        value % 1 is 0
 
     @isZero: (value) ->
         value is 0
@@ -64,6 +64,15 @@ class Rules
     @notEmpty: (value) ->
         not Rules.isEmpty value
 
+    @isJSON: (value) ->
+        try
+            x = JSON.parse JSON.stringify value
+            # avoid json like this "full string", null and false from parse
+            return false unless _.isObject x
+        catch e
+            return false
+        return true
+
     ###
     # STRING rules
     ###
@@ -74,14 +83,13 @@ class Rules
         value.length >= length
 
     @lengthBetween: (value, min = 0, max = 0) ->
-        console.log "#{min} - #{max}"
-        Rules.maxLength value, max and Rules.minLength value, min
+        min <= value.length <= max
 
     @exactLength: (value, length) ->
         value.length is length
 
     @regex: (value, regex) ->
-        value.match regex
+        regex.test value
 
     ###
     # NUMBER rules
@@ -115,11 +123,11 @@ class Rules
     @isoDate: (value) ->
         return @regex(value, /(\d{4})-(\d{2})-(\d{2})T((\d{2}):(\d{2}):(\d{2}))\.(\d{3})Z/)
 
-    @isUseful: (value) ->
-        return false if _.isUndefined value or _.isNull value
+    @isUseful: (value, x) ->
+        return false if _.isUndefined(value) or _.isNull(value)
         return value if _.isBoolean value
-        return false if _.isObject value and _.isEmpty value
-        return false if (_.isString value or _.isArray value) and (value.length is 0)
+        return false if _.isObject(value) and _.isEmpty(value)
+        return false if (value.length is 0) and (_.isString(value) or _.isArray(value))
         true
 
 module.exports = Rules

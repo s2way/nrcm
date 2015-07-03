@@ -9,9 +9,6 @@ path = require 'path'
 _ = require 'underscore'
 Exceptions = require './Util/Exceptions'
 
-# Expected dependencies
-Files = {}
-
 class App
 
     # Directory structure defaults
@@ -24,9 +21,11 @@ class App
     @DIR_NAME_CONTROLLER: 'controller'
     @DIR_REGEX_CHECK: ///^\b[a-z_]+\b$///
 
-    # Names
+    # Defaults
     @FILE_EXT_DEFAULT: '.yml'
     @FILE_NAME_CORE_DEFAULT: 'core'
+    @DEFAULT_VERSION: '1.0.0'
+    @DEFAULT_REQUEST_TIMEOUT: 10000
 
     # Configs
     @CORE_VERSION = 'version'
@@ -35,18 +34,23 @@ class App
     # Exceptions
     @ERROR_INVALID_NAME: "Application name is invalid. Accepted #{App.DIR_REGEX_CHECK}"
     @ERROR_INVALID_PATH: 'Folder structure is invalid.'
+    @ERROR_INVALID_DEPENDENCIES: 'Missing or invalid dependencies.'
 
     # Build with the given name
-    constructor: (@appName, @_waferPie) ->
-
-        # Injectable dependencies
-        @Files = @_waferPie.Files
+    constructor: (deps, @appName) ->
 
         # Check app name
         throw new Exceptions.Fatal App.ERROR_INVALID_NAME unless @appName.match App.DIR_REGEX_CHECK
 
+        # Injectable dependencies
+        @waferPie = deps.waferPie
+        @Files = @waferPie?.Files ? deps?.Files ? require './Component/Builtin/Files'
+
+        # Check dependencies
+        throw new Exceptions.Fatal App.ERROR_INVALID_DEPENDENCIES unless @waferPie
+
         # Map folder structure
-        rootPath = path.resolve path.join @_waferPie.paths.root, @appName
+        rootPath = path.resolve path.join @waferPie.paths.root, @appName
         rootPathSrc =  path.join rootPath, App.DIR_NAME_SRC
         rootPathTest = path.join rootPath, App.DIR_NAME_TEST
         @_paths =
@@ -65,16 +69,8 @@ class App
                 filter: path.join rootPathTest, App.DIR_NAME_FILTER
                 model: path.join rootPathTest, App.DIR_NAME_MODEL
 
-        # Core info is decided on deploy
-        @coreName = ''
-        @coreFile = ''
-
         # Shared object
         @limbo = {}
-
-        # Config & all configs
-        @core = {}
-        @configs = {}
 
     ##
     # Create app folder structure if does not exist
@@ -83,14 +79,14 @@ class App
     deploy: ->
         # Check paths & files
         @Files.syncDirStructure @_paths
-        throw new Exceptions.Fatal(App.ERROR_INVALID_PATH) unless @Files.checkPath @_paths
+        throw new Exceptions.Fatal App.ERROR_INVALID_PATH unless @Files.checkPath @_paths
         # Import configs
         @_setupConfigs()
 
     # Load all files in config object & Decides the core config to use
     _setupConfigs: ->
         coreDefault = path.join @_paths.src.config, App.FILE_NAME_CORE_DEFAULT + App.FILE_EXT_DEFAULT
-        coreHostname = path.join @_paths.src.config, @_waferPie.hostname + App.FILE_EXT_DEFAULT
+        coreHostname = path.join @_paths.src.config, @waferPie.hostname + App.FILE_EXT_DEFAULT
 
         # Load all configs
         filesInConfigDir = @Files.listFilesFromDir @_paths.src.config
@@ -100,7 +96,7 @@ class App
         # Overwrite with the hostname.yml if it exists in config directory
         if @Files.isFile coreHostname
             @coreFile = coreHostname
-            @coreName = @_waferPie.hostname
+            @coreName = @waferPie.hostname
             @core = @configs[@coreName]
         else
             if @Files.isFile coreDefault
@@ -108,9 +104,8 @@ class App
                 @coreName = App.FILE_NAME_CORE_DEFAULT
                 @core = @configs[@coreName]
 
-        # Setup defaults
-        @core[App.CORE_VERSION] = '1.0.0' unless @core['Version']
-        @core[App.CORE_REQUEST_TIMEOUT] = '10000' unless @core['Version']
+        @core[App.CORE_VERSION] = App.DEFAULT_VERSION unless @core[App.CORE_VERSION]
+        @core[App.CORE_REQUEST_TIMEOUT] = App.DEFAULT_REQUEST_TIMEOUT unless @core[App.CORE_REQUEST_TIMEOUT]
 
         @configs
 

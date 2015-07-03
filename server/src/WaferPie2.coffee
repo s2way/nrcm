@@ -43,11 +43,11 @@ class WaferPie
     @ERROR_INVALID_CONFIG_PARAMETER: 'Config parameter is invalid.'
     @ERROR_MISS_CONFIGURATION: 'Missing call configure.'
 
-    constructor: ->
+    constructor: (deps) ->
 
         # Injectable dependencies
-        @Files = require './../src/Component/Builtin/Files'
-        @Exceptions = require './../src/Util/Exceptions'
+        @Files = deps['Files'] ? require './../src/Component/Builtin/Files'
+        @Exceptions = deps['Exceptions'] ? require './../src/Util/Exceptions'
 
         # Map folder structure
         @_paths =
@@ -99,4 +99,10 @@ class WaferPie
     reload: ->
 
 
-module.exports = WaferPie
+exports = module.exports = WaferPie
+
+# Expose internals
+exports.rules = require './../src/Component/Builtin/Rules'
+exports.exceptions = require './../src/Util/Exceptions'
+exports.files = require './../src/Component/Builtin/Files'
+exports.Validator = require './../src/Component/Builtin/Validator'
