@@ -297,7 +297,6 @@ class CouchMuffin
         builder.where builder.and conditions, builder.equal '_type', builder.value @_type
         builder.groupBy params.groupBy if params.groupBy?
         if params.orderBy?
-            console.log builder.orderBy
             if params.orderBy.fields? and params.orderBy.direction?
                 builder.orderBy params.orderBy.fields, params.orderBy.direction
             else
