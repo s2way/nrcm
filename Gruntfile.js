@@ -18,11 +18,13 @@ module.exports = function (grunt) {
 
 //    test += 'node_modules/.bin/mocha server/test --recursive -R progress --compilers coffee:coffee-script/register ';
 
-    test += 'node_modules/.bin/mocha server/test/App.coffee  -R spec --compilers coffee:coffee-script/register';
-    test += ' \\';
-    test += 'node_modules/.bin/mocha server/test/Component/Builtin/Files.coffee  -R spec --compilers coffee:coffee-script/register';
-    test += ' \\';
-    test += 'node_modules/.bin/mocha server/test/WaferPie2.coffee  -R spec --compilers coffee:coffee-script/register';
+    //test += 'node_modules/.bin/mocha server/test/App.coffee  -R spec --compilers coffee:coffee-script/register';
+    //test += ' \\';
+    //test += 'node_modules/.bin/mocha server/test/Component/Builtin/Files.coffee  -R spec --compilers coffee:coffee-script/register';
+    //test += ' \\';
+    test += 'node_modules/.bin/mocha server/test/Component/Builtin/Rules.coffee  -R spec --compilers coffee:coffee-script/register';
+    //test += ' \\';
+    //test += 'node_modules/.bin/mocha server/test/WaferPie2.coffee  -R spec --compilers coffee:coffee-script/register';
 
     cc += 'node_modules/.bin/mocha server/test --recursive -R html-cov -r blanket --compilers coffee:coffee-script/register > report.html';
 

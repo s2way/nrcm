@@ -74,6 +74,7 @@ class Rules
         value.length >= length
 
     @lengthBetween: (value, min = 0, max = 0) ->
+        console.log "#{min} - #{max}"
         Rules.maxLength value, max and Rules.minLength value, min
 
     @exactLength: (value, length) ->
