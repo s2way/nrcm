@@ -208,49 +208,57 @@ describe 'Rules', ->
         it 'should return false if value is greater than max', ->
             expect(Rules.max 3, 2).to.be false
 
-    describe 'alphaNumeric', ->
+    describe 'isAlphaNumeric', ->
 
         it 'should return true if value is alphanumeric', ->
-            expect(Rules.alphaNumeric 'thisIS_alpha_Numeric').to.be.ok()
+            expect(Rules.isAlphaNumeric 'thisIS_alpha_Numeric').to.be.ok()
 
         it 'should return false if value is not alphanumeric', ->
-            expect(Rules.alphaNumeric 'this is not alpha numeric :(').not.to.be.ok()
+            expect(Rules.isAlphaNumeric 'this is not alpha numeric :(').not.to.be.ok()
 
-    describe 'email', ->
+    describe 'isEmail', ->
 
         it 'should return true if value is email address', ->
-            expect(Rules.email 'davi.gbr@gmail.com').to.be.ok()
+            expect(Rules.isEmail 'davi.gbr@gmail.com').to.be.ok()
 
         it 'should return false if value is not a email address', ->
-            expect(Rules.email 'this is not an email').not.to.be.ok()
+            expect(Rules.isEmail 'this is not an email').not.to.be.ok()
 
-    describe 'date', ->
+    describe 'isDate', ->
         it 'should return true if value is a valid string date', ->
-            expect(Rules.date '2014-01-01').to.be.ok()
+            expect(Rules.isDate '2014-01-01').to.be.ok()
         it 'should return false if value is not a valid string date', ->
-            expect(Rules.date '2014-01').not.to.be.ok()
-            expect(Rules.date '2014-01-123-').not.to.be.ok()
-            expect(Rules.date '2014-01-01T00:11:22').not.to.be.ok()
+            expect(Rules.isDate '2014-01').not.to.be.ok()
+            expect(Rules.isDate '2014-01-123-').not.to.be.ok()
+            expect(Rules.isDate '2014-01-01T00:11:22').not.to.be.ok()
 
-    describe 'time', ->
+    describe 'isTime', ->
 
         it 'should return true if value is a valid string time', ->
-            expect(Rules.time '23:59:59').to.be.ok()
+            expect(Rules.isTime '23:59:59').to.be.ok()
 
         it 'should return false if value is not a valid string time', ->
-            expect(Rules.time '2014-01-01').not.to.be.ok()
-            expect(Rules.time '00:00').not.to.be.ok()
-            expect(Rules.time '2014-01-01T00:11:22').not.to.be.ok()
+            expect(Rules.isTime '2014-01-01').not.to.be.ok()
+            expect(Rules.isTime '00:00').not.to.be.ok()
+            expect(Rules.isTime '2014-01-01T00:11:22').not.to.be.ok()
 
-    describe 'datetime', ->
+    describe 'isDatetime', ->
 
         it 'should return true if value is a valid string datetime', ->
-            expect(Rules.datetime '2014-01-01T00:11:22').to.be.ok()
+            expect(Rules.isDatetime '2014-01-01T00:11:22').to.be.ok()
 
         it 'should return false if value is not a valid string datetime', ->
-            expect(Rules.datetime '2014-01-01').not.to.be.ok()
-            expect(Rules.datetime '2014-01').not.to.be.ok()
-            expect(Rules.datetime '2014-01-123-').not.to.be.ok()
+            expect(Rules.isDatetime '2014-01-01').not.to.be.ok()
+            expect(Rules.isDatetime '2014-01').not.to.be.ok()
+            expect(Rules.isDatetime '2014-01-123-').not.to.be.ok()
+
+    describe 'isDateISO', ->
+
+        it 'should return true if value is a valid string datetime', ->
+            expect(Rules.isDateISO '2014-01-01T00:11:22.000Z').to.be.ok()
+
+        it 'should return false if value is not a valid string datetime', ->
+            expect(Rules.isDateISO '2014-01-01').not.to.be.ok()
 
     describe 'isUseful', ->
 

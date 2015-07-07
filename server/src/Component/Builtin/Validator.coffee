@@ -14,7 +14,7 @@ class Validator
     @PARAMS_SKIP_MATCH: 'skipMatch'
 
     # Exceptions
-    @ERROR_INVALID_VALIDATE: 'Validate is invalid.'
+    @ERROR_INVALID_VALIDATE: 'Validate object is invalid.'
 
     # @param {object} params MUST contain the validation rules (validate property) and may contain the timeout(ms)
     constructor: (params = {}) ->

@@ -66,9 +66,9 @@ class Rules
 
     @isJSON: (value) ->
         try
-            x = JSON.parse JSON.stringify value
+            tmpObj = JSON.parse JSON.stringify value
             # avoid json like this "full string", null and false from parse
-            return false unless _.isObject x
+            return false unless _.isObject tmpObj
         catch e
             return false
         return true
@@ -100,30 +100,30 @@ class Rules
         value >= min
 
     ###
-    # REGEX rules
+    # SPECIAL rules
     ###
-    @alphaNumeric: (value) ->
+    @isAlphaNumeric: (value) ->
         value.match Rules.REGEX_ALPHANUM_UNDERSCORE
 
-    @email: (value) ->
+    @isEmail: (value) ->
         value.match Rules.REGEX_EMAIL
 
     ###
     # DATE and TIME rules
     ###
-    @date: (value) ->
+    @isDate: (value) ->
         return @regex(value, /^\d{4}\-\d{2}\-\d{2}$/) and moment(value, 'YYYY-MM-DD').isValid()
 
-    @time: (value, formats = ['HH:mm:ss']) ->
+    @isTime: (value, formats = ['HH:mm:ss']) ->
         return @regex(value, /^\d{2}\:\d{2}\:\d{2}$/) and moment(value, formats).isValid()
 
-    @datetime: (value, formats = ['YYYY-MM-DDTHH:mm:ss']) ->
+    @isDatetime: (value, formats = ['YYYY-MM-DDTHH:mm:ss']) ->
         return @regex(value, /^\d{4}\-\d{2}\-\d{2}[T]\d{2}\:\d{2}\:\d{2}$/) and moment(value, formats).isValid()
 
-    @isoDate: (value) ->
+    @isDateISO: (value) ->
         return @regex(value, /(\d{4})-(\d{2})-(\d{2})T((\d{2}):(\d{2}):(\d{2}))\.(\d{3})Z/)
 
-    @isUseful: (value, x) ->
+    @isUseful: (value) ->
         return false if _.isUndefined(value) or _.isNull(value)
         return value if _.isBoolean value
         return false if _.isObject(value) and _.isEmpty(value)
