@@ -23,7 +23,7 @@
     "better-require": "0.0.3",
     "chalk": "^0.5.1",
     "coffee-script": "^1.8.0",
-    "couchbase": "^2.0.8",
+    "couchbase": "s2way/couchnode",
     "elastic": "^0.1.10",
     "elastic.js": "^1.2.0",
     "elasticsearch": "^2.4.0",
