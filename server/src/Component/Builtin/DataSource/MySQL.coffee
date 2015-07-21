@@ -1,7 +1,7 @@
 Exceptions = require '../../../Util/Exceptions'
 
 class MySQL
-    @static = true
+    @static = false
 
     # MySQL DataSource component
     # @param {string} dataSourceName The name of the DataSource defined in the application core.yml
