@@ -20,7 +20,7 @@
   "license": "Apache2",
   "name": "waferpie",
   "dependencies": {
-    "better-require": "0.0.3",
+    "better-require": "git://github.com/Moharu/better-require.git",
     "chalk": "^0.5.1",
     "coffee-script": "^1.8.0",
     "couchbase": "s2way/couchnode",
