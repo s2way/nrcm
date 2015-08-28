@@ -63,8 +63,8 @@
   "version": "0.9.16",
   "scripts": {
     "postinstall": "rm -rf dist; mkdir -p dist; cp -r server/* dist/ && find dist -type f -iname '*.coffee' -delete; coffee --compile --output dist server",
-    "pretest": "echo 'Lint'; grunt lint",
-    "test": "echo 'Unit tests'; grunt test"
+    "pretest": "echo 'Lint'; node_modules/.bin/coffeelint server",
+    "test": "echo 'Unit tests'; node_modules/.bin/mocha server/test --recursive -R progress --compilers coffee:coffee-script/register"
   },
   "contributors": [
     {
