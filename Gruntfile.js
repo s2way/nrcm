@@ -18,7 +18,7 @@ module.exports = function (grunt) {
 
     test += 'node_modules/.bin/mocha server/test --recursive -R progress --compilers coffee:coffee-script/register ';
 
-    cc += 'node_modules/.bin/mocha server/test --recursive -R html-cov -r blanket --compilers coffee:coffee-script/register > report.html';
+    cc += 'node_modules/.bin/mocha dist/test --recursive -r blanket -R mocha-cov-reporter';
 
     // Define the configuration for all the tasks
     grunt.initConfig({
