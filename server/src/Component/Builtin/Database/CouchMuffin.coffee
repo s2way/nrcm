@@ -326,4 +326,12 @@ class CouchMuffin
 #        sql = @$.update(@_table).set(data).where(conditions).build()
 #        @_mysql.query sql, [], callback
 
+    updateById: (id, data, callback) ->
+        @_method = 'updateById'
+        idWithPrefix = "#{@_keyPrefix}#{id}"
+
+        @_dataSource.bucket.replace idWithPrefix, data, (error, result) ->
+            return callback error if error?
+            return callback null, result
+
 module.exports = CouchMuffin
