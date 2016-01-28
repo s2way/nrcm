@@ -60,7 +60,7 @@ class Response
         return body
 
     _log: (message) ->
-        @_logger.log "#{@uuid.substring(24)} #{message}" if message?
+        @_logger.log "#{@uuid.substring(24)} #{message}" if message? and @_logger?
 
     _printHeaders: (headers) ->
         @_log "#{header}: #{headers[header]}" for header of headers

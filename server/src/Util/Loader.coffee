@@ -8,6 +8,7 @@ Router = require '../Core/Router'
 Request = require '../Controller/Request'
 Response = require '../Controller/Response'
 Sync = require './Sync'
+_ = require 'underscore'
 
 # Class for testing WaferPie applications outside the framework
 # Also can be used to load components and models in a non-api context (not RESTFul)
@@ -217,13 +218,31 @@ class Loader
         request.receive = (callback) ->
             callback options.payload
 
+        sentHeaders = null
+        sentStatusCode = null
+        sentBody = null
+
         response = new Response
         response.send = (body = {}, headers = {}, statusCode = 200) ->
+            if sentBody? and _.isEmpty(body)
+                body = sentBody
+            else if sentBody?
+                body = _.extend sentBody, body
             setImmediate(->
                 callback body,
-                    headers: headers
-                    statusCode: statusCode
+                    headers: sentHeaders or headers
+                    statusCode: sentStatusCode or statusCode
             )
+
+        response.write = (body) ->
+            return sentBody = body unless sentBody?
+            sentBody = _.extend sentBody, body
+
+        response.writeHead = (statusCode, headers) ->
+            sentStatusCode = statusCode if statusCode?
+            sentHeaders = headers if headers?
+
+        response.end = response.send
 
         monitoring =
             requests: 0
