@@ -243,6 +243,7 @@ class Loader
             sentHeaders = headers if headers?
 
         response.end = response.send
+        response._response = options?.httpSocket or new (require('stream').Writable)
 
         monitoring =
             requests: 0
