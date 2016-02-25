@@ -86,4 +86,7 @@ class ElasticSearch
     createIndex: (dataSource, params, callback) ->
         @client(dataSource).indices.create params, callback
 
+    putMapping: (dataSource, params, callback) ->
+        @client(dataSource).indices.putMapping params, callback
+
 module.exports = ElasticSearch
