@@ -132,6 +132,11 @@ class QueryBuilder
         @query += "INNER JOIN " + table + " "
         this
 
+    leftJoin: (table) ->
+        throw new Exceptions.IllegalArgument() if typeof table isnt "string"
+        @query += "LEFT JOIN " + table + " "
+        this
+
     having: ->
         @query += "HAVING " + @_conditions(arguments, "AND") + " "
         this

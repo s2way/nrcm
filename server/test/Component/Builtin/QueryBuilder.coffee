@@ -92,6 +92,17 @@ describe 'QueryBuilder.js', ->
             catch e
                 assert.equal "IllegalArgument", e.name
 
+    describe 'leftJoin', ->
+        it 'should output an LEFT JOIN + table name', ->
+            assert.equal "LEFT JOIN sky", $.leftJoin("sky").build()
+
+        it 'should throw an exception if no parameters are passed', ->
+            try
+                $.leftJoin()
+                assert.fail()
+            catch e
+                assert.equal "IllegalArgument", e.name
+
     describe 'on', ->
         it 'should output an ON + conditions', ->
             assert.equal "ON a = b AND c = d", $.on("a = b", "c = d").build()
