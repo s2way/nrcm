@@ -108,7 +108,7 @@ describe 'FieldUtils', ->
                 timezone = '+' + timezone
 
             result = fieldUtils.dateFormatSQL '2015-03-17T12:03:43.000' + timezone
-            expect(result).to.be '2015-03-17 11:03:43'
+            expect(result).to.be '2015-03-17 12:03:43'
 
         it 'should return the original value if it is invalid', ->
             result = fieldUtils.dateFormatSQL 'invalid date'
