@@ -356,6 +356,45 @@ describe "ElasticSearch.js", ->
                 expect(response).to.be undefined
                 done()
 
+        it 'should validate refresh param if it was passed with true', (done) ->
+
+            expectedIndex =
+                body: 'test'
+                refresh: true
+
+            instance.client = (dataSource) ->
+                bulk: (index, callback) ->
+                    expect(index).to.eql expectedIndex
+                    done()
+
+            instance.bulk 'default', 'test', null, true
+
+        it 'should validate refresh param if it was passed with false', (done) ->
+
+            expectedIndex =
+                body: 'test'
+                refresh: false
+
+            instance.client = (dataSource) ->
+                bulk: (index, callback) ->
+                    expect(index).to.eql expectedIndex
+                    done()
+
+            instance.bulk 'default', 'test', null, false
+
+        it 'should validate refresh param if it wasnt passed', (done) ->
+
+            expectedIndex =
+                body: 'test'
+                refresh: false
+
+            instance.client = (dataSource) ->
+                bulk: (index, callback) ->
+                    expect(index).to.eql expectedIndex
+                    done()
+
+            instance.bulk 'default', 'test', null, false
+
         it 'should return a success message if the items were correctly saved', (done) ->
 
             expectedResponse = 'That is nice'
