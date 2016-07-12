@@ -21,7 +21,10 @@ class Tasker
     constructor: (@_app, @_serverLogger) ->
         @_coreElementManager = new ElementManager @_app
         @_timers =[]
+        @_tasks = []
         @tasks = 0
+        process.on 'SIGTERM', =>
+            @youAreNext()
 
     run: ->
         @_validateTasks @_app.components
@@ -84,9 +87,27 @@ class Tasker
                 @_logger?.log? "Task: [#{name}] was invoked. [#{task.__logTrigger}]"
                 task.__logTrigger = 0
 
-            unless task.__isLocked
+            unless task.__isLocked or task.__marked
                 task.__isLocked = true
                 task[run](task.__emiter)
         , interval, @_serverLogger
+        
+        @_tasks.push task
+
+    youAreNext: ->
+        console.log 'Marking tasks...'
+        tasks = @_tasks.map (task) ->
+            task.__marked = true
+            task
+        console.log 'Marking done.'
+        setInterval ->
+            openTasks = tasks.filter (task) ->
+                task.__isLocked
+            console.log 'Open tasks:', openTasks.length
+            if openTasks.length is 0
+                console.log 'All tasks finished. Exiting...'
+                clearInterval setInterval
+                process.exit 0
+        , 1000
 
 module.exports = Tasker
