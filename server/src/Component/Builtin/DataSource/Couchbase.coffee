@@ -31,6 +31,9 @@ class Couchbase
     init: ->
         @view = @_couchbase.ViewQuery if @view?
         @_dataSource = @core.dataSources[@_dataSourceName]
+        console.log '#########'
+        console.log @_dataSource
+        console.log '#########'
         throw new Exceptions.IllegalArgument "Couldn't find data source #{@_dataSourceName}. Take a look at your core.json." unless @_dataSource
         @bucketName = @_dataSource.bucket
         @cluster = new @_couchbase.Cluster "#{@_dataSource.host}:#{@_dataSource.port}"
