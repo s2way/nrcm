@@ -3,6 +3,12 @@ uuid = require 'node-uuid'
 
 class CouchMuffin
     constructor: (options) ->
+        console.log "*****************************************"
+        console.log "**** CONSTRUCTOR COUCHMUFFFIN   *********"
+        console.log "OPTIONS: "
+        console.log JSON.stringify options, null, 2
+        console.log "*****************************************"
+
         @_dataSourceName = options?.dataSourceName || 'default'
         @_type = options?.type
         @_validate = options?.validate
@@ -18,8 +24,14 @@ class CouchMuffin
             @_skipMatch.push '_lastUpdate'
         @_skipMatch.push '_type'
         @_skipMatch.push '_id'
+        console.log 'FINAL CONSTRUCTOR'
 
     init: ->
+        console.log "*****************************************"
+        console.log "**** INIT COUCHMUFFFIN   *********"
+        console.log "INIT DATASOURCE NAME "
+        console.log @_dataSourceName
+        console.log "*****************************************"
         couch = @component 'DataSource.Couchbase', @_dataSourceName
         @_dataSource = {}
         @_dataSource.bucket = couch.limbo[@_dataSourceName]._bucket
@@ -28,6 +40,7 @@ class CouchMuffin
             validate: @_validate
             skipMatch: @_skipMatch
         @_cherries = @component 'Cherries'
+        console.log "FINALLL INIT"
 
     _addType: (data) ->
         data._type = @_type if @_type? and data?
